@@ -1,0 +1,90 @@
+/* File Path: assets/css/admin_style.css */
+
+/* ================= Basic Settings ================= */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f7f6;
+    margin: 40px;
+    color: #333;
+}
+h2, h3 { color: #333; margin-top: 0; }
+
+/* ================= Layout and Containers ================= */
+.container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    margin-bottom: 20px;
+}
+/* Design for two-column layout in venue management */
+.flex-container { display: flex; gap: 20px; }
+.box { background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+.form-section { flex: 1; }
+.table-section { flex: 2; }
+/* Design for centering the inspection form */
+.center-container { max-width: 600px; margin: auto; }
+
+/* ================= Navigation Bar ================= */
+/* ================= 導覽列 (升級版) ================= */
+.nav-bar { 
+    display: flex; 
+    justify-content: space-between; /* 讓選單靠左，登出靠右 */
+    align-items: center; 
+    margin-bottom: 20px; 
+    background-color: #fff; 
+    padding: 15px 20px; 
+    border-radius: 8px; 
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1); 
+}
+.nav-links a { text-decoration: none; color: #0056b3; margin-right: 15px; font-weight: bold; font-size: 16px; }
+.nav-links a:hover { color: #003d82; text-decoration: underline; }
+
+/* 登出按鈕專屬樣式 */
+.btn-logout { 
+    background-color: #dc3545; 
+    color: white; 
+    padding: 8px 16px; 
+    border-radius: 4px; 
+    text-decoration: none; 
+    font-weight: bold; 
+    font-size: 14px;
+    transition: background 0.2s;
+}
+.btn-logout:hover { background-color: #c82333; color: #0056b3; text-decoration: none; }
+
+/* ================= Table Design ================= */
+table { width: 100%; border-collapse: collapse; margin-top: 15px; background-color: #fff; }
+th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #ddd; font-size: 14px; }
+th { background-color: #343a40; color: white; }
+tr:hover { background-color: #f8f9fa; }
+.empty-msg { text-align: center; color: #777; font-style: italic; padding: 20px; }
+
+/* ================= Form Elements ================= */
+.form-group { margin-bottom: 15px; }
+label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; }
+input[type="text"], input[type="number"], select, textarea {
+    width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: inherit;
+}
+.info-box { background-color: #e9ecef; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+
+/* ================= Button System ================= */
+.btn { 
+    padding: 8px 12px; border: none; color: white; border-radius: 4px; 
+    cursor: pointer; text-decoration: none; font-size: 14px; display: inline-block; text-align: center;
+}
+.btn-approve { background-color: #28a745; margin-right: 5px; }
+.btn-approve:hover { background-color: #218838; }
+.btn-reject { background-color: #dc3545; }
+.btn-reject:hover { background-color: #c82333; }
+.btn-inspect { background-color: #17a2b8; }
+.btn-inspect:hover { background-color: #138496; }
+.btn-add, .btn-submit { background-color: #007bff; width: 100%; font-size: 16px; padding: 10px; margin-top: 10px; }
+.btn-add:hover, .btn-submit:hover { background-color: #0056b3; }
+.btn-delete { background-color: #dc3545; padding: 5px 10px; font-size: 12px; }
+.btn-delete:hover { background-color: #c82333; }
+.back-link { display: inline-block; margin-top: 15px; text-decoration: none; color: #007bff; font-weight: bold; }
+
+/* ================= Status Color Tags ================= */
+.status-available { color: #28a745; font-weight: bold; }
+.status-maintenance { color: #dc3545; font-weight: bold; }
