@@ -62,7 +62,7 @@ session_start();
     }
     ?>
 
-    <form action="../actions/process_register.php" method="POST">
+    <form action="../User/user_register_process.php" method="POST">
         <input type="text" name="full_name" placeholder="Full Name" required>
         <input type="email" name="email" placeholder="Email" required>
         <input type="password" name="password" placeholder="Password" required>
@@ -70,7 +70,7 @@ session_start();
     </form>
 
     <p style="text-align:center;">
-        Already have an account? <a href="login.php">Login</a>
+        Already have an account? <a href="../User/user_login.php">Login</a>
     </p>
 </div>
 

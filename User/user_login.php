@@ -3,7 +3,7 @@ session_start();
 
 // If user is already logged in, redirect to user homepage
 if (isset($_SESSION['user_id']) && $_SESSION['role'] === 'User') {
-    header("Location: home.php");
+    header("Location: homepage.php");
     exit();
 }
 ?>

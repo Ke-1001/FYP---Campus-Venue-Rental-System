@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Invalid credentials → redirect back to login page
-    header("Location: ../user/login.php?error=invalid");
+    header("Location: ../User/user_login.php?error=invalid");
     exit();
 }
 

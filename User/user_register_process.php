@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $check_result = $stmt->get_result();
 
     if ($check_result->num_rows > 0) {
-        header("Location: ../user/register.php?error=email_exists");
+        header("Location: ../User/user_register.php?error=email_exists");
         exit();
     }
 
@@ -30,10 +30,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->bind_param("sss", $full_name, $email, $password_hash);
 
     if ($stmt->execute()) {
-        header("Location: ../user/login.php?success=registered");
+        header("Location: ../User/user_login.php?success=registered");
         exit();
     } else {
-        header("Location: ../user/register.php?error=failed");
+        header("Location: ../User/user_register.php?error=failed");
         exit();
     }
 }

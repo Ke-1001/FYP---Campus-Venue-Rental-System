@@ -1,5 +1,5 @@
 <?php
-$page_title = "User Home";
+$page_title = "User Dashboard";
 include("../includes/user_header.php");
 include("../includes/user_navbar.php");
 ?>
