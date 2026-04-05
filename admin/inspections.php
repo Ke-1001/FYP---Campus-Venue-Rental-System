@@ -39,6 +39,10 @@ $result = $conn->query($sql);
             <a href="inspections.php">Inspections</a>
             <a href="manage_venues.php">Manage Venues</a>
             <a href="reports.php">Reports</a>
+
+            <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'Super_Admin'): ?>
+                <a href="add_admin.php" style="color: #dc3545;">Staff Management</a>
+            <?php endif; ?>
         </div>
         <a href="../actions/logout.php" class="btn-logout" onclick="return confirm('Are you sure you want to log out?');">Logout</a>
     </div>

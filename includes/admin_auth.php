@@ -6,7 +6,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // 1. role check: only allow logged-in users with 'Admin' role to access these pages
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'Admin') {
+if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['Normal_Admin', 'Super_Admin'])) {
     header("Location: ../admin/login.php?error=access_denied");
     exit();
 }

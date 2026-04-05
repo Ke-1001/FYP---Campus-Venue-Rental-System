@@ -7,7 +7,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password']; // USER enters plaintext password
 
     // 1. search for the user in the database
-    $sql = "SELECT user_id, full_name, password_hash, role FROM users WHERE email = ? AND role = 'Admin'";
+    $sql = "SELECT user_id, full_name, password_hash, role FROM users WHERE email = ? AND role IN ('Normal_Admin', 'Super_Admin')";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("s", $email);
     $stmt->execute();
