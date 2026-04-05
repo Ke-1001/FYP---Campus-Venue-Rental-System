@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 02, 2026 at 10:36 AM
+-- Generation Time: Apr 05, 2026 at 07:06 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -35,16 +35,20 @@ CREATE TABLE `bookings` (
   `start_time` time NOT NULL,
   `end_time` time NOT NULL,
   `booking_status` enum('Pending','Approved','Rejected','Completed','Cancelled','Returned') DEFAULT 'Pending',
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `payment_status` enum('Pending','Paid','Refunded') DEFAULT 'Pending',
+  `transaction_ref` varchar(50) DEFAULT NULL,
+  `purpose` varchar(100) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `bookings`
 --
 
-INSERT INTO `bookings` (`booking_id`, `user_id`, `venue_id`, `booking_date`, `start_time`, `end_time`, `booking_status`, `created_at`) VALUES
-(1, 1, 2, '2026-03-17', '14:00:00', '16:00:00', 'Completed', '2026-03-16 03:13:04'),
-(11, 3, 2, '2026-03-19', '10:00:00', '12:00:00', 'Approved', '2026-03-17 07:48:57');
+INSERT INTO `bookings` (`booking_id`, `user_id`, `venue_id`, `booking_date`, `start_time`, `end_time`, `booking_status`, `created_at`, `payment_status`, `transaction_ref`, `purpose`) VALUES
+(1, 1, 2, '2026-03-17', '14:00:00', '16:00:00', 'Completed', '2026-03-16 03:13:04', 'Pending', NULL, NULL),
+(11, 3, 2, '2026-03-19', '10:00:00', '12:00:00', 'Approved', '2026-03-17 07:48:57', 'Pending', NULL, NULL),
+(15, 5, 1, '2026-04-05', '13:36:00', '14:36:00', 'Pending', '2026-04-05 04:39:41', 'Paid', 'TXN-06DD7201', 'test');
 
 -- --------------------------------------------------------
 
@@ -102,7 +106,7 @@ CREATE TABLE `users` (
   `full_name` varchar(100) NOT NULL,
   `email` varchar(100) NOT NULL,
   `password_hash` varchar(255) NOT NULL,
-  `role` enum('Student','Staff','Admin') DEFAULT 'Student',
+  `role` enum('User','Normal_Admin','Super_Admin') DEFAULT 'User',
   `phone_number` varchar(20) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -112,9 +116,11 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`user_id`, `full_name`, `email`, `password_hash`, `role`, `phone_number`, `created_at`) VALUES
-(1, 'Student Abu', 'abu@student.mmu.edu.my', '123456', 'Student', NULL, '2026-03-16 03:13:04'),
-(2, 'Admin Siti', 'admin@mmu.edu.my', '$2y$10$4qfiQWytGNqZWE5dlDVio.BIKys.5AQli/TwSWTI9l7fFYOgK3VMu', 'Admin', NULL, '2026-03-16 03:13:04'),
-(3, 'ahmed', 'ahmed@student@mmu.edu.my', 'ahmed123', 'Student', '0123456789', '2026-03-17 07:06:12');
+(1, 'Student Abu', 'abu@student.mmu.edu.my', '123456', '', NULL, '2026-03-16 03:13:04'),
+(2, 'Admin Siti', 'admin@mmu.edu.my', '$2y$10$4qfiQWytGNqZWE5dlDVio.BIKys.5AQli/TwSWTI9l7fFYOgK3VMu', 'Super_Admin', NULL, '2026-03-16 03:13:04'),
+(3, 'ahmed', 'ahmed@student.mmu.edu.my', 'ahmed123', '', '0123456789', '2026-03-17 07:06:12'),
+(4, 'Abdul', 'abdul@gmail.com', '$2y$10$hNRMw32b1hAlg5XjPu60v.fep6.4lC/Kr0YlS0Et6Fl8VQLj9oESi', 'Normal_Admin', NULL, '2026-04-05 03:36:19'),
+(5, 'Lim', 'Lim@student.mmu.edu.my', '$2y$10$pVQHqZPp91nIGrGqurRsqe9xelg6vCEpaInQPzAiRwNKX.Z86VUvq', 'User', NULL, '2026-04-05 03:45:12');
 
 -- --------------------------------------------------------
 
@@ -189,7 +195,7 @@ ALTER TABLE `venues`
 -- AUTO_INCREMENT for table `bookings`
 --
 ALTER TABLE `bookings`
-  MODIFY `booking_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `booking_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `inspections`
@@ -207,7 +213,7 @@ ALTER TABLE `payments`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `venues`
