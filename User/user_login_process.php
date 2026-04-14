@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['role'] = $user['role'];
 
             // Redirect to user homepage
-            header("Location: ../user/home.php");
+            header("Location: ../user/user_dashboard.php");
             exit();
         }
     }
