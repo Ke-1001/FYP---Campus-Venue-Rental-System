@@ -58,8 +58,17 @@ session_start();
 
     <?php
     if (isset($_GET['error'])) {
+    if ($_GET['error'] == 'weak_password') {
+        echo "<p class='error'>
+        Password must be at least 8 characters and include:
+        uppercase, lowercase, number, and symbol.
+        </p>";
+    } elseif ($_GET['error'] == 'email_exists') {
+        echo "<p class='error'>Email already registered!</p>";
+    } else {
         echo "<p class='error'>Registration failed. Try again.</p>";
     }
+}
     ?>
 
     <form action="../User/user_register_process.php" method="POST">
