@@ -4,6 +4,11 @@ include("../includes/user_header.php");
 include("../includes/user_navbar.php");
 require_once("../config/db.php");
 
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../user/user_login.php");
+    exit();
+}
+
 $venue_id = isset($_GET["venue_id"]) ? (int)$_GET["venue_id"] : 0;
 
 $sql = "SELECT venue_id, venue_name, category, capacity, base_deposit, status
