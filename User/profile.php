@@ -2,7 +2,6 @@
 session_start();
 require_once '../config/db.php';
 
-// Security check: only logged-in users can access
 if (!isset($_SESSION['user_id'])) {
     header("Location: user_login.php?error=access_denied");
     exit();
@@ -10,11 +9,7 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// Get user information from database
-$sql = "SELECT full_name, email, phone_number, role, created_at 
-        FROM users 
-        WHERE user_id = ?";
-
+$sql = "SELECT full_name, email, role FROM users WHERE user_id = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
@@ -23,45 +18,150 @@ $user = $result->fetch_assoc();
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
     <title>My Profile</title>
-    <link rel="stylesheet" href="../assets/css/admin_style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        .profile-box {
-            width: 600px;
-            margin: 60px auto;
-            background: #fff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        body{
+            margin:0;
+            font-family:'Poppins', sans-serif;
+            background: linear-gradient(120deg,#4e73df,#1cc88a);
+            height:100vh;
+            display:flex;
+            justify-content:center;
+            align-items:center;
         }
-        .profile-box h2 {
-            text-align: center;
-            margin-bottom: 25px;
-            color: #0056b3;
+
+        .profile-container{
+            width:850px;
+            height:500px;
+            background:white;
+            border-radius:15px;
+            display:flex;
+            overflow:hidden;
+            box-shadow:0 15px 40px rgba(0,0,0,0.2);
         }
-        .profile-info p {
-            font-size: 16px;
-            margin: 10px 0;
+
+        .left-panel{
+            width:35%;
+            background:#2e59d9;
+            color:white;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            padding:30px;
         }
-        .label {
-            font-weight: bold;
+
+        .avatar{
+            width:120px;
+            height:120px;
+            border-radius:50%;
+            background:white;
+            margin-bottom:20px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:40px;
+            color:#2e59d9;
+            font-weight:600;
+        }
+
+        .left-panel h3{
+            margin:10px 0 5px;
+        }
+
+        .left-panel p{
+            opacity:0.8;
+            font-size:14px;
+        }
+
+        .right-panel{
+            width:65%;
+            padding:40px;
+        }
+
+        .right-panel h2{
+            margin-bottom:25px;
+            color:#333;
+        }
+
+        .info-group{
+            margin-bottom:20px;
+        }
+
+        .info-group label{
+            font-weight:600;
+            color:#555;
+            font-size:14px;
+        }
+
+        .info-box{
+            margin-top:5px;
+            padding:10px;
+            border-radius:6px;
+            background:#f8f9fc;
+            border:1px solid #ddd;
+        }
+
+        .edit-btn{
+            margin-top:25px;
+            padding:10px 18px;
+            background:#4e73df;
+            color:white;
+            border:none;
+            border-radius:6px;
+            cursor:pointer;
+            font-weight:600;
+        }
+
+        .edit-btn:hover{
+            background:#2e59d9;
         }
     </style>
 </head>
 <body>
 
-<div class="profile-box">
-    <h2>My Profile</h2>
-    <div class="profile-info">
-        <p><span class="label">Full Name:</span> <?php echo $user['full_name']; ?></p>
-        <p><span class="label">Email:</span> <?php echo $user['email']; ?></p>
-        <p><span class="label">Phone Number:</span> <?php echo $user['phone_number']; ?></p>
-        <p><span class="label">Role:</span> <?php echo $user['role']; ?></p>
-        <p><span class="label">Account Created:</span> <?php echo $user['created_at']; ?></p>
+<div class="profile-container">
+
+    <!-- LEFT PANEL -->
+    <div class="left-panel">
+        <div class="avatar">
+            <?php echo strtoupper(substr($user['full_name'],0,1)); ?>
+        </div>
+        <h3><?php echo htmlspecialchars($user['full_name']); ?></h3>
+        <p><?php echo htmlspecialchars($user['role']); ?></p>
     </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="right-panel">
+        <h2>Profile Information</h2>
+
+        <div class="info-group">
+            <label>Full Name</label>
+            <div class="info-box">
+                <?php echo htmlspecialchars($user['full_name']); ?>
+            </div>
+        </div>
+
+        <div class="info-group">
+            <label>Email Address</label>
+            <div class="info-box">
+                <?php echo htmlspecialchars($user['email']); ?>
+            </div>
+        </div>
+
+        <a href="edit_profile.php">
+    <button class="edit-btn">Edit Profile</button>
+</a>
+        <a href="change_password.php">
+    <button class="edit-btn" style="background:#e74a3b;margin-left:10px;">
+        Change Password
+    </button>
+</a>
+    </div>
+
 </div>
 
 </body>

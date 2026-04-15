@@ -108,16 +108,21 @@ $result = $conn->query($sql);
 
 <!-- Navbar -->
 <div class="navbar">
-    <div><strong>CVBMS</strong></div>
+    <div>
+        <strong>CVBMS</strong>
+        <?php if (isset($_SESSION['user_id'])): ?>
+            <span>Welcome, <?php echo $_SESSION['full_name']; ?> </span>
+        <?php endif; ?>
+    </div>
 
     <div>
         <a href="homepage.php">Home</a>
         <a href="venues.php">Venues</a>
         <a href="my_bookings.php">My Bookings</a>
-
+        
         <?php if (isset($_SESSION['user_id'])): ?>
-            <span>Welcome, <?php echo $_SESSION['full_name']; ?> 👋</span>
-            <a href="../user/user_logout.php">Logout</a>
+            <a href="profile.php">Profile</a>
+            <a href="../User/user_logout.php">Logout</a>
         <?php else: ?>
             <a href="../user/user_login.php">Login</a>
         <?php endif; ?>
