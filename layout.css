@@ -1,0 +1,86 @@
+/* * ==========================================
+ * MMU Admin Interface - Core Layout Template
+ * ==========================================
+ * 架構說明：
+ * 1. 隔離滾動條的系統預設行為，提升視覺信噪比
+ * 2. 封裝側邊欄 (Sidebar) 的空間向量過渡邏輯
+ * 3. 處理狀態集 S = { expanded, collapsed } 下的 DOM 節點渲染映射
+ */
+
+/* ------------------------------------------
+ * 1. 滾動條覆寫 (Scrollbar Override)
+ * ------------------------------------------ */
+::-webkit-scrollbar { 
+    width: 6px; 
+    height: 6px; 
+}
+::-webkit-scrollbar-track { 
+    background: transparent; 
+}
+::-webkit-scrollbar-thumb { 
+    background: #cbd5e1; 
+    border-radius: 3px; 
+}
+::-webkit-scrollbar-thumb:hover { 
+    background: #94a3b8; 
+}
+
+/* ------------------------------------------
+ * 2. 視覺材質組件 (Material Components)
+ * ------------------------------------------ */
+/* 毛玻璃效應矩陣：運用於頂部導航欄等需要 Z 軸深度分離的元件 */
+.glass-panel { 
+    background: rgba(255, 255, 255, 0.95); 
+    backdrop-filter: blur(10px); 
+    -webkit-backdrop-filter: blur(10px);
+}
+
+/* ------------------------------------------
+ * 3. 軌道式導航狀態機 (Rail Navigation State Machine)
+ * ------------------------------------------ */
+/* * 基態 (Ground State): S_expanded 
+ * 預設維持 16rem (256px) 的空間佔用
+ */
+.mmu-sidebar {
+    width: 16rem; /* 等效於 Tailwind w-64 */
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    overflow-x: hidden;
+    will-change: width; /* 提示瀏覽器優化渲染管線 */
+}
+
+/* * 坍縮態 (Collapsed State): S_collapsed 
+ * 觸發條件：附加 .sidebar-collapsed 類別
+ * 結果：寬度向量收斂至 4rem (64px)
+ */
+.mmu-sidebar.sidebar-collapsed {
+    width: 4rem; 
+}
+
+/* * 資訊熵衰減控制 (Information Entropy Attenuation)
+ * 當系統進入 S_collapsed 狀態時，強制隱藏非必要的文本節點
+ * 複雜度：O(1) DOM 樹查詢
+ */
+.mmu-sidebar.sidebar-collapsed .nav-text,
+.mmu-sidebar.sidebar-collapsed .brand-text,
+.mmu-sidebar.sidebar-collapsed .nav-badge,
+.mmu-sidebar.sidebar-collapsed .profile-text,
+.mmu-sidebar.sidebar-collapsed .nav-header {
+    display: none !important;
+}
+
+/* * 幾何向量重對齊 (Geometric Realignment)
+ * 在狹窄空間內強制圖示矩陣居中，消除原有 padding 導致的偏移
+ */
+.mmu-sidebar.sidebar-collapsed .nav-item,
+.mmu-sidebar.sidebar-collapsed .brand-header,
+.mmu-sidebar.sidebar-collapsed .profile-container {
+    justify-content: center !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+/* 確保品牌頭部在過渡期間的彈性佈局穩定 */
+.brand-header {
+    transition: padding 0.3s ease;
+}

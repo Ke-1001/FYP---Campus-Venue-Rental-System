@@ -1,0 +1,125 @@
+manage_admins.php: 
+<?php
+// File: admin/manage_admins.php
+session_start();
+
+// 💡 模擬管理員清單 (Identity Matrix)
+// 未來對接：SELECT admin_id, full_name, email, role, status FROM admins
+$admins = [
+    [
+        'id' => 'EMP-0001', 
+        'name' => 'Dr. Zachary (Head)', 
+        'email' => 'zachary.lead@mmu.edu.my', 
+        'role' => 'Super_Admin', 
+        'status' => 'Active'
+    ],
+    [
+        'id' => 'EMP-4421', 
+        'name' => 'Johnathan Teoh', 
+        'email' => 'jteoh@mmu.edu.my', 
+        'role' => 'Normal_Admin', 
+        'status' => 'Active'
+    ],
+    [
+        'id' => 'EMP-4422', 
+        'name' => 'Siti Nurhaliza', 
+        'email' => 'siti.n@mmu.edu.my', 
+        'role' => 'Normal_Admin', 
+        'status' => 'Suspended'
+    ],
+];
+?>
+
+manage_bookings.php:
+<?php
+// File: admin/manage_bookings.php
+session_start();
+
+// Mock Data Matrix
+$bookings = [
+    ['ref_id' => 'BKG-8821', 'entity' => 'IT Society (Club)', 'uid' => '1211105432', 'venue' => 'FCI Lecture Hall 1', 'date' => '2026-04-20', 'time' => '14:00 - 18:00', 'status' => 'Pending'],
+    ['ref_id' => 'BKG-8822', 'entity' => 'Ahmad bin Yusef', 'uid' => '1201103341', 'venue' => 'Sports Complex', 'date' => '2026-04-18', 'time' => '18:00 - 20:00', 'status' => 'Approved'],
+];
+?>
+
+manage_students.php:
+<?php
+// File: admin/manage_students.php
+session_start();
+
+// 💡 模擬學生矩陣 (Student Identity Matrix)
+// 未來對接：SELECT student_id, full_name, faculty, course, status FROM students
+$students = [
+    [
+        'id' => 'STU-1211', 
+        'name' => 'Siti Aishah', 
+        'email' => '1211105432@student.mmu.edu.my', 
+        'faculty' => 'FIST',
+        'course' => 'BIT (Hons.)',
+        'status' => 'Active'
+    ],
+    [
+        'id' => 'STU-1201', 
+        'name' => 'Tan Ah Kow', 
+        'email' => '1201103341@student.mmu.edu.my', 
+        'faculty' => 'FCI',
+        'course' => 'CS (Data Science)',
+        'status' => 'Active'
+    ],
+    [
+        'id' => 'STU-1191', 
+        'name' => 'K. Ravindran', 
+        'email' => '1191109982@student.mmu.edu.my', 
+        'faculty' => 'FOE',
+        'course' => 'Engineering (Telecomm)',
+        'status' => 'Graduated'
+    ],
+    [
+        'id' => 'STU-1221', 
+        'name' => 'Lee Mei Ling', 
+        'email' => '1221107765@student.mmu.edu.my', 
+        'faculty' => 'FCM',
+        'course' => 'Digital Media',
+        'status' => 'Suspended'
+    ]
+];
+?>
+
+manage_venues.php:
+<?php
+// File: admin/manage_venues.php
+session_start();
+
+// Mock Data Matrix for Physical Assets
+// To be replaced with SQL: SELECT * FROM venues ORDER BY venue_id ASC
+$venues = [
+    ['id' => 'VEN-101', 'name' => 'FCI Lecture Hall 1', 'category' => 'Hall', 'deposit' => '100.00', 'status' => 'Available'],
+    ['id' => 'VEN-102', 'name' => 'Lab 3042', 'category' => 'Laboratory', 'deposit' => '150.00', 'status' => 'Maintenance'],
+    ['id' => 'VEN-103', 'name' => 'FCM Black Box', 'category' => 'Studio', 'deposit' => '200.00', 'status' => 'Closed'],
+    ['id' => 'VEN-104', 'name' => 'FOM Meeting Room B', 'category' => 'Meeting Room', 'deposit' => '50.00', 'status' => 'Available']
+];
+?>
+
+report.php:
+<?php
+// File: admin/report.php
+session_start();
+
+// 💡 模擬聚合數據矩陣 (Mock Data Aggregation Matrix)
+// 未來由組員對接 SQL: SELECT DATE_FORMAT(date, '%b'), SUM(amount) FROM payments GROUP BY ...
+
+// 1. 財務收入向量 (Financial Intake Vector)
+$months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+$revenue_data = [1200, 1900, 2400, 2100, 3500, 4200];
+
+// 2. 節點利用率矩陣 (Node Utilization Matrix)
+$venue_labels = ['Lecture Hall 1', 'Lab 3042', 'DTC Main Hall', 'Meeting Room B'];
+$utilization_percentages = [92, 85, 74, 60];
+
+// 3. 財務交易流水 (Financial Ledger)
+$transactions = [
+    ['id' => 'TXN-7701', 'ref' => 'BKG-8821', 'type' => 'Deposit', 'amount' => '100.00', 'date' => '2026-04-18', 'status' => 'Settled'],
+    ['id' => 'TXN-7702', 'ref' => 'BKG-8822', 'type' => 'Deposit', 'amount' => '150.00', 'date' => '2026-04-17', 'status' => 'Settled'],
+    ['id' => 'TXN-7703', 'ref' => 'BKG-8823', 'type' => 'Penalty', 'amount' => '50.00', 'date' => '2026-04-16', 'status' => 'Pending'],
+];
+?>

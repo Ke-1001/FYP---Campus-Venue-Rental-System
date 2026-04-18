@@ -1,115 +1,144 @@
 <?php
-require_once '../includes/admin_auth.php';
+// File: admin/manage_venues.php
+session_start();
+require_once("../config/db.php");
 
-require_once '../config/db.php';
+$venues = [];
+$sql_venues = "
+    SELECT 
+        CONCAT('VEN-', LPAD(venue_id, 3, '0')) AS id, 
+        venue_name AS name, 
+        category, 
+        base_deposit AS deposit, 
+        status 
+    FROM venues 
+    ORDER BY venue_id ASC";
 
-// get all venues for display
-$sql = "SELECT * FROM venues ORDER BY created_at DESC";
-$result = $conn->query($sql);
+$result = $conn->query($sql_venues);
+if ($result && $result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        $venues[] = $row;
+    }
+}
 ?>
-
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Admin Dashboard - Venue Management Center</title>
-    <link rel="stylesheet" href="../assets/css/admin_style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MMU Admin | Venue Registry</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = { theme: { extend: { colors: { mmu: { blue: '#004aad', dark: '#1e293b', accent: '#38bdf8' } } } } }
+    </script>
+    <link rel="stylesheet" href="layout.css?v=1.1">
 </head>
-<body>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
 
-    <div class="nav-bar">
-        <div class="nav-links">
-            <a href="manage_bookings.php">Bookings</a>
-            <a href="inspections.php">Inspections</a>
-            <a href="manage_venues.php">Manage Venues</a>
-            <a href="reports.php">Reports</a>
+    <?php include('../includes/admin_sidebar.php'); ?>
 
-            <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'Super_Admin'): ?>
-                <a href="add_admin.php" style="color: #dc3545;">Staff Management</a>
-            <?php endif; ?>
+    <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-50">
+        
+        <header class="h-16 glass-panel border-b border-slate-200 flex items-center justify-between px-6 z-10 shrink-0">
+            <div class="flex items-center">
+                <button onclick="toggleSidebar()" class="p-2 mr-4 text-slate-500 hover:text-mmu-blue transition-colors rounded-lg hover:bg-slate-100 focus:outline-none">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+                <div class="flex items-center text-slate-500 bg-white px-4 py-2 rounded-lg border border-slate-200 focus-within:border-mmu-blue shadow-sm transition-all">
+                    <i data-lucide="search" class="w-4 h-4 mr-2"></i>
+                    <input type="text" placeholder="Search infrastructure nodes..." class="bg-transparent border-none outline-none w-64 text-sm focus:ring-0">
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <button class="relative p-2 text-slate-500 hover:text-mmu-blue transition-colors rounded-full hover:bg-slate-100">
+                    <i data-lucide="bell" class="w-5 h-5"></i>
+                    <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                </button>
+                <button class="p-2 text-slate-500 hover:text-mmu-blue rounded-full hover:bg-slate-100">
+                    <i data-lucide="user-circle" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-8">
+            
+            <div class="flex justify-between items-end mb-8">
+                <div>
+                    <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Venue Infrastructure</h1>
+                    <p class="text-sm text-slate-500 mt-1">Control operational state and financial baseline parameters.</p>
+                </div>
+                <button class="px-4 py-2 bg-mmu-blue text-white font-bold rounded-lg shadow flex items-center hover:bg-blue-700 transition">
+                    <i data-lucide="plus" class="w-4 h-4 mr-2"></i> Register Node
+                </button>
+            </div>
+
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-widest">
+                            <th class="px-6 py-4 border-b border-slate-200">Venue ID</th>
+                            <th class="px-6 py-4 border-b border-slate-200">Designation</th>
+                            <th class="px-6 py-4 border-b border-slate-200">Classification</th>
+                            <th class="px-6 py-4 border-b border-slate-200">Base Deposit (RM)</th>
+                            <th class="px-6 py-4 border-b border-slate-200">State Machine</th>
+                            <th class="px-6 py-4 border-b border-slate-200 text-right">Configuration</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm text-slate-700 divide-y divide-slate-100">
+                        <?php foreach($venues as $venue): ?>
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="px-6 py-4 font-mono text-xs font-bold text-mmu-blue"><?php echo $venue['id']; ?></td>
+                            <td class="px-6 py-4 font-bold text-slate-800"><?php echo htmlspecialchars($venue['name']); ?></td>
+                            <td class="px-6 py-4 font-medium text-slate-500"><?php echo htmlspecialchars($venue['category']); ?></td>
+                            <td class="px-6 py-4 font-mono font-bold text-slate-700"><?php echo number_format((float)$venue['deposit'], 2); ?></td>
+                            <td class="px-6 py-4">
+                                <?php 
+                                    // Status Vector Processing
+                                    $statusClass = "bg-slate-100 text-slate-600 border-slate-200";
+                                    $icon = "minus";
+                                    
+                                    if($venue['status'] === 'Available') { 
+                                        $statusClass = "bg-emerald-50 text-emerald-600 border-emerald-200"; 
+                                        $icon = "check-circle-2"; 
+                                    } elseif($venue['status'] === 'Maintenance') { 
+                                        $statusClass = "bg-amber-50 text-amber-600 border-amber-200"; 
+                                        $icon = "wrench"; 
+                                    } elseif($venue['status'] === 'Closed') { 
+                                        $statusClass = "bg-red-50 text-red-600 border-red-200"; 
+                                        $icon = "slash"; 
+                                    }
+                                ?>
+                                <span class="px-2 py-1 border <?php echo $statusClass; ?> rounded text-[10px] font-black uppercase tracking-widest inline-flex items-center">
+                                    <i data-lucide="<?php echo $icon; ?>" class="w-3 h-3 mr-1"></i>
+                                    <?php echo $venue['status']; ?>
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <button class="p-2 text-slate-500 hover:text-mmu-blue hover:bg-blue-50 border border-transparent hover:border-blue-200 rounded-lg transition" title="Modify Asset Properties">
+                                    <i data-lucide="settings-2" class="w-4 h-4"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="mt-6 flex justify-between items-center text-xs font-bold text-slate-400 uppercase tracking-widest">
+                <span>Total Registered Nodes: <?php echo count($venues); ?></span>
+            </div>
+
         </div>
-        <a href="../actions/logout.php" class="btn-logout" onclick="return confirm('Are you sure you want to log out?');">Logout</a>
-    </div>
+    </main>
+    <script>
+        lucide.createIcons();
 
-    <h2>Venue Management</h2>
-
-    <div class="container">
-        <div class="box form-section">
-            <h3>Add New Venue</h3>
-            <form action="../actions/process_venue.php" method="POST">
-                <input type="hidden" name="action" value="add">
-                
-                <div class="form-group">
-                    <label>Venue Name:</label>
-                    <input type="text" name="venue_name" required placeholder="e.g., Main Hall B">
-                </div>
-                
-                <div class="form-group">
-                    <label>Category:</label>
-                    <select name="category" required>
-                        <option value="Discussion Room">Discussion Room</option>
-                        <option value="Sports Court">Sports Court</option>
-                        <option value="Event Hall">Event Hall</option>
-                        <option value="Meeting Room">Meeting Room</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>Capacity:</label>
-                    <input type="number" name="capacity" min="1" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Base Deposit (RM):</label>
-                    <input type="number" name="base_deposit" step="0.01" min="0" required placeholder="0.00">
-                </div>
-
-                <button type="submit" class="btn btn-add">Confirm Addition</button>
-            </form>
-        </div>
-
-        <div class="box table-section">
-            <h3>Existing Venues List</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Category</th>
-                        <th>Capacity</th>
-                        <th>Deposit (RM)</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php
-                    if ($result->num_rows > 0) {
-                        while($row = $result->fetch_assoc()) {
-                            $status_class = ($row['status'] == 'Available') ? 'status-available' : 'status-maintenance';
-                            echo "<tr>";
-                            echo "<td>{$row['venue_id']}</td>";
-                            echo "<td>{$row['venue_name']}</td>";
-                            echo "<td>{$row['category']}</td>";
-                            echo "<td>{$row['capacity']} people</td>";
-                            echo "<td>" . number_format($row['base_deposit'], 2) . "</td>";
-                            echo "<td class='{$status_class}'>{$row['status']}</td>";
-                            // Delete button: pass venue_id and action to backend via GET
-                            echo "<td>
-                                 <a href='edit_venue.php?id={$row['venue_id']}' class='btn btn-approve' style='background-color:#17a2b8; margin-right:5px;'>Edit</a>
-                                <a href='../actions/process_venue.php?action=delete&id={$row['venue_id']}' class='btn btn-delete' onclick=\"return confirm('Warning: Deleting this venue will also delete all associated booking records! Are you sure you want to delete it?');\">Delete</a>
-                            </td>";
-                            echo "</tr>";
-                        }
-                    } else {
-                        echo "<tr><td colspan='7' style='text-align:center;'>No venues available at the moment.</td></tr>";
-                    }
-                    ?>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
+        function toggleSidebar() {
+            const sidebar = document.getElementById('system-sidebar');
+            sidebar.classList.toggle('sidebar-collapsed');
+        }
+    </script>
 </body>
 </html>
-<?php $conn->close(); ?>
