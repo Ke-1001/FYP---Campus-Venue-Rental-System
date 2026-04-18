@@ -30,6 +30,13 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     <span class="ml-3 font-medium nav-text">Venue Registry</span>
                 </a>
             </li>
+
+            <li>
+                <a href="report.php" class="nav-item flex items-center px-4 py-3 <?php echo ($current_page == 'report.php') ? 'bg-mmu-blue' : 'text-slate-300 hover:bg-slate-800'; ?> rounded-lg transition-colors">
+                    <i data-lucide="line-chart" class="w-5 h-5 shrink-0"></i>
+                    <span class="ml-3 font-medium nav-text">Statistical Reports</span>
+                </a>
+            </li>
             
             <li class="pt-4 pb-2 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider nav-header">Identity Management</li>
             <li>
@@ -45,12 +52,6 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 </a>
             </li>
             
-            <li class="pt-4 nav-header">
-                <a href="report.php" class="nav-item flex items-center px-4 py-3 <?php echo ($current_page == 'report.php') ? 'bg-mmu-blue' : 'text-slate-300 hover:bg-slate-800'; ?> rounded-lg transition-colors">
-                    <i data-lucide="line-chart" class="w-5 h-5 shrink-0"></i>
-                    <span class="ml-3 font-medium nav-text">Statistical Reports</span>
-                </a>
-            </li>
         </ul>
     </nav>
 
