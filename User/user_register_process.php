@@ -7,7 +7,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email']);
     $password = $_POST['password'];
 
-    // 1. Check if email already exists
+    // Password strength validation
+    $pattern = "/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/";
+
+    if (!preg_match($pattern, $password)) {
+        header("Location: ../User/user_register.php?error=weak_password");
+        exit();
+    }
+
+    // Check if email already exists
     $check_sql = "SELECT user_id FROM users WHERE email = ?";
     $stmt = $conn->prepare($check_sql);
     $stmt->bind_param("s", $email);
@@ -19,10 +27,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
 
-    // 2. Hash password
+    // Hash password securely
     $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
-    // 3. Insert user (default role = User)
+    // Insert user
     $sql = "INSERT INTO users (full_name, email, password_hash, role) 
             VALUES (?, ?, ?, 'User')";
     

@@ -2,7 +2,7 @@
 session_start();
 require_once '../config/db.php';
 
-$sql = "SELECT venue_id, venue_name, description FROM venues LIMIT 3";
+$sql = "SELECT venue_id, venue_name FROM venues LIMIT 3";
 $result = $conn->query($sql);
 ?>
 
@@ -111,15 +111,15 @@ $result = $conn->query($sql);
     <div><strong>CVBMS</strong></div>
 
     <div>
-        <a href="home.php">Home</a>
+        <a href="homepage.php">Home</a>
         <a href="venues.php">Venues</a>
         <a href="my_bookings.php">My Bookings</a>
 
         <?php if (isset($_SESSION['user_id'])): ?>
             <span>Welcome, <?php echo $_SESSION['full_name']; ?> 👋</span>
-            <a href="../auth/logout.php">Logout</a>
+            <a href="../user/user_logout.php">Logout</a>
         <?php else: ?>
-            <a href="login.php">Login</a>
+            <a href="../user/user_login.php">Login</a>
         <?php endif; ?>
     </div>
 </div>
@@ -162,7 +162,6 @@ $result = $conn->query($sql);
         <?php while($row = $result->fetch_assoc()): ?>
             <div class="venue-card">
                 <h3><?php echo $row['venue_name']; ?></h3>
-                <p><?php echo $row['description']; ?></p>
                 <a href="venue_details.php?id=<?php echo $row['venue_id']; ?>">
                     View Details
                 </a>
