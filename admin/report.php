@@ -7,7 +7,6 @@ require_once('../includes/admin_auth.php'); // 💡 注入安全閘道器 (已�
 require_once("../config/db.php");
 
 // 💡 1. 財務與利用率趨勢模擬 (Data Aggregation)
-// 由於真實系統初期資料稀疏，先擷取所有場地的基本押金總和作為模擬基準
 $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
 $revenue_data = [0, 0, 0, 0, 0, 0]; 
 
@@ -17,11 +16,12 @@ $sql_util = "SELECT venue_name, capacity FROM venues LIMIT 5";
 $res_util = $conn->query($sql_util);
 while($row = $res_util->fetch_assoc()) {
     $venue_labels[] = $row['venue_name'];
-    $utilization_percentages[] = min($row['capacity'] * 2, 100); // 視覺化模擬運算
+    $utilization_percentages[] = min($row['capacity'] * 2, 100); 
 }
 
 // 💡 2. 財務交易流水矩陣 (Financial Ledger using UNION ALL)
 $transactions = [];
+// 修正：直接抓取真實的 payment_status，且 Penalty 區塊透過 JOIN 關聯 payments 表格
 $sql_ledger = "
     SELECT 
         CONCAT('TXN-D', LPAD(payment_id, 4, '0')) AS id, 
@@ -29,17 +29,19 @@ $sql_ledger = "
         'Deposit' AS type, 
         deposit_paid AS amount, 
         DATE_FORMAT(updated_at, '%Y-%m-%d') AS date,
-        IF(payment_status = 'Settled', 'Settled', 'Pending') AS status 
+        payment_status AS status 
     FROM payments
     UNION ALL
     SELECT 
-        CONCAT('TXN-P', LPAD(inspection_id, 4, '0')) AS id, 
-        CONCAT('BKG-', LPAD(booking_id, 4, '0')) AS ref, 
+        CONCAT('TXN-P', LPAD(i.inspection_id, 4, '0')) AS id, 
+        CONCAT('BKG-', LPAD(i.booking_id, 4, '0')) AS ref, 
         'Penalty' AS type, 
-        assessed_penalty AS amount, 
-        DATE_FORMAT(inspected_at, '%Y-%m-%d') AS date,
-        'Pending' AS status 
-    FROM inspections WHERE assessed_penalty > 0
+        i.assessed_penalty AS amount, 
+        DATE_FORMAT(i.inspected_at, '%Y-%m-%d') AS date,
+        p.payment_status AS status 
+    FROM inspections i
+    JOIN payments p ON i.booking_id = p.booking_id
+    WHERE i.assessed_penalty > 0
     ORDER BY date DESC LIMIT 10
 ";
 
@@ -64,7 +66,7 @@ if ($result && $result->num_rows > 0) {
             theme: { extend: { colors: { mmu: { blue: '#004aad', dark: '#1e293b', accent: '#38bdf8' } } } }
         }
     </script>
-    <link rel="stylesheet" href="layout.css?v=1.1">
+    <link rel="stylesheet" href="layout.css?v=1.2">
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
 
@@ -150,11 +152,24 @@ if ($result && $result->num_rows > 0) {
                             <td class="px-6 py-4 font-bold text-slate-600"><?php echo $tx['type']; ?></td>
                             <td class="px-6 py-4 font-mono font-bold"><?php echo $tx['amount']; ?></td>
                             <td class="px-6 py-4 text-right">
-                                <?php if($tx['status'] === 'Settled'): ?>
-                                    <span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-[10px] font-black uppercase tracking-widest">Settled</span>
-                                <?php else: ?>
-                                    <span class="px-2 py-0.5 bg-amber-50 text-amber-600 rounded text-[10px] font-black uppercase tracking-widest">Pending</span>
-                                <?php endif; ?>
+                                <?php 
+                                    // 💡 動態色彩標籤解析器
+                                    $status_class = "bg-slate-50 text-slate-600";
+                                    $status_label = str_replace('_', ' ', $tx['status']);
+                                    
+                                    if($tx['status'] === 'Settled' || $tx['status'] === 'Paid') {
+                                        $status_class = "bg-emerald-50 text-emerald-600";
+                                    } elseif($tx['status'] === 'Refunded') {
+                                        $status_class = "bg-blue-50 text-blue-600";
+                                    } elseif($tx['status'] === 'Outstanding_Balance') {
+                                        $status_class = "bg-red-50 text-red-600";
+                                    } elseif($tx['status'] === 'Deposit_Held' || $tx['status'] === 'Pending') {
+                                        $status_class = "bg-amber-50 text-amber-600";
+                                    }
+                                ?>
+                                <span class="px-2 py-0.5 <?php echo $status_class; ?> rounded text-[10px] font-black uppercase tracking-widest">
+                                    <?php echo htmlspecialchars($status_label); ?>
+                                </span>
                             </td>
                         </tr>
                         <?php endforeach; ?>
@@ -168,7 +183,6 @@ if ($result && $result->num_rows > 0) {
     <script>
         lucide.createIcons();
 
-        // 從 PHP 安全映射資料至 JavaScript
         const months = <?php echo json_encode($months); ?>;
         const revenueData = <?php echo json_encode($revenue_data); ?>;
         const venueLabels = <?php echo json_encode($venue_labels); ?>;

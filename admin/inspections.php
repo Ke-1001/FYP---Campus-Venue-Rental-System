@@ -2,7 +2,7 @@
 // File: admin/inspections.php
 session_start();
 require_once '../config/db.php';
-require_once('../includes/admin_auth.php'); // 💡 注入安全閘道器 (已內建 session_start)
+require_once('../includes/admin_auth.php'); 
 require_once("../config/db.php");
 
 $sweep_sql = "
@@ -13,7 +13,6 @@ $sweep_sql = "
 ";
 $conn->query($sweep_sql);
 
-// 優化後的 SQL：導入 LEFT JOIN 與 COALESCE 防止資料遺漏
 $sql = "SELECT 
             b.booking_id AS raw_id, 
             CONCAT('BKG-', LPAD(b.booking_id, 4, '0')) AS ref_id,
@@ -22,11 +21,11 @@ $sql = "SELECT
             b.booking_status,
             u.full_name AS student_name, 
             v.venue_name, 
-            COALESCE(p.deposit_paid, 0.00) AS deposit_paid /* 💡 若無付款紀錄，防呆補零 */
+            COALESCE(p.deposit_paid, 0.00) AS deposit_paid
         FROM bookings b
         JOIN users u ON b.user_id = u.user_id
         JOIN venues v ON b.venue_id = v.venue_id
-        LEFT JOIN payments p ON b.booking_id = p.booking_id /* 💡 降級為左外部合併，容忍付款紀錄缺失 */
+        LEFT JOIN payments p ON b.booking_id = p.booking_id 
         WHERE b.booking_status = 'Returned'
         ORDER BY b.booking_date ASC, b.start_time ASC";
 
@@ -173,7 +172,7 @@ $result = $conn->query($sql);
                     <div class="space-y-4">
                         <div>
                             <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Venue State Assessment</label>
-                            <select name="inspection_status" required class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm bg-white">
+                            <select name="inspection_status" id="modal-status" onchange="togglePenaltyFields()" required class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm bg-white transition-all">
                                 <option value="Good">Good (Full Refund)</option>
                                 <option value="Dirty">Dirty (Deduction Only)</option>
                                 <option value="Minor_Damage">Minor Damage (Deduction, Venue Open)</option>
@@ -183,12 +182,12 @@ $result = $conn->query($sql);
 
                         <div>
                             <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Damage Description Log</label>
-                            <textarea name="damage_description" rows="2" placeholder="Leave blank if venue is in good condition..." class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm"></textarea>
+                            <textarea name="damage_description" id="modal-desc" rows="2" placeholder="Leave blank if venue is in good condition..." class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm transition-all"></textarea>
                         </div>
 
                         <div>
                             <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Assessed Penalty (RM)</label>
-                            <input type="number" name="assessed_penalty" step="0.01" min="0" value="0.00" required class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm font-mono">
+                            <input type="number" name="assessed_penalty" id="modal-penalty" step="0.01" min="0" value="0.00" required class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm font-mono transition-all">
                             <p class="text-[10px] text-slate-400 mt-1">* Enter 0.00 for automatic full deposit refund.</p>
                         </div>
                     </div>
@@ -212,6 +211,39 @@ $result = $conn->query($sql);
             sidebar.classList.toggle('sidebar-collapsed');
         }
 
+        // 💡 Dynamic Form Validation Engine
+        function togglePenaltyFields() {
+            const status = document.getElementById('modal-status').value;
+            const desc = document.getElementById('modal-desc');
+            const penalty = document.getElementById('modal-penalty');
+
+            if (status === 'Good') {
+                // Lock fields securely using readonly (preserves POST data integrity)
+                desc.readOnly = true;
+                desc.required = false;
+                desc.value = '';
+                desc.classList.add('bg-slate-100', 'cursor-not-allowed', 'placeholder-slate-300');
+                
+                penalty.readOnly = true;
+                penalty.value = '0.00';
+                penalty.classList.add('bg-slate-100', 'cursor-not-allowed');
+            } else {
+                // Unlock and enforce completion
+                desc.readOnly = false;
+                desc.required = true;
+                desc.classList.remove('bg-slate-100', 'cursor-not-allowed', 'placeholder-slate-300');
+                desc.placeholder = "Required: Detail the damages or cleanliness issues...";
+                
+                penalty.readOnly = false;
+                penalty.classList.remove('bg-slate-100', 'cursor-not-allowed');
+                
+                // Force user to input a new value instead of leaving 0.00
+                if (penalty.value === '0.00' || penalty.value === '0') {
+                    penalty.value = ''; 
+                }
+            }
+        }
+
         // Modal Injection Logic
         function openInspectModal(btn) {
             document.getElementById('modal-booking-id').value = btn.getAttribute('data-id');
@@ -220,8 +252,9 @@ $result = $conn->query($sql);
             document.getElementById('modal-venue').innerText = btn.getAttribute('data-venue');
             document.getElementById('modal-deposit').innerText = 'RM ' + btn.getAttribute('data-deposit');
             
-            // Reset form
+            // Reset form and manually trigger the dynamic logic to set default 'Good' state
             document.querySelector('#inspect-modal form').reset();
+            togglePenaltyFields();
             
             document.getElementById('inspect-modal').classList.remove('hidden');
         }
