@@ -1,11 +1,15 @@
 <?php
 // File: admin/manage_students.php
+
 session_start();
+require_once("../config/db.php");
+require_once('../includes/admin_auth.php'); // 💡 注入安全閘道器 (已內建 session_start)
 require_once("../config/db.php");
 
 $students = [];
 $sql_students = "
     SELECT 
+        user_id AS raw_id,
         CONCAT('STU-', LPAD(user_id, 4, '0')) AS id, 
         full_name AS name, 
         email, 
@@ -32,11 +36,9 @@ if ($result && $result->num_rows > 0) {
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
-        tailwind.config = {
-            theme: { extend: { colors: { mmu: { blue: '#004aad', dark: '#1e293b', accent: '#38bdf8' } } } }
-        }
+        tailwind.config = { theme: { extend: { colors: { mmu: { blue: '#004aad', dark: '#1e293b', accent: '#38bdf8' } } } } }
     </script>
-    <link rel="stylesheet" href="layout.css?v=1.1">
+    <link rel="stylesheet" href="layout.css?v=1.2">
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
 
@@ -73,7 +75,7 @@ if ($result && $result->num_rows > 0) {
                     <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Student Directory</h1>
                     <p class="text-sm text-slate-500 mt-1">Comprehensive registry of all student entities within the system.</p>
                 </div>
-                <button class="px-4 py-2 bg-mmu-blue text-white font-bold rounded-lg shadow flex items-center hover:bg-blue-700 transition">
+                <button onclick="openStudentModal('add')" class="px-4 py-2 bg-mmu-blue text-white font-bold rounded-lg shadow flex items-center hover:bg-blue-700 transition">
                     <i data-lucide="user-plus" class="w-4 h-4 mr-2"></i> Register Student
                 </button>
             </div>
@@ -118,12 +120,18 @@ if ($result && $result->num_rows > 0) {
                             </td>
                             <td class="px-6 py-4 text-right">
                                 <div class="flex justify-end space-x-2">
-                                    <button class="p-1.5 text-slate-400 hover:text-mmu-blue hover:bg-blue-50 border border-transparent hover:border-blue-200 rounded transition">
+                                    <button onclick="openStudentModal('edit', this)" 
+                                            data-id="<?php echo $stu['raw_id']; ?>"
+                                            data-name="<?php echo htmlspecialchars($stu['name']); ?>"
+                                            data-email="<?php echo htmlspecialchars($stu['email']); ?>"
+                                            class="p-1.5 text-slate-400 hover:text-mmu-blue hover:bg-blue-50 border border-transparent hover:border-blue-200 rounded transition tooltip" title="Edit Properties">
                                         <i data-lucide="edit-3" class="w-4 h-4"></i>
                                     </button>
-                                    <button class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 rounded transition">
+                                    <a href="../actions/process_student.php?action=delete&id=<?php echo $stu['raw_id']; ?>" 
+                                       onclick="triggerCustomConfirm(event, 'CRITICAL WARNING: Terminate student record? This will forcefully cascade and delete all associated bookings.', this.href);"
+                                       class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 rounded transition tooltip" title="Revoke Record">
                                         <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                    </button>
+                                    </a>
                                 </div>
                             </td>
                         </tr>
@@ -131,20 +139,79 @@ if ($result && $result->num_rows > 0) {
                     </tbody>
                 </table>
             </div>
-
-            <div class="mt-6 flex justify-between items-center text-xs font-bold text-slate-400 uppercase tracking-widest">
-                <span>Total Active Student Records: <?php echo count($students); ?></span>
-            </div>
-
+            
         </div>
     </main>
+
+    <div id="student-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center transition-opacity">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-200">
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h3 id="modal-title" class="text-lg font-extrabold text-slate-800">Register Student</h3>
+                <button type="button" onclick="closeStudentModal()" class="text-slate-400 hover:text-slate-600 transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form action="../actions/process_student.php" method="POST" class="p-6 space-y-4">
+                <input type="hidden" name="action" id="modal-action" value="add">
+                <input type="hidden" name="user_id" id="modal-user-id" value="">
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Full Name</label>
+                    <input type="text" name="full_name" id="modal-name" required class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-mmu-blue focus:ring-1 focus:ring-mmu-blue text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Institutional Email</label>
+                    <input type="email" name="email" id="modal-email" required class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-mmu-blue focus:ring-1 focus:ring-mmu-blue text-sm font-mono">
+                </div>
+                <div id="pwd-container">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Initial Password</label>
+                    <input type="password" name="password" id="modal-password" class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-mmu-blue focus:ring-1 focus:ring-mmu-blue text-sm font-mono tracking-widest" placeholder="Required for new nodes">
+                </div>
+                
+                <div class="mt-6 flex justify-end space-x-3 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="closeStudentModal()" class="px-4 py-2 text-sm font-bold text-slate-500 hover:bg-slate-100 rounded-lg transition">Cancel</button>
+                    <button type="submit" class="px-6 py-2 text-sm font-bold text-white bg-mmu-blue hover:bg-blue-700 rounded-lg transition shadow">Deploy Configuration</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <?php include('../includes/ui_components.php'); ?>
 
     <script>
         lucide.createIcons();
 
         function toggleSidebar() {
-            const sidebar = document.getElementById('system-sidebar');
-            sidebar.classList.toggle('sidebar-collapsed');
+            document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed');
+        }
+
+        function openStudentModal(mode, btn = null) {
+            document.querySelector('#student-modal form').reset();
+            const actionInput = document.getElementById('modal-action');
+            const title = document.getElementById('modal-title');
+            const pwdContainer = document.getElementById('pwd-container');
+            const pwdInput = document.getElementById('modal-password');
+
+            if (mode === 'add') {
+                actionInput.value = 'add';
+                title.innerText = 'Register Student Entity';
+                pwdContainer.classList.remove('hidden');
+                pwdInput.required = true;
+            } else if (mode === 'edit' && btn) {
+                actionInput.value = 'edit';
+                title.innerText = 'Configure Student Properties';
+                pwdContainer.classList.add('hidden');
+                pwdInput.required = false;
+
+                document.getElementById('modal-user-id').value = btn.getAttribute('data-id');
+                document.getElementById('modal-name').value = btn.getAttribute('data-name');
+                document.getElementById('modal-email').value = btn.getAttribute('data-email');
+            }
+            document.getElementById('student-modal').classList.remove('hidden');
+        }
+
+        function closeStudentModal() {
+            document.getElementById('student-modal').classList.add('hidden');
         }
     </script>
 </body>

@@ -1,11 +1,15 @@
 <?php
 // File: admin/manage_admins.php
+
 session_start();
+require_once("../config/db.php");
+require_once('../includes/admin_auth.php'); // 💡 注入安全閘道器 (已內建 session_start)
 require_once("../config/db.php");
 
 $admins = [];
 $sql_admins = "
     SELECT 
+        user_id AS raw_id,
         CONCAT('EMP-', LPAD(user_id, 4, '0')) AS id, 
         full_name AS name, 
         email, 
@@ -31,11 +35,9 @@ if ($result && $result->num_rows > 0) {
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
-        tailwind.config = {
-            theme: { extend: { colors: { mmu: { blue: '#004aad', dark: '#1e293b', accent: '#38bdf8' } } } }
-        }
+        tailwind.config = { theme: { extend: { colors: { mmu: { blue: '#004aad', dark: '#1e293b', accent: '#38bdf8' } } } } }
     </script>
-    <link rel="stylesheet" href="layout.css?v=1.1">
+    <link rel="stylesheet" href="layout.css?v=1.2">
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
 
@@ -72,9 +74,9 @@ if ($result && $result->num_rows > 0) {
                     <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Identity Governance</h1>
                     <p class="text-sm text-slate-500 mt-1">Manage administrative credentials and role-based access levels.</p>
                 </div>
-                <button class="px-4 py-2 bg-mmu-dark text-white font-bold rounded-lg shadow flex items-center hover:bg-slate-800 transition">
+                <a href="add_admin.php" class="px-4 py-2 bg-mmu-dark text-white font-bold rounded-lg shadow flex items-center hover:bg-slate-800 transition">
                     <i data-lucide="user-plus" class="w-4 h-4 mr-2 text-mmu-accent"></i> Provision New Staff
-                </button>
+                </a>
             </div>
 
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -101,8 +103,7 @@ if ($result && $result->num_rows > 0) {
                             <td class="px-6 py-4">
                                 <?php if($admin['role'] === 'Super_Admin'): ?>
                                     <span class="px-2 py-1 bg-purple-50 text-purple-700 border border-purple-200 rounded text-[10px] font-black tracking-widest uppercase inline-flex items-center">
-                                        <i data-lucide="shield-alert" class="w-3 h-3 mr-1"></i>
-                                        Super_Admin
+                                        <i data-lucide="shield-alert" class="w-3 h-3 mr-1"></i> Super_Admin
                                     </span>
                                 <?php else: ?>
                                     <span class="px-2 py-1 bg-slate-100 text-slate-600 border border-slate-200 rounded text-[10px] font-bold tracking-widest uppercase">
@@ -111,25 +112,25 @@ if ($result && $result->num_rows > 0) {
                                 <?php endif; ?>
                             </td>
                             <td class="px-6 py-4">
-                                <?php if($admin['status'] === 'Active'): ?>
-                                    <span class="text-emerald-600 font-bold flex items-center text-xs">
-                                        <i data-lucide="check" class="w-3.5 h-3.5 mr-1"></i> ACTIVE
-                                    </span>
-                                <?php else: ?>
-                                    <span class="text-red-500 font-bold flex items-center text-xs">
-                                        <i data-lucide="lock" class="w-3.5 h-3.5 mr-1"></i> SUSPENDED
-                                    </span>
-                                <?php endif; ?>
+                                <span class="text-emerald-600 font-bold flex items-center text-xs">
+                                    <i data-lucide="check" class="w-3.5 h-3.5 mr-1"></i> ACTIVE
+                                </span>
                             </td>
                             <td class="px-6 py-4 text-right">
                                 <?php if($admin['role'] !== 'Super_Admin'): ?>
                                     <div class="flex justify-end space-x-2">
-                                        <button class="p-1.5 text-slate-400 hover:text-mmu-blue hover:bg-blue-50 border border-transparent hover:border-blue-200 rounded transition">
+                                        <button onclick="openAdminModal(this)"
+                                                data-id="<?php echo $admin['raw_id']; ?>"
+                                                data-name="<?php echo htmlspecialchars($admin['name']); ?>"
+                                                data-email="<?php echo htmlspecialchars($admin['email']); ?>"
+                                                class="p-1.5 text-slate-400 hover:text-mmu-blue hover:bg-blue-50 border border-transparent hover:border-blue-200 rounded transition tooltip" title="Configure Profile">
                                             <i data-lucide="edit-3" class="w-4 h-4"></i>
                                         </button>
-                                        <button class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 rounded transition">
+                                        <a href="../actions/process_admin.php?action=delete&id=<?php echo $admin['raw_id']; ?>" 
+                                           onclick="triggerCustomConfirm(event, 'CRITICAL WARNING: Revoke administrative privileges? This action cannot be undone.', this.href);"
+                                           class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 rounded transition tooltip" title="Revoke Privilege">
                                             <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                        </button>
+                                        </a>
                                     </div>
                                 <?php else: ?>
                                     <span class="text-[10px] font-mono text-slate-400 uppercase tracking-widest">Root Immutable</span>
@@ -152,12 +153,55 @@ if ($result && $result->num_rows > 0) {
         </div>
     </main>
 
+    <div id="admin-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center transition-opacity">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-200">
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h3 class="text-lg font-extrabold text-slate-800">Configure Identity</h3>
+                <button type="button" onclick="closeAdminModal()" class="text-slate-400 hover:text-slate-600 transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form action="../actions/process_admin.php" method="POST" class="p-6 space-y-4">
+                <input type="hidden" name="action" value="edit">
+                <input type="hidden" name="user_id" id="modal-admin-id" value="">
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Entity Full Name</label>
+                    <input type="text" name="full_name" id="modal-admin-name" required class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-mmu-blue focus:ring-1 focus:ring-mmu-blue text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Institutional Email</label>
+                    <input type="email" name="email" id="modal-admin-email" required class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-mmu-blue focus:ring-1 focus:ring-mmu-blue text-sm font-mono">
+                </div>
+                
+                <div class="mt-6 flex justify-end space-x-3 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="closeAdminModal()" class="px-4 py-2 text-sm font-bold text-slate-500 hover:bg-slate-100 rounded-lg transition">Abort</button>
+                    <button type="submit" class="px-6 py-2 text-sm font-bold text-white bg-mmu-dark hover:bg-slate-800 rounded-lg transition shadow">Update Profile</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <?php include('../includes/ui_components.php'); ?>
+
     <script>
         lucide.createIcons();
 
         function toggleSidebar() {
-            const sidebar = document.getElementById('system-sidebar');
-            sidebar.classList.toggle('sidebar-collapsed');
+            document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed');
+        }
+
+        function openAdminModal(btn) {
+            document.querySelector('#admin-modal form').reset();
+            document.getElementById('modal-admin-id').value = btn.getAttribute('data-id');
+            document.getElementById('modal-admin-name').value = btn.getAttribute('data-name');
+            document.getElementById('modal-admin-email').value = btn.getAttribute('data-email');
+            
+            document.getElementById('admin-modal').classList.remove('hidden');
+        }
+
+        function closeAdminModal() {
+            document.getElementById('admin-modal').classList.add('hidden');
         }
     </script>
 </body>

@@ -1,103 +1,151 @@
 <?php
-// 檔案路徑：admin/add_admin.php
-require_once '../includes/super_admin_auth.php'; // 🔒 裝上超級門鎖
+// File: admin/add_admin.php
+session_start();
+require_once '../includes/super_admin_auth.php'; // 🔒 Enforce Super Admin Privilege
 require_once '../config/db.php';
 ?>
-
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>人事管理 (Staff Management) - CVBMS</title>
-    <link rel="stylesheet" href="../assets/css/admin_style.css">
-    <style>
-        /* 密碼強度提示字元的樣式 */
-        .pwd-req { font-size: 13px; color: #dc3545; display: block; margin-top: 5px; }
-        .pwd-req.valid { color: #28a745; } /* 達成條件會變綠色 */
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MMU Admin | Identity Governance</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = { theme: { extend: { colors: { mmu: { blue: '#004aad', dark: '#1e293b', accent: '#38bdf8' } } } } }
+    </script>
+    <link rel="stylesheet" href="layout.css?v=1.2">
 </head>
-<body>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
 
-<div class="center-container" style="background-color: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-top: 40px; max-width: 500px;">
-    <h2>👥 新增管理員 (Add Administrator)</h2>
-    <p>僅 Super Admin 可授權新管理員。請確保密碼符合企業級強度規範。</p>
-    
-    <form action="../actions/process_add_admin.php" method="POST" id="addAdminForm">
-        <div class="form-group">
-            <label>管理員全名 (Full Name):</label>
-            <input type="text" name="full_name" required>
-        </div>
+    <?php include('../includes/admin_sidebar.php'); ?>
+
+    <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-50">
         
-        <div class="form-group">
-            <label>電子郵件 (Email):</label>
-            <input type="email" name="email" required>
-        </div>
-
-        <div class="form-group">
-            <label>職級分配 (Role):</label>
-            <select name="role" required>
-                <option value="Normal_Admin">普通管理員 (Normal Admin)</option>
-                <option value="Super_Admin">超級管理員 (Super Admin)</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label>設定密碼 (Password):</label>
-            <input type="password" name="password" id="password" required onkeyup="checkPasswordStrength()">
+        <header class="h-16 glass-panel border-b border-slate-200 flex items-center justify-between px-6 z-10 shrink-0">
+            <div class="flex items-center">
+                <button onclick="toggleSidebar()" class="p-2 mr-4 text-slate-500 hover:text-mmu-blue transition-colors rounded-lg hover:bg-slate-100 focus:outline-none">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+                <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Identity Governance / Register Administrator</h2>
+            </div>
             
-            <div id="pwd-rules" style="margin-top: 10px; background: #f8f9fa; padding: 10px; border-radius: 4px;">
-                <span class="pwd-req" id="rule-length">❌ 至少 8 個字元</span>
-                <span class="pwd-req" id="rule-upper">❌ 包含大寫字母 (A-Z)</span>
-                <span class="pwd-req" id="rule-lower">❌ 包含小寫字母 (a-z)</span>
-                <span class="pwd-req" id="rule-number">❌ 包含數字 (0-9)</span>
-                <span class="pwd-req" id="rule-special">❌ 包含特殊符號 (@$!%*?&)</span>
+            <div class="flex items-center space-x-4">
+                <div class="px-3 py-1 bg-indigo-50 border border-indigo-100 rounded-full text-xs font-bold text-indigo-600 flex items-center">
+                    <i data-lucide="shield-check" class="w-3 h-3 mr-1"></i> Root Privilege Verified
+                </div>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-8 scroll-smooth flex justify-center">
+            
+            <div class="w-full max-w-2xl">
+                <div class="mb-8 text-center">
+                    <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Register System Administrator</h1>
+                    <p class="text-sm text-slate-500 mt-2">Deploy new administrative nodes. Enterprise-grade cryptographic complexity is mandatory.</p>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <form action="../actions/process_add_admin.php" method="POST" id="addAdminForm" class="p-8 space-y-6">
+                        
+                        <div class="grid grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Entity Full Name</label>
+                                <input type="text" name="full_name" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-mmu-blue outline-none text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Institutional Email</label>
+                                <input type="email" name="email" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-mmu-blue outline-none text-sm font-mono">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Access Level (RBAC Profile)</label>
+                            <select name="role" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-mmu-blue outline-none text-sm font-bold text-slate-700">
+                                <option value="Normal_Admin">Standard Administrator (Level 1)</option>
+                                <option value="Super_Admin">Super Administrator (Level 0 - Root)</option>
+                            </select>
+                        </div>
+
+                        <div class="border-t border-slate-100 pt-6 mt-6">
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Cryptographic Key (Password)</label>
+                            <input type="password" name="password" id="password" required onkeyup="checkPasswordStrength()" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-mmu-blue outline-none text-sm font-mono tracking-widest">
+                            
+                            <div class="mt-4 p-4 bg-slate-50 border border-slate-200 rounded-lg grid grid-cols-1 md:grid-cols-2 gap-2 text-xs font-bold text-slate-400">
+                                <div id="rule-length" class="flex items-center transition-colors"><i data-lucide="x-circle" class="w-3 h-3 mr-2"></i> Minimum 8 Characters</div>
+                                <div id="rule-upper" class="flex items-center transition-colors"><i data-lucide="x-circle" class="w-3 h-3 mr-2"></i> 1 Uppercase Letter (A-Z)</div>
+                                <div id="rule-lower" class="flex items-center transition-colors"><i data-lucide="x-circle" class="w-3 h-3 mr-2"></i> 1 Lowercase Letter (a-z)</div>
+                                <div id="rule-number" class="flex items-center transition-colors"><i data-lucide="x-circle" class="w-3 h-3 mr-2"></i> 1 Numeric Digit (0-9)</div>
+                                <div id="rule-special" class="flex items-center transition-colors col-span-1 md:col-span-2"><i data-lucide="x-circle" class="w-3 h-3 mr-2"></i> 1 Special Symbol (@$!%*?&)</div>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end space-x-4 pt-4">
+                            <a href="manage_admins.php" class="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-slate-100 rounded-lg transition-colors">Abort Sequence</a>
+                            <button type="submit" id="submitBtn" disabled class="px-6 py-3 text-sm font-bold text-white bg-slate-300 rounded-lg transition-all flex items-center cursor-not-allowed">
+                                <i data-lucide="user-plus" class="w-4 h-4 mr-2"></i> Deploy Administrator
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
+    </main>
 
-        <button type="submit" class="btn-submit" id="submitBtn" disabled style="background-color: #6c757d;">🔐 註冊帳號 (Register)</button>
-    </form>
-    
-    <a href="manage_bookings.php" class="back-link">← 返回儀表板</a>
-</div>
+    <?php include('../includes/ui_components.php'); ?>
 
-<script>
-function checkPasswordStrength() {
-    const pwd = document.getElementById('password').value;
-    const btn = document.getElementById('submitBtn');
-    
-    // 正則表達式條件檢查
-    const hasLength = pwd.length >= 8;
-    const hasUpper = /[A-Z]/.test(pwd);
-    const hasLower = /[a-z]/.test(pwd);
-    const hasNumber = /\d/.test(pwd);
-    const hasSpecial = /[@$!%*?&]/.test(pwd);
+    <script>
+        lucide.createIcons();
 
-    // 更新 UI 狀態 (打叉變打勾，紅變綠)
-    document.getElementById('rule-length').innerHTML = hasLength ? '✅ 至少 8 個字元' : '❌ 至少 8 個字元';
-    document.getElementById('rule-length').className = hasLength ? 'pwd-req valid' : 'pwd-req';
+        function toggleSidebar() {
+            document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed');
+        }
 
-    document.getElementById('rule-upper').innerHTML = hasUpper ? '✅ 包含大寫字母 (A-Z)' : '❌ 包含大寫字母 (A-Z)';
-    document.getElementById('rule-upper').className = hasUpper ? 'pwd-req valid' : 'pwd-req';
+        // Logical Verification Vector for Cryptographic Strength
+        function checkPasswordStrength() {
+            const pwd = document.getElementById('password').value;
+            const btn = document.getElementById('submitBtn');
+            
+            const reqs = {
+                length: pwd.length >= 8,
+                upper: /[A-Z]/.test(pwd),
+                lower: /[a-z]/.test(pwd),
+                number: /\d/.test(pwd),
+                special: /[@$!%*?&]/.test(pwd)
+            };
 
-    document.getElementById('rule-lower').innerHTML = hasLower ? '✅ 包含小寫字母 (a-z)' : '❌ 包含小寫字母 (a-z)';
-    document.getElementById('rule-lower').className = hasLower ? 'pwd-req valid' : 'pwd-req';
+            const toggleRule = (id, isValid) => {
+                const el = document.getElementById(id);
+                const icon = el.querySelector('i');
+                if (isValid) {
+                    el.className = 'flex items-center transition-colors text-emerald-600';
+                    icon.setAttribute('data-lucide', 'check-circle');
+                } else {
+                    el.className = 'flex items-center transition-colors text-slate-400';
+                    icon.setAttribute('data-lucide', 'x-circle');
+                }
+            };
 
-    document.getElementById('rule-number').innerHTML = hasNumber ? '✅ 包含數字 (0-9)' : '❌ 包含數字 (0-9)';
-    document.getElementById('rule-number').className = hasNumber ? 'pwd-req valid' : 'pwd-req';
+            toggleRule('rule-length', reqs.length);
+            toggleRule('rule-upper', reqs.upper);
+            toggleRule('rule-lower', reqs.lower);
+            toggleRule('rule-number', reqs.number);
+            toggleRule('rule-special', reqs.special);
+            
+            // Re-render icons after DOM manipulation
+            lucide.createIcons();
 
-    document.getElementById('rule-special').innerHTML = hasSpecial ? '✅ 包含特殊符號 (@$!%*?&)' : '❌ 包含特殊符號 (@$!%*?&)';
-    document.getElementById('rule-special').className = hasSpecial ? 'pwd-req valid' : 'pwd-req';
-
-    // 如果全部符合，才解鎖 Submit 按鈕
-    if (hasLength && hasUpper && hasLower && hasNumber && hasSpecial) {
-        btn.disabled = false;
-        btn.style.backgroundColor = '#28a745'; // 變綠色
-    } else {
-        btn.disabled = true;
-        btn.style.backgroundColor = '#6c757d'; // 變灰色
-    }
-}
-</script>
-
+            // Boolean Gate for Submission
+            const isSecure = Object.values(reqs).every(val => val === true);
+            if (isSecure) {
+                btn.disabled = false;
+                btn.className = "px-6 py-3 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-md rounded-lg transition-all flex items-center cursor-pointer";
+            } else {
+                btn.disabled = true;
+                btn.className = "px-6 py-3 text-sm font-bold text-white bg-slate-300 rounded-lg transition-all flex items-center cursor-not-allowed";
+            }
+        }
+    </script>
 </body>
 </html>

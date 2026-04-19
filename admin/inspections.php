@@ -2,6 +2,8 @@
 // File: admin/inspections.php
 session_start();
 require_once '../config/db.php';
+require_once('../includes/admin_auth.php'); // 💡 注入安全閘道器 (已內建 session_start)
+require_once("../config/db.php");
 
 $sweep_sql = "
     UPDATE bookings 

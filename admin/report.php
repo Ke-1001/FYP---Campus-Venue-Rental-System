@@ -1,6 +1,9 @@
 <?php
 // File: admin/report.php
+
 session_start();
+require_once("../config/db.php");
+require_once('../includes/admin_auth.php'); // 💡 注入安全閘道器 (已內建 session_start)
 require_once("../config/db.php");
 
 // 💡 1. 財務與利用率趨勢模擬 (Data Aggregation)
