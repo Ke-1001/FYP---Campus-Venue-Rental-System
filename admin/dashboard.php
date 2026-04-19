@@ -3,16 +3,24 @@
 session_start();
 require_once("../config/db.php");
 
-// 💡 1. 系統狀態矩陣運算 (System State Metrics)
+$sweep_sql = "
+    UPDATE bookings 
+    SET booking_status = 'Returned' 
+    WHERE booking_status = 'Approved' 
+    AND CONCAT(booking_date, ' ', end_time) <= NOW()
+";
+$conn->query($sweep_sql);
+
+//  1. System State Metrics Extraction
 $kpi_requests = $conn->query("SELECT COUNT(*) FROM bookings")->fetch_row()[0] ?? 0;
 $kpi_pending = $conn->query("SELECT COUNT(*) FROM bookings WHERE booking_status = 'Pending'")->fetch_row()[0] ?? 0;
 $kpi_conflicts = $conn->query("SELECT COUNT(*) FROM inspections WHERE inspection_status != 'Good'")->fetch_row()[0] ?? 0;
 
-// 由於缺乏實際時間軸的利用率運算，暫時使用基礎佔用比率近似值
+// calculate utilization rate (example: active requests vs total venues, capped at 100%)
 $total_venues = $conn->query("SELECT COUNT(*) FROM venues WHERE status = 'Available'")->fetch_row()[0] ?? 1;
 $kpi_utilization = min(round(($kpi_requests / $total_venues) * 20, 1), 100); 
 
-// 💡 2. 待處理佇列萃取 (Pending Queue Extraction)
+//  2. Pending Queue Extraction
 $pending_list = [];
 $sql_pending = "
     SELECT 

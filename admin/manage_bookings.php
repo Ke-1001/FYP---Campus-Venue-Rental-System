@@ -6,6 +6,7 @@ require_once("../config/db.php");
 $bookings = [];
 $sql_bookings = "
     SELECT 
+        b.booking_id AS raw_id, /* Extract raw integer ID for controller routing */
         CONCAT('BKG-', LPAD(b.booking_id, 4, '0')) AS ref_id, 
         u.full_name AS entity, 
         CONCAT('UID-', LPAD(u.user_id, 4, '0')) AS uid, 
@@ -65,7 +66,6 @@ if ($result && $result->num_rows > 0) {
                 </button>
             </div>
         </header>
-
         <div class="flex-1 overflow-y-auto p-8">
             <div class="mb-8">
                 <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Booking Matrix</h1>
@@ -82,6 +82,7 @@ if ($result && $result->num_rows > 0) {
                             <th class="px-6 py-4 border-b border-slate-200 text-right">Execution</th>
                         </tr>
                     </thead>
+
                     <tbody class="text-sm text-slate-700 divide-y divide-slate-100">
                         <?php foreach($bookings as $row): ?>
                         <tr class="hover:bg-slate-50 transition-colors">
@@ -90,10 +91,29 @@ if ($result && $result->num_rows > 0) {
                             <td class="px-6 py-4">
                                 <span class="px-2 py-1 bg-amber-50 text-amber-600 border border-amber-200 rounded text-[10px] font-black uppercase"><?php echo $row['status']; ?></span>
                             </td>
+                            
+                            
                             <td class="px-6 py-4 text-right">
                                 <div class="flex justify-end space-x-2">
-                                    <button class="p-1.5 text-emerald-600 bg-white border border-slate-200 rounded hover:bg-emerald-50 transition"><i data-lucide="check" class="w-4 h-4"></i></button>
-                                    <button class="p-1.5 text-red-600 bg-white border border-slate-200 rounded hover:bg-red-50 transition"><i data-lucide="x" class="w-4 h-4"></i></button>
+                                    <?php if($row['status'] === 'Pending'): ?>
+                                        
+                                        <a href="../actions/process_approval.php?id=<?php echo $row['raw_id']; ?>&action=approve" 
+                                        onclick="triggerCustomConfirm(event, 'Confirm APPROVAL for <?php echo $row['ref_id']; ?>? This action will notify the applicant.', this.href);"
+                                        class="p-1.5 text-emerald-600 bg-white border border-slate-200 rounded hover:bg-emerald-50 transition shadow-sm inline-block tooltip" 
+                                        title="Approve">
+                                            <i data-lucide="check" class="w-4 h-4"></i>
+                                        </a>
+
+                                        <a href="../actions/process_approval.php?id=<?php echo $row['raw_id']; ?>&action=reject" 
+                                        onclick="triggerCustomConfirm(event, 'Confirm REJECTION and deposit refund for <?php echo $row['ref_id']; ?>? This action cannot be reversed.', this.href);"
+                                        class="p-1.5 text-red-600 bg-white border border-slate-200 rounded hover:bg-red-50 transition shadow-sm inline-block tooltip" 
+                                        title="Reject">
+                                            <i data-lucide="x" class="w-4 h-4"></i>
+                                        </a>
+                                        
+                                    <?php else: ?>
+                                        <span class="text-[10px] font-mono text-slate-400 tracking-widest mt-1">PROCESSED</span>
+                                    <?php endif; ?>
                                 </div>
                             </td>
                         </tr>
@@ -103,7 +123,7 @@ if ($result && $result->num_rows > 0) {
             </div>
         </div>
     </main>
-
+    <?php include('../includes/ui_components.php'); ?>
     <script>
         lucide.createIcons();
 

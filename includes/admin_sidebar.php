@@ -24,6 +24,15 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     <span class="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full nav-badge">12</span>
                 </a>
             </li>
+
+            <li>
+                <a href="inspections.php" class="nav-item flex items-center px-4 py-3 <?php echo ($current_page == 'inspections.php') ? 'bg-mmu-blue' : 'text-slate-300 hover:bg-slate-800'; ?> rounded-lg transition-colors">
+                    <i data-lucide="calendar-check" class="w-5 h-5 shrink-0"></i>
+                    <span class="ml-3 font-medium nav-text">Inspections</span>
+                    <span class="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full nav-badge">12</span>
+                </a>
+            </li>
+
             <li>
                 <a href="manage_venues.php" class="nav-item flex items-center px-4 py-3 <?php echo ($current_page == 'manage_venues.php') ? 'bg-mmu-blue' : 'text-slate-300 hover:bg-slate-800'; ?> rounded-lg transition-colors">
                     <i data-lucide="map-pin" class="w-5 h-5 shrink-0"></i>

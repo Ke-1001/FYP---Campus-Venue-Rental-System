@@ -1,66 +1,71 @@
 <?php
-// 檔案路徑：actions/process_mock_payment.php
+// File: actions/process_mock_payment.php
 session_start();
 require_once '../config/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $booking_id = $_POST['booking_id'];
-    $amount = $_POST['amount'];
-    $payment_type = $_POST['payment_type'];
-    $bank = $_POST['bank'];
+    
+    // Extract string format (e.g. BKG-0015) and convert to INT (15)
+    $booking_ref = $_POST['booking_ref'];
+    $raw_booking_id = (int)str_replace('BKG-', '', $booking_ref);
+    $amount = (float)$_POST['amount'];
 
-    // 💡 1. 模擬網路延遲 (Simulate API Latency)
-    // 讓伺服器暫停 2 秒鐘，創造「正在與銀行連線」的逼真錯覺
-    sleep(2); 
-
-    // 💡 2. 產生一組假的銀行交易流水號 (Mock Transaction ID)
-    // 格式例如：TXN-847A9B2C
+    // Simulate Network Latency
+    sleep(1); 
     $transaction_id = 'TXN-' . strtoupper(substr(md5(uniqid(rand(), true)), 0, 8));
 
-    // 💡 3. 更新資料庫狀態 (Transaction Update)
-    // 這裡你需要根據你實際的資料表結構來修改。
-    // 假設我們更新 bookings 表裡的 payment_status：
-    
-    $sql = "UPDATE bookings SET payment_status = 'Paid', transaction_ref = ? WHERE booking_id = ?";
-    $stmt = $conn->prepare($sql);
-    
-    if ($stmt) {
-        // 注意：如果你的 booking_id 是整數 (INT)，這裡的 "ss" 要改成 "si"
-        $stmt->bind_param("ss", $transaction_id, $booking_id);
-        
-        if ($stmt->execute()) {
-            // 💡 4. 付款成功，引導回系統並顯示特效
-            echo "<!DOCTYPE html>
-                  <html>
-                  <head>
-                      <title>Payment Successful</title>
-                      <style>
-                          body { display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; background-color: #f4f7f6; text-align: center; }
-                          .success-box { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-                          h1 { color: #28a745; }
-                      </style>
-                  </head>
-                  <body>
-                      <div class='success-box'>
-                          <h1 style='font-size: 60px; margin: 0;'>✅</h1>
-                          <h2>付款成功 (Payment Successful)</h2>
-                          <p>交易序號 (TXN ID): <strong>{$transaction_id}</strong></p>
-                          <p>系統已自動更新您的預約狀態。</p>
-                          <p>正在為您導回系統主頁...</p>
-                      </div>
-                      <script>
-                          // 3秒後自動跳轉回前台 User Dashboard (請改成你前端隊友的實際路徑)
-                          setTimeout(function() {
-                              window.location.href = '../index.php'; // 或者 '../user/dashboard.php'
-                          }, 3000);
-                      </script>
-                  </body>
-                  </html>";
-        } else {
-            echo "資料庫更新失敗: " . $stmt->error;
-        }
-        $stmt->close();
+    $conn->begin_transaction();
+
+    try {
+        // 💡 1. Update Booking Status
+        $sql_booking = "UPDATE bookings SET payment_status = 'Paid', transaction_ref = ? WHERE booking_id = ?";
+        $stmt_booking = $conn->prepare($sql_booking);
+        $stmt_booking->bind_param("si", $transaction_id, $raw_booking_id);
+        $stmt_booking->execute();
+
+        // 💡 2. CRITICAL FIX: Insert into Payments table so Inspections module can find it
+        $sql_payment = "INSERT INTO payments (booking_id, deposit_paid, payment_status) VALUES (?, ?, 'Deposit_Held')";
+        $stmt_payment = $conn->prepare($sql_payment);
+        $stmt_payment->bind_param("id", $raw_booking_id, $amount);
+        $stmt_payment->execute();
+
+        $conn->commit();
+
+        // 3. Render Modern Success Splash Screen and Auto-Redirect
+        echo '<!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Transaction Complete</title>
+            <script src="https://cdn.tailwindcss.com"></script>
+        </head>
+        <body class="bg-slate-50 flex items-center justify-center min-h-screen">
+            <div class="bg-white p-10 rounded-2xl shadow-xl text-center max-w-sm w-full border border-slate-100">
+                <div class="w-20 h-20 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                </div>
+                <h2 class="text-2xl font-extrabold text-slate-800 mb-2">Payment Verified</h2>
+                <p class="text-slate-500 text-sm mb-4">Your deposit has been secured.</p>
+                <div class="bg-slate-50 p-4 rounded-lg font-mono text-xs text-slate-600 font-bold mb-6">
+                    REF: ' . $transaction_id . '
+                </div>
+                <div class="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center justify-center">
+                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-emerald-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    Routing to Dashboard...
+                </div>
+            </div>
+            <script>
+                setTimeout(() => { window.location.href = "../user_booking_test.php"; }, 2500);
+            </script>
+        </body>
+        </html>';
+
+    } catch (Exception $e) {
+        $conn->rollback();
+        die("Transaction Failed: " . $e->getMessage());
     }
+
+    $conn->close();
 }
-$conn->close();
 ?>
