@@ -10,7 +10,7 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 
 $sql = "SELECT b.booking_id, v.venue_name, b.booking_date, 
-               b.start_time, b.end_time, b.status, b.created_at
+               b.start_time, b.end_time, b.payment_status, b.created_at
         FROM bookings b
         JOIN venues v ON b.venue_id = v.venue_id
         WHERE b.user_id = ?
@@ -81,11 +81,11 @@ $result = $stmt->get_result();
                 <td><?= $row['start_time'] ?> - <?= $row['end_time'] ?></td>
                 <td class="
                     <?php 
-                        if ($row['status'] == 'Approved') echo 'status-approved';
-                        elseif ($row['status'] == 'Pending') echo 'status-pending';
+                        if ($row['payment_status'] == 'Approved') echo 'status-approved';
+                        elseif ($row['payment_status'] == 'Pending') echo 'status-pending';
                         else echo 'status-rejected';
                     ?>">
-                    <?= $row['status'] ?>
+                    <?= $row['payment_status'] ?>
                 </td>
                 <td><?= $row['created_at'] ?></td>
             </tr>

@@ -1,4 +1,5 @@
 <?php
+session_start();
 $page_title = "Venue Details";
 include("../includes/user_header.php");
 include("../includes/user_navbar.php");

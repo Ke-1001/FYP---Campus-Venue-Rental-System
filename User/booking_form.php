@@ -1,4 +1,5 @@
 <?php
+session_start();
 $page_title = "Booking Form";
 include("../includes/user_header.php");
 include("../includes/user_navbar.php");
@@ -11,8 +12,7 @@ if (!isset($_SESSION['user_id'])) {
 
 $venue_id = isset($_GET["venue_id"]) ? (int)$_GET["venue_id"] : 0;
 
-$sql = "SELECT venue_id, venue_name, category, capacity, base_deposit, status
-        FROM venues
+$sql = "SELECT venue_id, venue_name, category, capacity, base_deposit, status FROM venues
         WHERE venue_id = ? AND status = 'Available'
         LIMIT 1";
 

@@ -4,7 +4,7 @@
     </div>
 
     <div class="nav-links">
-        <a href="/FYP/User/user_dashboard.php">Home</a>
+        <a href="/FYP/User/homepage.php">Home</a>
         <a href="/FYP/User/venues.php">Venues</a>
         <a href="/FYP/User/my_bookings.php">My Bookings</a>
         <a href="/FYP/User/profile.php">Profile</a>
