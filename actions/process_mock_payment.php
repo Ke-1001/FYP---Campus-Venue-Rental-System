@@ -56,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             </div>
             <script>
-                setTimeout(() => { window.location.href = "../user_booking_test.php"; }, 2500);
+                setTimeout(() => { window.location.href = "../user/homepage.php"; }, 2500);
             </script>
         </body>
         </html>';

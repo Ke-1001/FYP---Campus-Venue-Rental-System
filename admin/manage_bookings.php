@@ -9,7 +9,7 @@ require_once("../config/db.php");
 $bookings = [];
 $sql_bookings = "
     SELECT 
-        b.booking_id AS raw_id, /* Extract raw integer ID for controller routing */
+        b.booking_id AS raw_id, 
         CONCAT('BKG-', LPAD(b.booking_id, 4, '0')) AS ref_id, 
         u.full_name AS entity, 
         CONCAT('UID-', LPAD(u.user_id, 4, '0')) AS uid, 
@@ -20,6 +20,7 @@ $sql_bookings = "
     FROM bookings b 
     JOIN users u ON b.user_id = u.user_id 
     JOIN venues v ON b.venue_id = v.venue_id 
+    WHERE b.payment_status != 'Pending'  /* 💡 INVARIANT: Hide unpaid temporary blocks */
     ORDER BY b.created_at DESC";
 
 $result = $conn->query($sql_bookings);

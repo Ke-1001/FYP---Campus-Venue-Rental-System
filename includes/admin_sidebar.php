@@ -8,8 +8,10 @@ $pending_bookings_count = 0;
 $pending_inspections_count = 0;
 
 if (isset($conn)) {
-    // Metric A: Pending Approval Node
-    $res_bookings = $conn->query("SELECT COUNT(*) FROM bookings WHERE booking_status = 'Pending'");
+    // 💡 Metric A: Pending Approval Node (CRITICAL FIX: Synchronized with Soft Allocation rule)
+    // 現在只計算 booking_status 是 'Pending' 且「已經付款 (不等於 Pending)」的實體訂單
+    $sql_bookings_count = "SELECT COUNT(*) FROM bookings WHERE booking_status = 'Pending' AND payment_status != 'Pending'";
+    $res_bookings = $conn->query($sql_bookings_count);
     if ($res_bookings) {
         $pending_bookings_count = $res_bookings->fetch_row()[0];
     }
