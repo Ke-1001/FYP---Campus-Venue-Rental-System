@@ -3,7 +3,7 @@
 
 session_start();
 require_once("../config/db.php");
-require_once('../includes/admin_auth.php'); // 💡 注入安全閘道器 (已內建 session_start)
+require_once('../includes/admin_auth.php'); 
 require_once("../config/db.php");
 
 $students = [];
@@ -48,14 +48,13 @@ if ($result && $result->num_rows > 0) {
         
         <header class="h-16 glass-panel border-b border-slate-200 flex items-center justify-between px-6 z-10 shrink-0">
             <?php 
-        $topbar_content = '
-        <div class="flex items-center text-slate-500 bg-white px-4 py-2 rounded-lg border border-slate-200 focus-within:border-mmu-blue shadow-sm transition-all">
-            <i data-lucide="search" class="w-4 h-4 mr-2"></i>
-            <input type="text" placeholder="Search system assets..." class="bg-transparent border-none outline-none w-64 text-sm focus:ring-0">
-        </div>';
-        
-        include('../includes/admin_topbar.php'); 
-        ?>
+            $topbar_content = '
+            <div class="flex items-center text-slate-500 bg-white px-4 py-2 rounded-lg border border-slate-200 focus-within:border-mmu-blue shadow-sm transition-all">
+                <i data-lucide="search" class="w-4 h-4 mr-2"></i>
+                <input type="text" placeholder="Search system assets..." class="bg-transparent border-none outline-none w-64 text-sm focus:ring-0">
+            </div>';
+            include('../includes/admin_topbar.php'); 
+            ?>
         </header>
 
         <div class="flex-1 overflow-y-auto p-8 scroll-smooth">
@@ -65,9 +64,9 @@ if ($result && $result->num_rows > 0) {
                     <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Student Directory</h1>
                     <p class="text-sm text-slate-500 mt-1">Comprehensive registry of all student entities within the system.</p>
                 </div>
-                <button onclick="openStudentModal('add')" class="px-4 py-2 bg-mmu-blue text-white font-bold rounded-lg shadow flex items-center hover:bg-blue-700 transition">
+                <a href="add_student.php" class="px-4 py-2 bg-mmu-blue text-white font-bold rounded-lg shadow flex items-center hover:bg-blue-700 transition">
                     <i data-lucide="user-plus" class="w-4 h-4 mr-2"></i> Register Student
-                </button>
+                </a>
             </div>
 
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -110,7 +109,7 @@ if ($result && $result->num_rows > 0) {
                             </td>
                             <td class="px-6 py-4 text-right">
                                 <div class="flex justify-end space-x-2">
-                                    <button onclick="openStudentModal('edit', this)" 
+                                    <button onclick="openStudentModal(this)" 
                                             data-id="<?php echo $stu['raw_id']; ?>"
                                             data-name="<?php echo htmlspecialchars($stu['name']); ?>"
                                             data-email="<?php echo htmlspecialchars($stu['email']); ?>"
@@ -136,13 +135,13 @@ if ($result && $result->num_rows > 0) {
     <div id="student-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center transition-opacity">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-200">
             <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                <h3 id="modal-title" class="text-lg font-extrabold text-slate-800">Register Student</h3>
+                <h3 class="text-lg font-extrabold text-slate-800">Configure Student Properties</h3>
                 <button type="button" onclick="closeStudentModal()" class="text-slate-400 hover:text-slate-600 transition">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
             <form action="../actions/process_student.php" method="POST" class="p-6 space-y-4">
-                <input type="hidden" name="action" id="modal-action" value="add">
+                <input type="hidden" name="action" value="edit">
                 <input type="hidden" name="user_id" id="modal-user-id" value="">
                 
                 <div>
@@ -153,14 +152,10 @@ if ($result && $result->num_rows > 0) {
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Institutional Email</label>
                     <input type="email" name="email" id="modal-email" required class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-mmu-blue focus:ring-1 focus:ring-mmu-blue text-sm font-mono">
                 </div>
-                <div id="pwd-container">
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Initial Password</label>
-                    <input type="password" name="password" id="modal-password" class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-mmu-blue focus:ring-1 focus:ring-mmu-blue text-sm font-mono tracking-widest" placeholder="Required for new nodes">
-                </div>
                 
                 <div class="mt-6 flex justify-end space-x-3 pt-4 border-t border-slate-100">
                     <button type="button" onclick="closeStudentModal()" class="px-4 py-2 text-sm font-bold text-slate-500 hover:bg-slate-100 rounded-lg transition">Cancel</button>
-                    <button type="submit" class="px-6 py-2 text-sm font-bold text-white bg-mmu-blue hover:bg-blue-700 rounded-lg transition shadow">Deploy Configuration</button>
+                    <button type="submit" class="px-6 py-2 text-sm font-bold text-white bg-mmu-blue hover:bg-blue-700 rounded-lg transition shadow">Deploy Update</button>
                 </div>
             </form>
         </div>
@@ -175,28 +170,14 @@ if ($result && $result->num_rows > 0) {
             document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed');
         }
 
-        function openStudentModal(mode, btn = null) {
+        // Simplified JS Machine for Edit Only
+        function openStudentModal(btn) {
             document.querySelector('#student-modal form').reset();
-            const actionInput = document.getElementById('modal-action');
-            const title = document.getElementById('modal-title');
-            const pwdContainer = document.getElementById('pwd-container');
-            const pwdInput = document.getElementById('modal-password');
-
-            if (mode === 'add') {
-                actionInput.value = 'add';
-                title.innerText = 'Register Student Entity';
-                pwdContainer.classList.remove('hidden');
-                pwdInput.required = true;
-            } else if (mode === 'edit' && btn) {
-                actionInput.value = 'edit';
-                title.innerText = 'Configure Student Properties';
-                pwdContainer.classList.add('hidden');
-                pwdInput.required = false;
-
-                document.getElementById('modal-user-id').value = btn.getAttribute('data-id');
-                document.getElementById('modal-name').value = btn.getAttribute('data-name');
-                document.getElementById('modal-email').value = btn.getAttribute('data-email');
-            }
+            
+            document.getElementById('modal-user-id').value = btn.getAttribute('data-id');
+            document.getElementById('modal-name').value = btn.getAttribute('data-name');
+            document.getElementById('modal-email').value = btn.getAttribute('data-email');
+            
             document.getElementById('student-modal').classList.remove('hidden');
         }
 
