@@ -75,25 +75,18 @@ if ($result && $result->num_rows > 0) {
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-50">
         
         <header class="h-16 glass-panel border-b border-slate-200 flex items-center justify-between px-6 z-10 shrink-0">
-            <div class="flex items-center">
-                <button onclick="toggleSidebar()" class="p-2 mr-4 text-slate-500 hover:text-mmu-blue transition-colors rounded-lg hover:bg-slate-100 focus:outline-none">
-                    <i data-lucide="menu" class="w-6 h-6"></i>
-                </button>
-                <div class="flex items-center text-slate-500 bg-white px-4 py-2 rounded-lg border border-slate-200 focus-within:border-mmu-blue shadow-sm transition-all">
-                    <i data-lucide="calendar" class="w-4 h-4 mr-2"></i>
-                    <span class="text-xs font-bold text-slate-700">Fiscal Period: Q2 2026</span>
-                </div>
-            </div>
             
-            <div class="flex items-center space-x-4">
-                <button class="relative p-2 text-slate-500 hover:text-mmu-blue transition-colors rounded-full hover:bg-slate-100">
-                    <i data-lucide="bell" class="w-5 h-5"></i>
-                    <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-                </button>
-                <button class="p-2 text-slate-500 hover:text-mmu-blue rounded-full hover:bg-slate-100">
-                    <i data-lucide="user-circle" class="w-5 h-5"></i>
-                </button>
-            </div>
+            <?php 
+        $topbar_content = '
+        <div class="flex items-center text-slate-500 bg-white px-4 py-2 rounded-lg border border-slate-200 focus-within:border-mmu-blue shadow-sm transition-all">
+            <i data-lucide="search" class="w-4 h-4 mr-2"></i>
+            <input type="text" placeholder="Search system assets..." class="bg-transparent border-none outline-none w-64 text-sm focus:ring-0">
+        </div>';
+        
+        include('../includes/admin_topbar.php'); 
+        ?>
+
+        
         </header>
 
         <div class="flex-1 overflow-y-auto p-8 scroll-smooth">
@@ -102,6 +95,10 @@ if ($result && $result->num_rows > 0) {
                 <div>
                     <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">System Analytics</h1>
                     <p class="text-sm text-slate-500 mt-1">Aggregated multidimensional analysis of financial and usage vectors.</p>
+                </div>
+                <div class="flex items-center text-slate-500 bg-white px-4 py-2 rounded-lg border border-slate-200 focus-within:border-mmu-blue shadow-sm transition-all">
+                    <i data-lucide="calendar" class="w-4 h-4 mr-2"></i>
+                    <span class="text-xs font-bold text-slate-700">Fiscal Period: Q2 2026</span>
                 </div>
                 <button class="px-4 py-2 bg-white border border-slate-200 text-mmu-blue font-bold rounded-lg shadow-sm flex items-center hover:bg-slate-50 transition">
                     <i data-lucide="download-cloud" class="w-4 h-4 mr-2"></i> Export CSV
