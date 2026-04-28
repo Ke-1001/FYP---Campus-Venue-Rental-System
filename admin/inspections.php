@@ -3,31 +3,33 @@
 session_start();
 require_once '../config/db.php';
 require_once('../includes/admin_auth.php'); 
-require_once("../config/db.php");
 
+// 💡 1. 適配新架構：清道夫邏輯 (Sweep Logic)
+// 將時間已過的 approved 轉為 completed
 $sweep_sql = "
-    UPDATE bookings 
-    SET booking_status = 'Returned' 
-    WHERE booking_status = 'Approved' 
-    AND CONCAT(booking_date, ' ', end_time) <= NOW()
+    UPDATE booking 
+    SET status = 'completed' 
+    WHERE status = 'approved' 
+    AND CONCAT(date_booked, ' ', ADDTIME(time_start, SEC_TO_TIME(duration * 60))) <= NOW()
 ";
 $conn->query($sweep_sql);
 
+// 💡 2. 適配新架構：過濾出 pending inspections
+// 條件：status = 'completed' 且 payment_status = 'paid' (尚未退款結算)
 $sql = "SELECT 
-            b.booking_id AS raw_id, 
-            CONCAT('BKG-', LPAD(b.booking_id, 4, '0')) AS ref_id,
-            b.booking_date, 
-            CONCAT(DATE_FORMAT(b.start_time, '%H:%i'), ' - ', DATE_FORMAT(b.end_time, '%H:%i')) AS time_slot, 
-            b.booking_status,
-            u.full_name AS student_name, 
-            v.venue_name, 
-            COALESCE(p.deposit_paid, 0.00) AS deposit_paid
-        FROM bookings b
-        JOIN users u ON b.user_id = u.user_id
-        JOIN venues v ON b.venue_id = v.venue_id
-        LEFT JOIN payments p ON b.booking_id = p.booking_id 
-        WHERE b.booking_status = 'Returned'
-        ORDER BY b.booking_date ASC, b.start_time ASC";
+            b.bid AS raw_id, 
+            b.bid AS ref_id,
+            b.date_booked AS booking_date, 
+            CONCAT(DATE_FORMAT(b.time_start, '%H:%i'), ' - ', DATE_FORMAT(ADDTIME(b.time_start, SEC_TO_TIME(b.duration * 60)), '%H:%i')) AS time_slot, 
+            b.status AS booking_status,
+            u.username AS student_name, 
+            v.vname AS venue_name, 
+            v.deposit AS deposit_paid /* 💡 直接從 venue 表提取押金基數 */
+        FROM booking b
+        JOIN user u ON b.uid = u.uid
+        JOIN venue v ON b.vid = v.vid
+        WHERE b.status = 'completed' AND b.payment_status = 'paid'
+        ORDER BY b.date_booked ASC, b.time_start ASC";
 
 $result = $conn->query($sql);
 ?>
@@ -50,8 +52,7 @@ $result = $conn->query($sql);
 
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-50">
         
-        <header class="h-16 glass-panel border-b border-slate-200 flex items-center justify-between px-6 z-10 shrink-0">
-            <?php 
+        <?php 
         $topbar_content = '
         <div class="flex items-center text-slate-500 bg-white px-4 py-2 rounded-lg border border-slate-200 focus-within:border-mmu-blue shadow-sm transition-all">
             <i data-lucide="search" class="w-4 h-4 mr-2"></i>
@@ -60,7 +61,6 @@ $result = $conn->query($sql);
         
         include('../includes/admin_topbar.php'); 
         ?>
-        </header>
 
         <div class="flex-1 overflow-y-auto p-8 scroll-smooth">
             <div class="mb-8">
@@ -75,15 +75,15 @@ $result = $conn->query($sql);
                             <th class="px-6 py-4 border-b border-slate-200">Reference</th>
                             <th class="px-6 py-4 border-b border-slate-200">Entity & Venue</th>
                             <th class="px-6 py-4 border-b border-slate-200">Temporal Vector</th>
-                            <th class="px-6 py-4 border-b border-slate-200">Deposit Paid</th>
+                            <th class="px-6 py-4 border-b border-slate-200">Deposit Blocked</th>
                             <th class="px-6 py-4 border-b border-slate-200 text-right">Execution</th>
                         </tr>
                     </thead>
                     <tbody class="text-sm text-slate-700 divide-y divide-slate-100">
-                        <?php if ($result->num_rows > 0): ?>
+                        <?php if ($result && $result->num_rows > 0): ?>
                             <?php while($row = $result->fetch_assoc()): ?>
                             <tr class="hover:bg-slate-50 transition-colors">
-                                <td class="px-6 py-4 font-mono text-xs font-bold text-mmu-blue"><?php echo $row['ref_id']; ?></td>
+                                <td class="px-6 py-4 font-mono text-xs font-bold text-mmu-blue"><?php echo htmlspecialchars($row['ref_id']); ?></td>
                                 <td class="px-6 py-4">
                                     <p class="font-bold text-slate-800"><?php echo htmlspecialchars($row['student_name']); ?></p>
                                     <p class="text-[10px] font-medium text-slate-500 flex items-center mt-0.5">
@@ -92,19 +92,19 @@ $result = $conn->query($sql);
                                     </p>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <p class="font-bold text-slate-700"><?php echo $row['booking_date']; ?></p>
-                                    <p class="text-xs text-slate-500 font-mono"><?php echo $row['time_slot']; ?></p>
+                                    <p class="font-bold text-slate-700"><?php echo htmlspecialchars($row['booking_date']); ?></p>
+                                    <p class="text-xs text-slate-500 font-mono"><?php echo htmlspecialchars($row['time_slot']); ?></p>
                                 </td>
                                 <td class="px-6 py-4 font-mono font-bold text-slate-800">
-                                    RM <?php echo number_format($row['deposit_paid'], 2); ?>
+                                    RM <?php echo number_format((float)$row['deposit_paid'], 2); ?>
                                 </td>
                                 <td class="px-6 py-4 text-right">
                                     <button onclick="openInspectModal(this)"
-                                            data-id="<?php echo $row['raw_id']; ?>"
-                                            data-ref="<?php echo $row['ref_id']; ?>"
+                                            data-id="<?php echo htmlspecialchars($row['raw_id']); ?>"
+                                            data-ref="<?php echo htmlspecialchars($row['ref_id']); ?>"
                                             data-student="<?php echo htmlspecialchars($row['student_name']); ?>"
                                             data-venue="<?php echo htmlspecialchars($row['venue_name']); ?>"
-                                            data-deposit="<?php echo number_format($row['deposit_paid'], 2); ?>"
+                                            data-deposit="<?php echo number_format((float)$row['deposit_paid'], 2); ?>"
                                             class="px-3 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded transition shadow-sm flex items-center ml-auto">
                                         <i data-lucide="clipboard-check" class="w-4 h-4 mr-1"></i> Inspect
                                     </button>
@@ -138,7 +138,7 @@ $result = $conn->query($sql);
             </div>
 
             <form action="../actions/process_inspection.php" method="POST">
-                <input type="hidden" name="booking_id" id="modal-booking-id" value="">
+                <input type="hidden" name="bid" id="modal-booking-id" value="">
                 
                 <div class="p-6">
                     <div class="mb-6 p-4 bg-slate-50 border border-slate-200 rounded-lg text-sm">
@@ -163,22 +163,20 @@ $result = $conn->query($sql);
                     <div class="space-y-4">
                         <div>
                             <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Venue State Assessment</label>
-                            <select name="inspection_status" id="modal-status" onchange="togglePenaltyFields()" required class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm bg-white transition-all">
-                                <option value="Good">Good (Full Refund)</option>
-                                <option value="Dirty">Dirty (Deduction Only)</option>
-                                <option value="Minor_Damage">Minor Damage (Deduction, Venue Open)</option>
-                                <option value="Major_Damage">Major Damage (Deduction, LOCK VENUE)</option>
+                            <select name="ins_status" id="modal-status" onchange="togglePenaltyFields()" required class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm bg-white transition-all">
+                                <option value="passed">Passed (Good Condition - Full Refund)</option>
+                                <option value="failed">Failed (Damages or Dirty - Apply Deduction)</option>
                             </select>
                         </div>
 
                         <div>
                             <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Damage Description Log</label>
-                            <textarea name="damage_description" id="modal-desc" rows="2" placeholder="Leave blank if venue is in good condition..." class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm transition-all"></textarea>
+                            <textarea name="damage_desc" id="modal-desc" rows="2" placeholder="Leave blank if venue is in good condition..." class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm transition-all"></textarea>
                         </div>
 
                         <div>
                             <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Assessed Penalty (RM)</label>
-                            <input type="number" name="assessed_penalty" id="modal-penalty" step="0.01" min="0" value="0.00" required class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm font-mono transition-all">
+                            <input type="number" name="penalty" id="modal-penalty" step="0.01" min="0" value="0.00" required class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-sm font-mono transition-all">
                             <p class="text-[10px] text-slate-400 mt-1">* Enter 0.00 for automatic full deposit refund.</p>
                         </div>
                     </div>
@@ -208,8 +206,8 @@ $result = $conn->query($sql);
             const desc = document.getElementById('modal-desc');
             const penalty = document.getElementById('modal-penalty');
 
-            if (status === 'Good') {
-                // Lock fields securely using readonly (preserves POST data integrity)
+            // 💡 改為比對 'passed'
+            if (status === 'passed') {
                 desc.readOnly = true;
                 desc.required = false;
                 desc.value = '';
@@ -219,7 +217,6 @@ $result = $conn->query($sql);
                 penalty.value = '0.00';
                 penalty.classList.add('bg-slate-100', 'cursor-not-allowed');
             } else {
-                // Unlock and enforce completion
                 desc.readOnly = false;
                 desc.required = true;
                 desc.classList.remove('bg-slate-100', 'cursor-not-allowed', 'placeholder-slate-300');
@@ -228,7 +225,6 @@ $result = $conn->query($sql);
                 penalty.readOnly = false;
                 penalty.classList.remove('bg-slate-100', 'cursor-not-allowed');
                 
-                // Force user to input a new value instead of leaving 0.00
                 if (penalty.value === '0.00' || penalty.value === '0') {
                     penalty.value = ''; 
                 }
@@ -241,9 +237,8 @@ $result = $conn->query($sql);
             document.getElementById('modal-ref').innerText = btn.getAttribute('data-ref');
             document.getElementById('modal-student').innerText = btn.getAttribute('data-student');
             document.getElementById('modal-venue').innerText = btn.getAttribute('data-venue');
-            document.getElementById('modal-deposit').innerText = 'RM ' + btn.getAttribute('data-deposit');
+            document.getElementById('modal-deposit').innerText = btn.getAttribute('data-deposit');
             
-            // Reset form and manually trigger the dynamic logic to set default 'Good' state
             document.querySelector('#inspect-modal form').reset();
             togglePenaltyFields();
             
@@ -256,4 +251,8 @@ $result = $conn->query($sql);
     </script>
 </body>
 </html>
-<?php $conn->close(); ?>
+<?php 
+if (isset($conn)) {
+    $conn->close(); 
+}
+?>

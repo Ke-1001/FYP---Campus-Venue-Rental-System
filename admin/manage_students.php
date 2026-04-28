@@ -4,21 +4,21 @@
 session_start();
 require_once("../config/db.php");
 require_once('../includes/admin_auth.php'); 
-require_once("../config/db.php");
 
 $students = [];
+// 💡 1. 適配新資料庫架構：表格改為 `user`，主鍵改為 `uid`，名稱改為 `username`，新增 `phone_num`
 $sql_students = "
     SELECT 
-        user_id AS raw_id,
-        CONCAT('STU-', LPAD(user_id, 4, '0')) AS id, 
-        full_name AS name, 
+        uid AS raw_id,
+        uid AS id, /* uid 現在是 varchar(10)，直接顯示即可 */
+        username AS name, 
         email, 
+        phone_num, /* 新增電話號碼欄位 */
         'System Default' AS faculty, 
         'General Designation' AS course, 
         'Active' AS status 
-    FROM users 
-    WHERE role = 'User' OR role = '' 
-    ORDER BY user_id ASC";
+    FROM user 
+    ORDER BY created_at DESC"; /* 根據創建時間降序排列 */
 
 $result = $conn->query($sql_students);
 if ($result && $result->num_rows > 0) {
@@ -74,8 +74,8 @@ if ($result && $result->num_rows > 0) {
                     <thead>
                         <tr class="bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-widest">
                             <th class="px-6 py-4 border-b border-slate-200">Student ID</th>
-                            <th class="px-6 py-4 border-b border-slate-200">Full Name</th>
-                            <th class="px-6 py-4 border-b border-slate-200">Faculty / Course</th>
+                            <th class="px-6 py-4 border-b border-slate-200">Entity Details</th>
+                            <th class="px-6 py-4 border-b border-slate-200">Contact / Info</th>
                             <th class="px-6 py-4 border-b border-slate-200">System State</th>
                             <th class="px-6 py-4 border-b border-slate-200 text-right">Execution</th>
                         </tr>
@@ -83,7 +83,7 @@ if ($result && $result->num_rows > 0) {
                     <tbody class="text-sm text-slate-700 divide-y divide-slate-100">
                         <?php foreach($students as $stu): ?>
                         <tr class="hover:bg-slate-50 transition-colors group">
-                            <td class="px-6 py-4 font-mono text-xs font-bold text-mmu-blue"><?php echo $stu['id']; ?></td>
+                            <td class="px-6 py-4 font-mono text-xs font-bold text-mmu-blue"><?php echo htmlspecialchars($stu['id']); ?></td>
                             <td class="px-6 py-4">
                                 <div class="flex flex-col">
                                     <span class="font-bold text-slate-800"><?php echo htmlspecialchars($stu['name']); ?></span>
@@ -92,7 +92,7 @@ if ($result && $result->num_rows > 0) {
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex flex-col">
-                                    <span class="font-bold text-slate-600 text-xs uppercase"><?php echo $stu['faculty']; ?></span>
+                                    <span class="font-bold text-slate-600 text-xs uppercase"><?php echo htmlspecialchars($stu['phone_num']); ?></span>
                                     <span class="text-[10px] text-slate-400 font-medium"><?php echo $stu['course']; ?></span>
                                 </div>
                             </td>
@@ -110,13 +110,14 @@ if ($result && $result->num_rows > 0) {
                             <td class="px-6 py-4 text-right">
                                 <div class="flex justify-end space-x-2">
                                     <button onclick="openStudentModal(this)" 
-                                            data-id="<?php echo $stu['raw_id']; ?>"
+                                            data-id="<?php echo htmlspecialchars($stu['raw_id']); ?>"
                                             data-name="<?php echo htmlspecialchars($stu['name']); ?>"
                                             data-email="<?php echo htmlspecialchars($stu['email']); ?>"
+                                            data-phone="<?php echo htmlspecialchars($stu['phone_num']); ?>"
                                             class="p-1.5 text-slate-400 hover:text-mmu-blue hover:bg-blue-50 border border-transparent hover:border-blue-200 rounded transition tooltip" title="Edit Properties">
                                         <i data-lucide="edit-3" class="w-4 h-4"></i>
                                     </button>
-                                    <a href="../actions/process_student.php?action=delete&id=<?php echo $stu['raw_id']; ?>" 
+                                    <a href="../actions/process_student.php?action=delete&uid=<?php echo urlencode($stu['raw_id']); ?>" 
                                        onclick="triggerCustomConfirm(event, 'CRITICAL WARNING: Terminate student record? This will forcefully cascade and delete all associated bookings.', this.href);"
                                        class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 rounded transition tooltip" title="Revoke Record">
                                         <i data-lucide="trash-2" class="w-4 h-4"></i>
@@ -142,15 +143,20 @@ if ($result && $result->num_rows > 0) {
             </div>
             <form action="../actions/process_student.php" method="POST" class="p-6 space-y-4">
                 <input type="hidden" name="action" value="edit">
-                <input type="hidden" name="user_id" id="modal-user-id" value="">
+                
+                <input type="hidden" name="uid" id="modal-user-id" value="">
                 
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Full Name</label>
-                    <input type="text" name="full_name" id="modal-name" required class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-mmu-blue focus:ring-1 focus:ring-mmu-blue text-sm">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Username / Full Name</label>
+                    <input type="text" name="username" id="modal-name" required class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-mmu-blue focus:ring-1 focus:ring-mmu-blue text-sm">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Institutional Email</label>
                     <input type="email" name="email" id="modal-email" required class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-mmu-blue focus:ring-1 focus:ring-mmu-blue text-sm font-mono">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Contact Number</label>
+                    <input type="text" name="phone_num" id="modal-phone" required placeholder="e.g. 0123456789" class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-mmu-blue focus:ring-1 focus:ring-mmu-blue text-sm font-mono">
                 </div>
                 
                 <div class="mt-6 flex justify-end space-x-3 pt-4 border-t border-slate-100">
@@ -170,13 +176,14 @@ if ($result && $result->num_rows > 0) {
             document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed');
         }
 
-        // Simplified JS Machine for Edit Only
+        // 💡 升級版 JS State Machine 包含電話號碼
         function openStudentModal(btn) {
             document.querySelector('#student-modal form').reset();
             
             document.getElementById('modal-user-id').value = btn.getAttribute('data-id');
             document.getElementById('modal-name').value = btn.getAttribute('data-name');
             document.getElementById('modal-email').value = btn.getAttribute('data-email');
+            document.getElementById('modal-phone').value = btn.getAttribute('data-phone');
             
             document.getElementById('student-modal').classList.remove('hidden');
         }

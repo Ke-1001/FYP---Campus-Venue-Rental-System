@@ -4,17 +4,18 @@ session_start();
 require_once '../config/db.php';
 require_once '../includes/admin_auth.php'; 
 
-$user_id = $_SESSION['user_id'];
+// 💡 1. 識別碼相容性：使用新的 aid，並以字串型態查詢
+$aid = $_SESSION['aid'] ?? $_SESSION['user_id'];
 
-// Fetch current administrative node properties
-$sql = "SELECT full_name, email, role FROM users WHERE user_id = ?";
+// 💡 2. 適配新架構：查詢 admin 表，加入 phone_num 欄位
+$sql = "SELECT admin_name, email, phone_num, role FROM admin WHERE aid = ?";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $user_id);
+$stmt->bind_param("s", $aid); // "s" for string since aid is VARCHAR
 $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result->num_rows === 0) {
-    die("Critical Error: Entity payload not found.");
+    die("Critical Error: Entity payload not found in admin registry.");
 }
 $admin_data = $result->fetch_assoc();
 $stmt->close();
@@ -38,20 +39,10 @@ $stmt->close();
 
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-50">
         
-        <header class="h-16 glass-panel border-b border-slate-200 flex items-center justify-between px-6 z-10 shrink-0">
-            <div class="flex items-center">
-                <button onclick="toggleSidebar()" class="p-2 mr-4 text-slate-500 hover:text-mmu-blue transition-colors rounded-lg hover:bg-slate-100 focus:outline-none">
-                    <i data-lucide="menu" class="w-6 h-6"></i>
-                </button>
-                <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Identity Governance / Entity Configuration</h2>
-            </div>
-            
-            <div class="flex items-center space-x-4">
-                <button class="relative p-2 text-slate-500 hover:text-mmu-blue transition-colors rounded-full hover:bg-slate-100">
-                    <i data-lucide="bell" class="w-5 h-5"></i>
-                </button>
-            </div>
-        </header>
+        <?php 
+        $topbar_content = '<h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Identity Governance / Entity Configuration</h2>';
+        include('../includes/admin_topbar.php'); 
+        ?>
 
         <div class="flex-1 overflow-y-auto p-8 scroll-smooth">
             
@@ -76,19 +67,22 @@ $stmt->close();
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
                                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Entity Full Name</label>
-                                        <input type="text" name="full_name" value="<?php echo htmlspecialchars($admin_data['full_name']); ?>" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-mmu-blue outline-none text-sm transition-all">
+                                        <input type="text" name="admin_name" value="<?php echo htmlspecialchars($admin_data['admin_name']); ?>" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-mmu-blue outline-none text-sm transition-all">
                                     </div>
                                     <div>
                                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Institutional Email</label>
                                         <input type="email" name="email" value="<?php echo htmlspecialchars($admin_data['email']); ?>" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-mmu-blue outline-none text-sm font-mono transition-all">
                                     </div>
-                                </div>
-
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Access Level (Immutable)</label>
-                                    <div class="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-lg text-sm font-bold text-slate-500 cursor-not-allowed flex items-center">
-                                        <i data-lucide="shield" class="w-4 h-4 mr-2 <?php echo $admin_data['role'] === 'Super_Admin' ? 'text-purple-600' : 'text-mmu-blue'; ?>"></i> 
-                                        <?php echo str_replace('_', ' ', $admin_data['role']); ?>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Contact Number</label>
+                                        <input type="text" name="phone_num" value="<?php echo htmlspecialchars($admin_data['phone_num']); ?>" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-mmu-blue outline-none text-sm font-mono transition-all">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Access Level (Immutable)</label>
+                                        <div class="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-lg text-sm font-bold text-slate-500 cursor-not-allowed flex items-center">
+                                            <i data-lucide="shield" class="w-4 h-4 mr-2 <?php echo $admin_data['role'] === 'super_admin' ? 'text-purple-600' : 'text-mmu-blue'; ?>"></i> 
+                                            <?php echo ucwords(str_replace('_', ' ', $admin_data['role'])); ?>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -146,8 +140,8 @@ $stmt->close();
                             <div class="flex items-center justify-center w-20 h-20 bg-mmu-blue/20 rounded-full border-2 border-mmu-blue mx-auto mb-4">
                                 <i data-lucide="shield-check" class="w-10 h-10 text-mmu-accent"></i>
                             </div>
-                            <h3 class="text-center text-xl font-extrabold tracking-wide mb-1"><?php echo htmlspecialchars($admin_data['full_name']); ?></h3>
-                            <p class="text-center text-xs text-slate-400 font-mono tracking-widest uppercase mb-6"><?php echo $admin_data['role']; ?></p>
+                            <h3 class="text-center text-xl font-extrabold tracking-wide mb-1"><?php echo htmlspecialchars($admin_data['admin_name']); ?></h3>
+                            <p class="text-center text-xs text-slate-400 font-mono tracking-widest uppercase mb-6"><?php echo ucwords(str_replace('_', ' ', $admin_data['role'])); ?></p>
                             
                             <div class="space-y-4">
                                 <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
@@ -156,7 +150,7 @@ $stmt->close();
                                 </div>
                                 <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
                                     <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">System Privilege</p>
-                                    <p class="text-sm text-slate-300"><?php echo $admin_data['role'] === 'Super_Admin' ? 'Root access granted. Can configure infrastructure and identity nodes.' : 'Standard operational access. Restricted identity governance.'; ?></p>
+                                    <p class="text-sm text-slate-300"><?php echo $admin_data['role'] === 'super_admin' ? 'Root access granted. Can configure infrastructure and identity nodes.' : 'Standard operational access. Restricted identity governance.'; ?></p>
                                 </div>
                             </div>
                         </div>

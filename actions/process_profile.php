@@ -5,21 +5,26 @@ require_once '../includes/admin_auth.php';
 require_once '../config/db.php';
 
 $action = $_POST['action'] ?? '';
-$user_id = $_SESSION['user_id'];
+
+// 💡 1. 識別碼相容性：使用新的 aid，並以字串型態查詢
+$aid = $_SESSION['aid'] ?? $_SESSION['user_id'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // ==========================================
     // Sequence A: Identity Parameters Update
-    // =========================    =================
+    // ==========================================
     if ($action === 'update_profile') {
-        $full_name = htmlspecialchars(trim($_POST['full_name']));
+        // 💡 適配新架構：接收 admin_name 與 phone_num
+        $admin_name = htmlspecialchars(trim($_POST['admin_name']));
         $email = trim($_POST['email']);
+        $phone_num = htmlspecialchars(trim($_POST['phone_num']));
 
         // Check for Email Collision (excluding self)
-        $sql_check = "SELECT user_id FROM users WHERE email = ? AND user_id != ?";
+        // 💡 查詢 admin 表，比對 aid
+        $sql_check = "SELECT aid FROM admin WHERE email = ? AND aid != ?";
         $stmt_check = $conn->prepare($sql_check);
-        $stmt_check->bind_param("si", $email, $user_id);
+        $stmt_check->bind_param("ss", $email, $aid);
         $stmt_check->execute();
         
         if ($stmt_check->get_result()->num_rows > 0) {
@@ -31,13 +36,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt_check->close();
 
         // Deploy Update
-        $sql = "UPDATE users SET full_name = ?, email = ? WHERE user_id = ?";
+        // 💡 適配新架構：更新 admin 表的 admin_name, email, phone_num
+        $sql = "UPDATE admin SET admin_name = ?, email = ?, phone_num = ? WHERE aid = ?";
         $stmt = $conn->prepare($sql);
         
         if ($stmt) {
-            $stmt->bind_param("ssi", $full_name, $email, $user_id);
+            $stmt->bind_param("ssss", $admin_name, $email, $phone_num, $aid);
             if ($stmt->execute()) {
-                $_SESSION['full_name'] = $full_name; // Refresh session state to update sidebar instantly
+                // Refresh session state to update sidebar instantly (保持 full_name 相容 UI)
+                $_SESSION['full_name'] = $admin_name; 
                 $_SESSION['toast'] = ['type' => 'success', 'msg' => 'Configuration Deployed: Identity parameters updated successfully.'];
             } else {
                 $_SESSION['toast'] = ['type' => 'error', 'msg' => 'Database Fault: ' . $stmt->error];
@@ -57,9 +64,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $confirm_password = $_POST['confirm_password'];
 
         // 1. Verify Current Cryptographic Key
-        $sql_verify = "SELECT password_hash FROM users WHERE user_id = ?";
+        // 💡 適配新架構：查詢 admin 表的 password 欄位
+        $sql_verify = "SELECT password FROM admin WHERE aid = ?";
         $stmt_verify = $conn->prepare($sql_verify);
-        $stmt_verify->bind_param("i", $user_id);
+        $stmt_verify->bind_param("s", $aid);
         $stmt_verify->execute();
         $result = $stmt_verify->get_result();
         
@@ -72,7 +80,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $row = $result->fetch_assoc();
         $stmt_verify->close();
 
-        if (!password_verify($current_password, $row['password_hash'])) {
+        // 驗證密碼
+        if (!password_verify($current_password, $row['password'])) {
             $_SESSION['toast'] = ['type' => 'error', 'msg' => 'Authentication Fault: Current key provided is incorrect.'];
             header("Location: ../admin/profile.php");
             exit;
@@ -93,12 +102,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // 3. Deploy New Cryptographic Hash
+        // 💡 適配新架構：更新 admin 表的 password 欄位
         $new_hash = password_hash($new_password, PASSWORD_DEFAULT);
-        $sql_update = "UPDATE users SET password_hash = ? WHERE user_id = ?";
+        $sql_update = "UPDATE admin SET password = ? WHERE aid = ?";
         $stmt_update = $conn->prepare($sql_update);
         
         if ($stmt_update) {
-            $stmt_update->bind_param("si", $new_hash, $user_id);
+            $stmt_update->bind_param("ss", $new_hash, $aid);
             if ($stmt_update->execute()) {
                 $_SESSION['toast'] = ['type' => 'success', 'msg' => 'Security Upgraded: New cryptographic key has been enforced.'];
             } else {

@@ -8,16 +8,18 @@ $pending_bookings_count = 0;
 $pending_inspections_count = 0;
 
 if (isset($conn)) {
-    // 💡 Metric A: Pending Approval Node (CRITICAL FIX: Synchronized with Soft Allocation rule)
-    // 現在只計算 booking_status 是 'Pending' 且「已經付款 (不等於 Pending)」的實體訂單
-    $sql_bookings_count = "SELECT COUNT(*) FROM bookings WHERE booking_status = 'Pending' AND payment_status != 'Pending'";
+    // 💡 Metric A: Pending Approval Node (Synchronized with new schema vectors)
+    // Condition: status is 'pending' ∩ payment_status is 'paid'
+    $sql_bookings_count = "SELECT COUNT(*) FROM booking WHERE status = 'pending' AND payment_status = 'paid'";
     $res_bookings = $conn->query($sql_bookings_count);
     if ($res_bookings) {
         $pending_bookings_count = $res_bookings->fetch_row()[0];
     }
 
-    // Metric B: Pending Inspection Node
-    $res_inspections = $conn->query("SELECT COUNT(*) FROM bookings WHERE booking_status = 'Returned'");
+    // 💡 Metric B: Pending Inspection Node (Replaced 'Returned' state)
+    // Condition: status is 'completed' ∩ payment_status is 'paid' (Deposit held, awaiting inspection)
+    $sql_inspections_count = "SELECT COUNT(*) FROM booking WHERE status = 'completed' AND payment_status = 'paid'";
+    $res_inspections = $conn->query($sql_inspections_count);
     if ($res_inspections) {
         $pending_inspections_count = $res_inspections->fetch_row()[0];
     }
@@ -76,7 +78,7 @@ if (isset($conn)) {
             </li>
             
             <li>
-                <a href="manage_students.php" class="nav-item flex items-center px-4 py-2 <?php echo ($current_page == 'manage_students.php') ? 'bg-mmu-blue' : 'text-slate-300 hover:bg-slate-800'; ?> rounded-lg transition-colors">
+                <a href="manage_students.php" class="nav-item flex items-center px-4 py-2 <?php echo ($current_page == 'manage_students.php' || $current_page == 'add_student.php') ? 'bg-mmu-blue' : 'text-slate-300 hover:bg-slate-800'; ?> rounded-lg transition-colors">
                     <i data-lucide="graduation-cap" class="w-4 h-4 shrink-0"></i>
                     <span class="ml-3 font-medium text-sm nav-text">Student Directory</span>
                 </a>
@@ -100,14 +102,14 @@ if (isset($conn)) {
 
     <div class="profile-container flex items-center p-4 border-t border-slate-700 bg-slate-800/50 shrink-0">
         <div class="w-10 h-10 rounded-full bg-mmu-blue flex items-center justify-center text-sm font-bold shrink-0">
-            <?php echo isset($_SESSION['role']) && $_SESSION['role'] === 'Super_Admin' ? 'SA' : 'A'; ?>
+            <?php echo isset($_SESSION['role']) && $_SESSION['role'] === 'super_admin' ? 'SA' : 'A'; ?>
         </div>
         <div class="ml-3 profile-text overflow-hidden flex-1">
             <p class="text-sm font-bold text-white truncate">
                 <?php echo isset($_SESSION['full_name']) ? htmlspecialchars($_SESSION['full_name']) : 'Administrator'; ?>
             </p>
             <p class="text-xs text-slate-400 font-mono truncate">
-                Level: <?php echo isset($_SESSION['role']) ? ($_SESSION['role'] === 'Super_Admin' ? 'Root' : 'Standard') : 'Unknown'; ?>
+                Level: <?php echo isset($_SESSION['role']) ? ($_SESSION['role'] === 'super_admin' ? 'Root' : 'Standard') : 'Unknown'; ?>
             </p>
         </div>
     </div>

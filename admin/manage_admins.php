@@ -3,21 +3,22 @@
 
 session_start();
 require_once("../config/db.php");
-require_once('../includes/admin_auth.php'); // 💡 注入安全閘道器 (已內建 session_start)
+require_once('../includes/admin_auth.php'); 
 require_once("../config/db.php");
 
 $admins = [];
+// 💡 適配新架構：從 admin 表獲取，映射 aid, admin_name, phone_num 與小寫 role
 $sql_admins = "
     SELECT 
-        user_id AS raw_id,
-        CONCAT('EMP-', LPAD(user_id, 4, '0')) AS id, 
-        full_name AS name, 
+        aid AS raw_id,
+        aid AS id, /* aid 為 VARCHAR，直接映射 */
+        admin_name AS name, 
         email, 
+        phone_num, /* 注入新增欄位 */
         role, 
         'Active' AS status 
-    FROM users 
-    WHERE role IN ('Normal_Admin', 'Super_Admin') 
-    ORDER BY FIELD(role, 'Super_Admin', 'Normal_Admin'), user_id ASC";
+    FROM admin 
+    ORDER BY FIELD(role, 'super_admin', 'admin'), aid ASC";
 
 $result = $conn->query($sql_admins);
 if ($result && $result->num_rows > 0) {
@@ -74,7 +75,7 @@ if ($result && $result->num_rows > 0) {
                     <thead>
                         <tr class="bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-widest">
                             <th class="px-6 py-4 border-b border-slate-200">Identifier</th>
-                            <th class="px-6 py-4 border-b border-slate-200">Full Name</th>
+                            <th class="px-6 py-4 border-b border-slate-200">Entity Payload</th>
                             <th class="px-6 py-4 border-b border-slate-200">System Role</th>
                             <th class="px-6 py-4 border-b border-slate-200">Account State</th>
                             <th class="px-6 py-4 border-b border-slate-200 text-right">Revocation / Edit</th>
@@ -83,21 +84,22 @@ if ($result && $result->num_rows > 0) {
                     <tbody class="text-sm text-slate-700 divide-y divide-slate-100">
                         <?php foreach($admins as $admin): ?>
                         <tr class="hover:bg-slate-50 transition-colors">
-                            <td class="px-6 py-4 font-mono text-xs font-bold text-mmu-blue"><?php echo $admin['id']; ?></td>
+                            <td class="px-6 py-4 font-mono text-xs font-bold text-mmu-blue"><?php echo htmlspecialchars($admin['id']); ?></td>
                             <td class="px-6 py-4">
                                 <div class="flex flex-col">
                                     <span class="font-bold text-slate-800"><?php echo htmlspecialchars($admin['name']); ?></span>
                                     <span class="text-[10px] font-mono text-slate-400"><?php echo htmlspecialchars($admin['email']); ?></span>
+                                    <span class="text-[10px] font-mono text-slate-400">T: <?php echo htmlspecialchars($admin['phone_num']); ?></span>
                                 </div>
                             </td>
                             <td class="px-6 py-4">
-                                <?php if($admin['role'] === 'Super_Admin'): ?>
+                                <?php if($admin['role'] === 'super_admin'): ?>
                                     <span class="px-2 py-1 bg-purple-50 text-purple-700 border border-purple-200 rounded text-[10px] font-black tracking-widest uppercase inline-flex items-center">
-                                        <i data-lucide="shield-alert" class="w-3 h-3 mr-1"></i> Super_Admin
+                                        <i data-lucide="shield-alert" class="w-3 h-3 mr-1"></i> Super Admin
                                     </span>
                                 <?php else: ?>
                                     <span class="px-2 py-1 bg-slate-100 text-slate-600 border border-slate-200 rounded text-[10px] font-bold tracking-widest uppercase">
-                                        Normal_Admin
+                                        Standard Admin
                                     </span>
                                 <?php endif; ?>
                             </td>
@@ -107,16 +109,17 @@ if ($result && $result->num_rows > 0) {
                                 </span>
                             </td>
                             <td class="px-6 py-4 text-right">
-                                <?php if($admin['role'] !== 'Super_Admin'): ?>
+                                <?php if($admin['role'] !== 'super_admin'): ?>
                                     <div class="flex justify-end space-x-2">
                                         <button onclick="openAdminModal(this)"
-                                                data-id="<?php echo $admin['raw_id']; ?>"
+                                                data-id="<?php echo htmlspecialchars($admin['raw_id']); ?>"
                                                 data-name="<?php echo htmlspecialchars($admin['name']); ?>"
                                                 data-email="<?php echo htmlspecialchars($admin['email']); ?>"
+                                                data-phone="<?php echo htmlspecialchars($admin['phone_num']); ?>"
                                                 class="p-1.5 text-slate-400 hover:text-mmu-blue hover:bg-blue-50 border border-transparent hover:border-blue-200 rounded transition tooltip" title="Configure Profile">
                                             <i data-lucide="edit-3" class="w-4 h-4"></i>
                                         </button>
-                                        <a href="../actions/process_admin.php?action=delete&id=<?php echo $admin['raw_id']; ?>" 
+                                        <a href="../actions/process_admin.php?action=delete&aid=<?php echo urlencode($admin['raw_id']); ?>" 
                                            onclick="triggerCustomConfirm(event, 'CRITICAL WARNING: Revoke administrative privileges? This action cannot be undone.', this.href);"
                                            class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 rounded transition tooltip" title="Revoke Privilege">
                                             <i data-lucide="trash-2" class="w-4 h-4"></i>
@@ -153,15 +156,19 @@ if ($result && $result->num_rows > 0) {
             </div>
             <form action="../actions/process_admin.php" method="POST" class="p-6 space-y-4">
                 <input type="hidden" name="action" value="edit">
-                <input type="hidden" name="user_id" id="modal-admin-id" value="">
+                <input type="hidden" name="aid" id="modal-admin-id" value="">
                 
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Entity Full Name</label>
-                    <input type="text" name="full_name" id="modal-admin-name" required class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-mmu-blue focus:ring-1 focus:ring-mmu-blue text-sm">
+                    <input type="text" name="admin_name" id="modal-admin-name" required class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-mmu-blue focus:ring-1 focus:ring-mmu-blue text-sm">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Institutional Email</label>
                     <input type="email" name="email" id="modal-admin-email" required class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-mmu-blue focus:ring-1 focus:ring-mmu-blue text-sm font-mono">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Contact Number</label>
+                    <input type="text" name="phone_num" id="modal-admin-phone" required class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-mmu-blue focus:ring-1 focus:ring-mmu-blue text-sm font-mono">
                 </div>
                 
                 <div class="mt-6 flex justify-end space-x-3 pt-4 border-t border-slate-100">
@@ -186,6 +193,7 @@ if ($result && $result->num_rows > 0) {
             document.getElementById('modal-admin-id').value = btn.getAttribute('data-id');
             document.getElementById('modal-admin-name').value = btn.getAttribute('data-name');
             document.getElementById('modal-admin-email').value = btn.getAttribute('data-email');
+            document.getElementById('modal-admin-phone').value = btn.getAttribute('data-phone');
             
             document.getElementById('admin-modal').classList.remove('hidden');
         }

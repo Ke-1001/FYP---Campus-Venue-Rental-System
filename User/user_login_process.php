@@ -1,45 +1,52 @@
 <?php
+// File: user/user_login_process.php
 session_start();
 require_once '../config/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Get user input
+    // 1. Payload Extraction
     $email = trim($_POST['email']);
     $password = $_POST['password'];
 
-    // Query to find a User (not Admin)
-    $sql = "SELECT user_id, full_name, password_hash, role 
-            FROM users 
-            WHERE email = ? AND role = 'User'";
+    // 💡 2. 適配新架構：從獨立的 user 表提取驗證向量
+    $sql = "SELECT uid, username, password 
+            FROM user 
+            WHERE email = ?";
     
     $stmt = $conn->prepare($sql);
+    if (!$stmt) {
+        die("SQL Prepare Fault: " . $conn->error);
+    }
+    
     $stmt->bind_param("s", $email);
     $stmt->execute();
     $result = $stmt->get_result();
 
-    // Check if user exists
+    // 3. Cryptographic Verification Sequence
     if ($result->num_rows === 1) {
         $user = $result->fetch_assoc();
 
-        // Verify password using hash
-        if (password_verify($password, $user['password_hash'])) {
+        // 💡 映射至新欄位名稱 'password'
+        if (password_verify($password, $user['password'])) {
 
-            // Security: prevent session fixation attack
+            // Security: Prevent session fixation
             session_regenerate_id(true);
 
-            // Store user data in session
-            $_SESSION['user_id'] = $user['user_id'];
-            $_SESSION['full_name'] = $user['full_name'];
-            $_SESSION['role'] = $user['role'];
+            // 💡 4. 狀態機注入：寫入新版 Session 參數 (uid, username)
+            $_SESSION['uid'] = $user['uid'];
+            $_SESSION['username'] = $user['username'];
+            $_SESSION['role'] = 'user'; // Implicit role definition
 
-            // Redirect to user homepage
-            header("Location: ../user/user_dashboard.php");
+            // 路由至使用者主頁 (對齊 user_login.php 的重定向邏輯)
+            header("Location: homepage.php");
             exit();
         }
     }
 
-    // Invalid credentials → redirect back to login page
-    header("Location: ../User/user_login.php?error=invalid");
+    $stmt->close();
+
+    // Authentication Fault 
+    header("Location: user_login.php?error=invalid");
     exit();
 }
 

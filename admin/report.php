@@ -3,8 +3,7 @@
 
 session_start();
 require_once("../config/db.php");
-require_once('../includes/admin_auth.php'); // 💡 注入安全閘道器 (已內建 session_start)
-require_once("../config/db.php");
+require_once('../includes/admin_auth.php'); 
 
 // 💡 1. 財務與利用率趨勢模擬 (Data Aggregation)
 $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
@@ -12,36 +11,42 @@ $revenue_data = [0, 0, 0, 0, 0, 0];
 
 $venue_labels = [];
 $utilization_percentages = [];
-$sql_util = "SELECT venue_name, capacity FROM venues LIMIT 5";
+// 💡 適配新架構：venue, vname, max_cap
+$sql_util = "SELECT vname, max_cap FROM venue LIMIT 5";
 $res_util = $conn->query($sql_util);
 while($row = $res_util->fetch_assoc()) {
-    $venue_labels[] = $row['venue_name'];
-    $utilization_percentages[] = min($row['capacity'] * 2, 100); 
+    $venue_labels[] = $row['vname'];
+    $utilization_percentages[] = min($row['max_cap'] * 2, 100); 
 }
 
 // 💡 2. 財務交易流水矩陣 (Financial Ledger using UNION ALL)
 $transactions = [];
-// 修正：直接抓取真實的 payment_status，且 Penalty 區塊透過 JOIN 關聯 payments 表格
+// 💡 適配新架構：整合 booking (押金) 與 report/inspection (罰款)
 $sql_ledger = "
     SELECT 
-        CONCAT('TXN-D', LPAD(payment_id, 4, '0')) AS id, 
-        CONCAT('BKG-', LPAD(booking_id, 4, '0')) AS ref, 
+        COALESCE(b.transaction_ref, 'TXN-PENDING') AS id, 
+        b.bid AS ref, 
         'Deposit' AS type, 
-        deposit_paid AS amount, 
-        DATE_FORMAT(updated_at, '%Y-%m-%d') AS date,
-        payment_status AS status 
-    FROM payments
+        v.deposit AS amount, 
+        DATE_FORMAT(b.created_at, '%Y-%m-%d') AS date,
+        b.payment_status AS status 
+    FROM booking b
+    JOIN venue v ON b.vid = v.vid
+    WHERE b.payment_status IN ('paid', 'refunded')
+    
     UNION ALL
+    
     SELECT 
-        CONCAT('TXN-P', LPAD(i.inspection_id, 4, '0')) AS id, 
-        CONCAT('BKG-', LPAD(i.booking_id, 4, '0')) AS ref, 
+        r.rid AS id, 
+        i.bid AS ref, 
         'Penalty' AS type, 
-        i.assessed_penalty AS amount, 
-        DATE_FORMAT(i.inspected_at, '%Y-%m-%d') AS date,
-        p.payment_status AS status 
-    FROM inspections i
-    JOIN payments p ON i.booking_id = p.booking_id
-    WHERE i.assessed_penalty > 0
+        i.penalty AS amount, 
+        DATE_FORMAT(r.created_at, '%Y-%m-%d') AS date,
+        r.penalty_status AS status 
+    FROM inspection i
+    JOIN report r ON i.ins_id = r.ins_id
+    WHERE i.penalty > 0
+    
     ORDER BY date DESC LIMIT 10
 ";
 
@@ -75,18 +80,14 @@ if ($result && $result->num_rows > 0) {
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-50">
         
         <header class="h-16 glass-panel border-b border-slate-200 flex items-center justify-between px-6 z-10 shrink-0">
-            
             <?php 
-        $topbar_content = '
-        <div class="flex items-center text-slate-500 bg-white px-4 py-2 rounded-lg border border-slate-200 focus-within:border-mmu-blue shadow-sm transition-all">
-            <i data-lucide="search" class="w-4 h-4 mr-2"></i>
-            <input type="text" placeholder="Search system assets..." class="bg-transparent border-none outline-none w-64 text-sm focus:ring-0">
-        </div>';
-        
-        include('../includes/admin_topbar.php'); 
-        ?>
-
-        
+            $topbar_content = '
+            <div class="flex items-center text-slate-500 bg-white px-4 py-2 rounded-lg border border-slate-200 focus-within:border-mmu-blue shadow-sm transition-all">
+                <i data-lucide="search" class="w-4 h-4 mr-2"></i>
+                <input type="text" placeholder="Search system assets..." class="bg-transparent border-none outline-none w-64 text-sm focus:ring-0">
+            </div>';
+            include('../includes/admin_topbar.php'); 
+            ?>
         </header>
 
         <div class="flex-1 overflow-y-auto p-8 scroll-smooth">
@@ -144,27 +145,27 @@ if ($result && $result->num_rows > 0) {
                     <tbody class="text-sm text-slate-700 divide-y divide-slate-100">
                         <?php foreach($transactions as $tx): ?>
                         <tr class="hover:bg-slate-50 transition-colors">
-                            <td class="px-6 py-4 font-mono text-xs font-bold text-slate-800"><?php echo $tx['id']; ?></td>
-                            <td class="px-6 py-4 font-mono text-xs font-bold text-mmu-blue"><?php echo $tx['ref']; ?></td>
-                            <td class="px-6 py-4 font-bold text-slate-600"><?php echo $tx['type']; ?></td>
-                            <td class="px-6 py-4 font-mono font-bold"><?php echo $tx['amount']; ?></td>
+                            <td class="px-6 py-4 font-mono text-xs font-bold text-slate-800"><?php echo htmlspecialchars($tx['id']); ?></td>
+                            <td class="px-6 py-4 font-mono text-xs font-bold text-mmu-blue"><?php echo htmlspecialchars($tx['ref']); ?></td>
+                            <td class="px-6 py-4 font-bold text-slate-600"><?php echo htmlspecialchars($tx['type']); ?></td>
+                            <td class="px-6 py-4 font-mono font-bold"><?php echo number_format((float)$tx['amount'], 2); ?></td>
                             <td class="px-6 py-4 text-right">
                                 <?php 
-                                    // 💡 動態色彩標籤解析器
-                                    $status_class = "bg-slate-50 text-slate-600";
-                                    $status_label = str_replace('_', ' ', $tx['status']);
+                                    // 💡 動態色彩標籤解析器 (適配新架構小寫 Enum)
+                                    $status_class = "bg-slate-50 text-slate-600 border-slate-200";
+                                    $status_label = strtoupper(str_replace('_', ' ', $tx['status']));
                                     
-                                    if($tx['status'] === 'Settled' || $tx['status'] === 'Paid') {
-                                        $status_class = "bg-emerald-50 text-emerald-600";
-                                    } elseif($tx['status'] === 'Refunded') {
-                                        $status_class = "bg-blue-50 text-blue-600";
-                                    } elseif($tx['status'] === 'Outstanding_Balance') {
-                                        $status_class = "bg-red-50 text-red-600";
-                                    } elseif($tx['status'] === 'Deposit_Held' || $tx['status'] === 'Pending') {
-                                        $status_class = "bg-amber-50 text-amber-600";
+                                    if($tx['status'] === 'paid' || $tx['status'] === 'processed') {
+                                        $status_class = "bg-emerald-50 text-emerald-600 border-emerald-200";
+                                    } elseif($tx['status'] === 'refunded') {
+                                        $status_class = "bg-blue-50 text-blue-600 border-blue-200";
+                                    } elseif($tx['status'] === 'unpaid' || $tx['status'] === 'none') {
+                                        $status_class = "bg-red-50 text-red-600 border-red-200";
+                                    } elseif($tx['status'] === 'pending') {
+                                        $status_class = "bg-amber-50 text-amber-600 border-amber-200";
                                     }
                                 ?>
-                                <span class="px-2 py-0.5 <?php echo $status_class; ?> rounded text-[10px] font-black uppercase tracking-widest">
+                                <span class="px-2 py-0.5 border <?php echo $status_class; ?> rounded text-[10px] font-black uppercase tracking-widest">
                                     <?php echo htmlspecialchars($status_label); ?>
                                 </span>
                             </td>
@@ -237,9 +238,6 @@ if ($result && $result->num_rows > 0) {
                 }
             }
         });
-    </script>
-    <script>
-        lucide.createIcons();
 
         function toggleSidebar() {
             const sidebar = document.getElementById('system-sidebar');

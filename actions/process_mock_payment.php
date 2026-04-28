@@ -5,9 +5,8 @@ require_once '../config/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
-    // Extract string format (e.g. BKG-0015) and convert to INT (15)
-    $booking_ref = $_POST['booking_ref'];
-    $raw_booking_id = (int)str_replace('BKG-', '', $booking_ref);
+    // 💡 1. 適配新架構：直接接收 VARCHAR 格式的主鍵 (為相容舊版前端表單，同時接收 bid 或 booking_ref)
+    $bid = htmlspecialchars(trim($_POST['bid'] ?? $_POST['booking_ref']));
     $amount = (float)$_POST['amount'];
 
     // Simulate Network Latency
@@ -17,21 +16,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $conn->begin_transaction();
 
     try {
-        // 💡 1. Update Booking Status
-        $sql_booking = "UPDATE bookings SET payment_status = 'Paid', transaction_ref = ? WHERE booking_id = ?";
+        // 💡 2. 單表原子性更新 (Atomic Single-Table Update)
+        // 將狀態改為小寫 'paid'，寫入交易序號
+        $sql_booking = "UPDATE booking SET payment_status = 'paid', transaction_ref = ? WHERE bid = ?";
         $stmt_booking = $conn->prepare($sql_booking);
-        $stmt_booking->bind_param("si", $transaction_id, $raw_booking_id);
+        $stmt_booking->bind_param("ss", $transaction_id, $bid);
         $stmt_booking->execute();
+        $stmt_booking->close();
 
-        // 💡 2. CRITICAL FIX: Insert into Payments table so Inspections module can find it
-        $sql_payment = "INSERT INTO payments (booking_id, deposit_paid, payment_status) VALUES (?, ?, 'Deposit_Held')";
-        $stmt_payment = $conn->prepare($sql_payment);
-        $stmt_payment->bind_param("id", $raw_booking_id, $amount);
-        $stmt_payment->execute();
+        // 💡 3. 已移除 payments 表寫入邏輯 (財務層已成功降維至 booking 表)
 
         $conn->commit();
 
-        // 3. Render Modern Success Splash Screen and Auto-Redirect
+        // 4. Render Modern Success Splash Screen and Auto-Redirect
         echo '<!DOCTYPE html>
         <html lang="en">
         <head>

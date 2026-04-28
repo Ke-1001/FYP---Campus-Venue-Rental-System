@@ -7,7 +7,7 @@
         <a href="/FYP/User/homepage.php">Home</a>
         <a href="/FYP/User/venues.php">Venues</a>
         <a href="/FYP/User/my_bookings.php">My Bookings</a>
-        <a href="/FYP/User/profile.php">Profile</a>
+        <a href="../User/profile.php">Profile</a>
         <a href="/FYP/User/user_logout.php">Logout</a>
     </div>
 </div>

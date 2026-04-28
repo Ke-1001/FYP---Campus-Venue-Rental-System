@@ -1,0 +1,84 @@
+/* File: assets/css/fiori-tile.css */
+
+/* 核心矩陣容器 */
+.fiori-tile {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0; /* 弱化邊界：slate-200 */
+    border-radius: 0.375rem; /* 銳化邊角以符合嚴謹的企業語義 */
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    min-height: 11rem;
+    position: relative;
+    transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* 互動態：僅加深邊框與極輕微的陰影，拒絕 Y 軸浮動 */
+.fiori-tile:hover {
+    border-color: #94a3b8; /* slate-400 */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+/* 標頭與圖示對齊 */
+.fiori-tile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+}
+
+.fiori-tile-icon {
+    color: #64748b; /* 統一為 slate-500，消除 Rainbow 色彩 */
+    transition: color 0.2s ease;
+}
+
+.fiori-tile:hover .fiori-tile-icon {
+    color: #0f172a; /* hover 時轉為深灰 */
+}
+
+/* 語義標題：字重適中，緊湊字距 */
+.fiori-tile-title {
+    font-size: 0.875rem; /* 縮小標題尺寸 */
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #334155; /* slate-700 */
+}
+
+/* 次要描述：提高文字資訊密度 */
+.fiori-tile-desc {
+    font-size: 0.75rem;
+    color: #64748b;
+    line-height: 1.5;
+    margin-top: 0.25rem;
+}
+
+/* KPI 數值：採用等寬字體 (Monospace)，強調數據精確性 */
+.fiori-tile-kpi {
+    font-size: 2.25rem;
+    font-weight: 300;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    color: #0f172a;
+    margin-top: auto;
+    line-height: 1;
+}
+
+/* 底部操作指引：分隔線與極簡箭頭 */
+.fiori-tile-footer {
+    margin-top: 1.25rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #f1f5f9;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    transition: color 0.2s ease;
+}
+
+.fiori-tile:hover .fiori-tile-footer {
+    color: #004aad; /* 僅在交互點給予主品牌色提示 */
+}

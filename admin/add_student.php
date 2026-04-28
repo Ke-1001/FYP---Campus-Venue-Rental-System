@@ -44,15 +44,26 @@ require_once '../config/db.php';
                         
                         <input type="hidden" name="action" value="add">
 
-                        <div class="grid grid-cols-2 gap-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Student ID</label>
+                                <input type="text" name="uid" required placeholder="e.g. STU001" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-mmu-blue outline-none text-sm font-mono uppercase transition-all">
+                            </div>
+                            
                             <div>
                                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Entity Full Name</label>
-                                <input type="text" name="full_name" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-mmu-blue outline-none text-sm transition-all">
+                                <input type="text" name="username" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-mmu-blue outline-none text-sm transition-all">
                             </div>
+                            
                             <div>
                                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Institutional Email</label>
                                 <input type="email" name="email" id="email" required onkeyup="validateFormState()" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-mmu-blue outline-none text-sm font-mono transition-all">
                                 <p id="email-feedback" class="text-[10px] font-bold text-red-500 mt-1 hidden tracking-wide uppercase">Invalid Email Syntax Domain</p>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Contact Number</label>
+                                <input type="text" name="phone_num" required placeholder="e.g. 0123456789" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-mmu-blue outline-none text-sm font-mono transition-all">
                             </div>
                         </div>
 
@@ -98,7 +109,6 @@ require_once '../config/db.php';
             document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed');
         }
 
-        // Raw SVG injected directly to bypass Lucide DOM destruction on keyup
         const checkSVG = `<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
         const crossSVG = `<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
 

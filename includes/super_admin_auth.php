@@ -3,14 +3,14 @@
 
 require_once 'admin_auth.php'; 
 
-// Privilege Elevation Check
-if ($_SESSION['role'] !== 'Super_Admin') {
+// 💡 Privilege Elevation Check (Mapped to new lowercase ENUM)
+if ($_SESSION['role'] !== 'super_admin') {
     $_SESSION['toast'] = [
         'type' => 'error', 
-        'msg' => 'Access Denied: Super Administrator privileges required.'
+        'msg' => 'Access Denied: Root (Super Administrator) privileges required.'
     ];
     // Redirect unauthorized personnel back to a safe zone
-    header("Location: ../admin/dashboard.php");
+    header("Location: ../admin/manage_bookings.php"); // 💡 修正路由至新的 Launchpad
     exit();
 }
 ?>

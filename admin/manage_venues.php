@@ -3,21 +3,21 @@
 
 session_start();
 require_once("../config/db.php");
-require_once('../includes/admin_auth.php'); // 💡 注入安全閘道器 (已內建 session_start)
-require_once("../config/db.php");
+require_once('../includes/admin_auth.php'); 
 
 $venues = [];
+// 💡 適配新架構：使用 venue 表，映射 vid, vname, max_cap, deposit
 $sql_venues = "
     SELECT 
-        venue_id AS raw_id, /* 💡 用於對接 process_venue.php */
-        CONCAT('VEN-', LPAD(venue_id, 3, '0')) AS id, 
-        venue_name AS name, 
+        vid AS raw_id,
+        vid AS id, /* vid 現在是 VARCHAR(12)，直接顯示 */
+        vname AS name, 
         category, 
-        capacity, /* 💡 新增容量欄位 */
-        base_deposit AS deposit, 
+        max_cap AS capacity, 
+        deposit, 
         status 
-    FROM venues 
-    ORDER BY venue_id ASC";
+    FROM venue 
+    ORDER BY vid ASC";
 
 $result = $conn->query($sql_venues);
 if ($result && $result->num_rows > 0) {
@@ -45,8 +45,7 @@ if ($result && $result->num_rows > 0) {
 
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-50">
         
-        <header class="h-16 glass-panel border-b border-slate-200 flex items-center justify-between px-6 z-10 shrink-0">
-            <?php 
+        <?php 
         $topbar_content = '
         <div class="flex items-center text-slate-500 bg-white px-4 py-2 rounded-lg border border-slate-200 focus-within:border-mmu-blue shadow-sm transition-all">
             <i data-lucide="search" class="w-4 h-4 mr-2"></i>
@@ -55,7 +54,6 @@ if ($result && $result->num_rows > 0) {
         
         include('../includes/admin_topbar.php'); 
         ?>
-        </header>
 
         <div class="flex-1 overflow-y-auto p-8">
             
@@ -85,35 +83,35 @@ if ($result && $result->num_rows > 0) {
                     <tbody class="text-sm text-slate-700 divide-y divide-slate-100">
                         <?php foreach($venues as $venue): ?>
                         <tr class="hover:bg-slate-50 transition-colors">
-                            <td class="px-6 py-4 font-mono text-xs font-bold text-mmu-blue"><?php echo $venue['id']; ?></td>
+                            <td class="px-6 py-4 font-mono text-xs font-bold text-mmu-blue"><?php echo htmlspecialchars($venue['id']); ?></td>
                             <td class="px-6 py-4 font-bold text-slate-800"><?php echo htmlspecialchars($venue['name']); ?></td>
                             <td class="px-6 py-4 font-medium text-slate-500"><?php echo htmlspecialchars($venue['category']); ?></td>
                             <td class="px-6 py-4 font-mono font-bold text-slate-700"><?php echo number_format((float)$venue['deposit'], 2); ?></td>
                             <td class="px-6 py-4">
                                 <?php 
-                                    // Status Vector Processing
+                                    // 💡 適配新架構：狀態全小寫 (available, maintenance, booked)
                                     $statusClass = "bg-slate-100 text-slate-600 border-slate-200";
                                     $icon = "minus";
                                     
-                                    if($venue['status'] === 'Available') { 
+                                    if($venue['status'] === 'available') { 
                                         $statusClass = "bg-emerald-50 text-emerald-600 border-emerald-200"; 
                                         $icon = "check-circle-2"; 
-                                    } elseif($venue['status'] === 'Maintenance') { 
+                                    } elseif($venue['status'] === 'maintenance') { 
                                         $statusClass = "bg-amber-50 text-amber-600 border-amber-200"; 
                                         $icon = "wrench"; 
-                                    } elseif($venue['status'] === 'Closed') { 
-                                        $statusClass = "bg-red-50 text-red-600 border-red-200"; 
-                                        $icon = "slash"; 
+                                    } elseif($venue['status'] === 'booked') { 
+                                        $statusClass = "bg-blue-50 text-blue-600 border-blue-200"; 
+                                        $icon = "lock"; 
                                     }
                                 ?>
                                 <span class="px-2 py-1 border <?php echo $statusClass; ?> rounded text-[10px] font-black uppercase tracking-widest inline-flex items-center">
                                     <i data-lucide="<?php echo $icon; ?>" class="w-3 h-3 mr-1"></i>
-                                    <?php echo $venue['status']; ?>
+                                    <?php echo ucfirst($venue['status']); ?>
                                 </span>
                             </td>
                             <td class="px-6 py-4 text-right">
                                 <button onclick="openVenueModal('edit', this)" 
-                                        data-id="<?php echo $venue['raw_id']; ?>"
+                                        data-id="<?php echo htmlspecialchars($venue['raw_id']); ?>"
                                         data-name="<?php echo htmlspecialchars($venue['name']); ?>"
                                         data-category="<?php echo htmlspecialchars($venue['category']); ?>"
                                         data-capacity="<?php echo $venue['capacity']; ?>"
@@ -148,12 +146,17 @@ if ($result && $result->num_rows > 0) {
 
         <form action="../actions/process_venue.php" method="POST" class="p-6">
             <input type="hidden" name="action" id="modal-action" value="add">
-            <input type="hidden" name="venue_id" id="modal-venue-id" value="">
+            <input type="hidden" name="vid" id="modal-venue-id" value="">
             
             <div class="space-y-4">
+                <div id="vid-container">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Venue ID (e.g., VEN001)</label>
+                    <input type="text" name="new_vid" id="modal-new-vid" class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-mmu-blue focus:ring-1 focus:ring-mmu-blue text-sm font-mono uppercase">
+                </div>
+
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Venue Designation (Name)</label>
-                    <input type="text" name="venue_name" id="modal-name" required class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-mmu-blue focus:ring-1 focus:ring-mmu-blue text-sm">
+                    <input type="text" name="vname" id="modal-name" required class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-mmu-blue focus:ring-1 focus:ring-mmu-blue text-sm">
                 </div>
                 
                 <div class="grid grid-cols-2 gap-4">
@@ -168,21 +171,21 @@ if ($result && $result->num_rows > 0) {
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Capacity (Pax)</label>
-                        <input type="number" name="capacity" id="modal-capacity" required min="1" class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-mmu-blue focus:ring-1 focus:ring-mmu-blue text-sm">
+                        <input type="number" name="max_cap" id="modal-capacity" required min="1" class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-mmu-blue focus:ring-1 focus:ring-mmu-blue text-sm">
                     </div>
                 </div>
                 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Base Deposit (RM)</label>
-                        <input type="number" step="0.01" name="base_deposit" id="modal-deposit" required min="0" class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-mmu-blue focus:ring-1 focus:ring-mmu-blue text-sm">
+                        <input type="number" step="0.01" name="deposit" id="modal-deposit" required min="0" class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-mmu-blue focus:ring-1 focus:ring-mmu-blue text-sm">
                     </div>
                     <div id="status-container" class="hidden">
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Operational State</label>
                         <select name="status" id="modal-status" class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-mmu-blue focus:ring-1 focus:ring-mmu-blue text-sm bg-white">
-                            <option value="Available">Available</option>
-                            <option value="Maintenance">Maintenance</option>
-                            <option value="Closed">Closed</option>
+                            <option value="available">Available</option>
+                            <option value="maintenance">Maintenance</option>
+                            <option value="booked">Booked</option>
                         </select>
                     </div>
                 </div>
@@ -212,29 +215,37 @@ if ($result && $result->num_rows > 0) {
             sidebar.classList.toggle('sidebar-collapsed');
         }
 
-                // 場地 Modal 狀態機與資料注入邏輯
+        // 場地 Modal 狀態機與資料注入邏輯
         function openVenueModal(mode, btn = null) {
             const modal = document.getElementById('venue-modal');
             const formAction = document.getElementById('modal-action');
             const title = document.getElementById('modal-title');
             const statusContainer = document.getElementById('status-container');
             const deleteBtn = document.getElementById('modal-delete-btn');
+            const vidContainer = document.getElementById('vid-container');
+            const newVidInput = document.getElementById('modal-new-vid');
             
-            // 清空殘留表單數據
             document.querySelector('#venue-modal form').reset();
             
             if (mode === 'add') {
                 formAction.value = 'add';
                 title.innerText = 'Register Infrastructure Node';
                 statusContainer.classList.add('hidden');
-                deleteBtn.classList.add('hidden'); // 新增時不可刪除
+                deleteBtn.classList.add('hidden');
+                
+                // 新增時需輸入 ID
+                vidContainer.classList.remove('hidden');
+                newVidInput.required = true;
             } else if (mode === 'edit' && btn) {
                 formAction.value = 'edit';
                 title.innerText = 'Configure Infrastructure Node';
                 statusContainer.classList.remove('hidden');
                 deleteBtn.classList.remove('hidden');
                 
-                // 解析資料屬性並注入表單 (Data Hydration)
+                // 編輯時隱藏 ID 輸入框（透過隱藏欄位傳遞）
+                vidContainer.classList.add('hidden');
+                newVidInput.required = false;
+                
                 document.getElementById('modal-venue-id').value = btn.getAttribute('data-id');
                 document.getElementById('modal-name').value = btn.getAttribute('data-name');
                 document.getElementById('modal-category').value = btn.getAttribute('data-category');
@@ -242,8 +253,8 @@ if ($result && $result->num_rows > 0) {
                 document.getElementById('modal-deposit').value = btn.getAttribute('data-deposit');
                 document.getElementById('modal-status').value = btn.getAttribute('data-status');
                 
-                // 動態生成刪除按鈕的 GET 路由
-                deleteBtn.href = `../actions/process_venue.php?action=delete&id=${btn.getAttribute('data-id')}`;
+                // 注意 GET 參數更名為 vid
+                deleteBtn.href = `../actions/process_venue.php?action=delete&vid=${btn.getAttribute('data-id')}`;
             }
             
             modal.classList.remove('hidden');

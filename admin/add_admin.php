@@ -23,20 +23,17 @@ require_once '../config/db.php';
 
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-50">
         
-        <header class="h-16 glass-panel border-b border-slate-200 flex items-center justify-between px-6 z-10 shrink-0">
-            <div class="flex items-center">
-                <button onclick="toggleSidebar()" class="p-2 mr-4 text-slate-500 hover:text-mmu-blue transition-colors rounded-lg hover:bg-slate-100 focus:outline-none">
-                    <i data-lucide="menu" class="w-6 h-6"></i>
-                </button>
-                <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Identity Governance / Register Administrator</h2>
+        <?php 
+        // 💡 注入共用 Topbar
+        $topbar_content = '
+        <div class="flex items-center space-x-4">
+            <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Identity Governance / Register Administrator</h2>
+            <div class="px-3 py-1 bg-indigo-50 border border-indigo-100 rounded-full text-xs font-bold text-indigo-600 flex items-center">
+                <i data-lucide="shield-check" class="w-3 h-3 mr-1"></i> Root Privilege Verified
             </div>
-            
-            <div class="flex items-center space-x-4">
-                <div class="px-3 py-1 bg-indigo-50 border border-indigo-100 rounded-full text-xs font-bold text-indigo-600 flex items-center">
-                    <i data-lucide="shield-check" class="w-3 h-3 mr-1"></i> Root Privilege Verified
-                </div>
-            </div>
-        </header>
+        </div>';
+        include('../includes/admin_topbar.php'); 
+        ?>
 
         <div class="flex-1 overflow-y-auto p-8 scroll-smooth flex justify-center">
             
@@ -49,10 +46,15 @@ require_once '../config/db.php';
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                     <form action="../actions/process_add_admin.php" method="POST" id="addAdminForm" class="p-8 space-y-6">
                         
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Administrator ID (e.g., ADM001)</label>
+                            <input type="text" name="aid" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-mmu-blue outline-none text-sm font-mono uppercase transition-all">
+                        </div>
+
                         <div class="grid grid-cols-2 gap-6">
                             <div>
                                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Entity Full Name</label>
-                                <input type="text" name="full_name" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-mmu-blue outline-none text-sm transition-all">
+                                <input type="text" name="admin_name" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-mmu-blue outline-none text-sm transition-all">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Institutional Email</label>
@@ -62,8 +64,13 @@ require_once '../config/db.php';
                         </div>
 
                         <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Contact Number</label>
+                            <input type="text" name="phone_num" required placeholder="e.g. 0123456789" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-mmu-blue outline-none text-sm font-mono transition-all">
+                        </div>
+
+                        <div>
                             <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Access Level (RBAC Profile)</label>
-                            <input type="hidden" name="role" value="Normal_Admin">
+                            <input type="hidden" name="role" value="admin">
                             <div class="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-lg text-sm font-bold text-slate-500 cursor-not-allowed flex items-center">
                                 <i data-lucide="shield" class="w-4 h-4 mr-2 text-mmu-blue"></i> Standard Administrator (Level 1)
                             </div>
@@ -76,10 +83,10 @@ require_once '../config/db.php';
                             
                             <div class="mt-4 p-4 bg-slate-50 border border-slate-200 rounded-lg grid grid-cols-1 md:grid-cols-2 gap-2 text-xs font-bold text-slate-400">
                                 <div id="rule-length" class="flex items-center transition-colors"><span class="icon-slot"></span> Minimum 8 Characters</div>
-                                <div id="rule-upper" class="flex items-center transition-colors"><span class="icon-slot"></span> 1 Uppercase Letter (A-Z)</div>
-                                <div id="rule-lower" class="flex items-center transition-colors"><span class="icon-slot"></span> 1 Lowercase Letter (a-z)</div>
-                                <div id="rule-number" class="flex items-center transition-colors"><span class="icon-slot"></span> 1 Numeric Digit (0-9)</div>
-                                <div id="rule-special" class="flex items-center transition-colors col-span-1 md:col-span-2"><span class="icon-slot"></span> 1 Special Symbol (@$!%*?&)</div>
+                                <div id="rule-upper" class="flex items-center transition-colors"><span class="icon-slot"></span> 1 Uppercase (A-Z)</div>
+                                <div id="rule-lower" class="flex items-center transition-colors"><span class="icon-slot"></span> 1 Lowercase (a-z)</div>
+                                <div id="rule-number" class="flex items-center transition-colors"><span class="icon-slot"></span> 1 Numeric (0-9)</div>
+                                <div id="rule-special" class="flex items-center transition-colors col-span-1 md:col-span-2"><span class="icon-slot"></span> 1 Symbol (@$!%*?&)</div>
                             </div>
                         </div>
 
@@ -104,11 +111,9 @@ require_once '../config/db.php';
             document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed');
         }
 
-        // Raw SVG injected directly to bypass Lucide DOM destruction on keyup
         const checkSVG = `<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
         const crossSVG = `<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
 
-        // Initialize state
         window.onload = () => {
             const rules = ['rule-length', 'rule-upper', 'rule-lower', 'rule-number', 'rule-special'];
             rules.forEach(id => {
@@ -117,7 +122,6 @@ require_once '../config/db.php';
         };
 
         function validateFormState() {
-            // 1. Email Validation Vector
             const emailInput = document.getElementById('email');
             const emailFeedback = document.getElementById('email-feedback');
             const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -136,7 +140,6 @@ require_once '../config/db.php';
                 emailFeedback.classList.add('hidden');
             }
 
-            // 2. Cryptographic Password Vector
             const pwd = document.getElementById('password').value;
             
             const reqs = {
@@ -150,7 +153,6 @@ require_once '../config/db.php';
             const toggleRule = (id, isValid) => {
                 const el = document.getElementById(id);
                 const iconSlot = el.querySelector('.icon-slot');
-                
                 if (isValid) {
                     el.className = 'flex items-center transition-colors text-emerald-600';
                     iconSlot.innerHTML = checkSVG;
@@ -166,7 +168,6 @@ require_once '../config/db.php';
             toggleRule('rule-number', reqs.number);
             toggleRule('rule-special', reqs.special);
 
-            // 3. Final Boolean Gate for Submission Execution
             const isPwdSecure = Object.values(reqs).every(val => val === true);
             const btn = document.getElementById('submitBtn');
 

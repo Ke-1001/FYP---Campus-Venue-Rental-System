@@ -2,9 +2,14 @@
 // File: admin/login.php
 session_start();
 
-// Redirect to dashboard if session state is already authenticated
-if (isset($_SESSION['user_id']) && in_array($_SESSION['role'], ['Normal_Admin', 'Super_Admin'])) {
-    header("Location: dashboard.php");
+// 💡 1. 狀態機轉移 (State Machine Transition)
+// 適配新架構：使用 aid 與小寫 role，並保留 user_id 向前相容性
+$admin_identifier = $_SESSION['aid'] ?? ($_SESSION['user_id'] ?? null);
+$admin_role = $_SESSION['role'] ?? '';
+
+// Redirect to dashboard if session state is already authenticated under new schema
+if ($admin_identifier && in_array($admin_role, ['admin', 'super_admin'], true)) {
+    header("Location: manage_bookings.php"); // 💡 修正路由：直接導向重構好的 Launchpad
     exit();
 }
 ?>

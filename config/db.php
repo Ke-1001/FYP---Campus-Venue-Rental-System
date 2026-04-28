@@ -4,7 +4,7 @@
 $host = "localhost";
 $user = "root";      // XAMPP default username 
 $pass = "";          // XAMPP default password (usually empty) 
-$dbname = "venue_rental_db"; // Please replace with the name of the database you created in phpMyAdmin
+$dbname = "rental_venue"; // Please replace with the name of the database you created in phpMyAdmin
 
 // build connection
 $conn = new mysqli($host, $user, $pass, $dbname);

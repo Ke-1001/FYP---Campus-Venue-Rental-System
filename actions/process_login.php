@@ -1,4 +1,5 @@
 <?php
+// File: actions/process_login.php
 session_start();
 require_once '../config/db.php';
 
@@ -6,8 +7,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email']);
     $password = $_POST['password']; // USER enters plaintext password
 
-    // 1. search for the user in the database
-    $sql = "SELECT user_id, full_name, password_hash, role FROM users WHERE email = ? AND role IN ('Normal_Admin', 'Super_Admin')";
+    // 1. Search for the admin in the new `admin` table
+    // 💡 適配新架構：使用 aid, admin_name, password 以及小寫的 role
+    $sql = "SELECT aid, admin_name, password, role FROM admin WHERE email = ? AND role IN ('admin', 'super_admin')";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("s", $email);
     $stmt->execute();
@@ -16,23 +18,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($result->num_rows === 1) {
         $user = $result->fetch_assoc();
         
-        // 2. authenticate the password
-        // (為了相容我們當初手動塞進資料庫的 'admin123' 明文測試資料，這裡做了一個簡單的比對)
-        // 正式環境請務必改成: if (password_verify($password, $user['password_hash'])) { ... }
-        if (password_verify($password, $user['password_hash'])) {
+        // 2. Authenticate the password
+        // 💡 雙重驗證機制：優先使用安全的 password_verify，若失敗則嘗試比對明文 (方便開發過渡期)
+        if (password_verify($password, $user['password']) || $password === $user['password']) {
             
             // Login successful, set session variables
-            $_SESSION['user_id'] = $user['user_id'];
-            $_SESSION['full_name'] = $user['full_name'];
-            $_SESSION['role'] = $user['role'];
+            $_SESSION['aid'] = $user['aid']; // 寫入新的主鍵
+            $_SESSION['full_name'] = $user['admin_name']; // 映射到舊的 full_name 以保持 UI 相容
+            $_SESSION['role'] = $user['role']; // 寫入新的小寫 role
             
-            // redirect to admin's homepage (booking approval center)
+            // Redirect to admin's launchpad
             header("Location: ../admin/manage_bookings.php");
             exit();
         }
     }
     
-    // wrong credentials, redirect back to login with error message
+    // Wrong credentials, redirect back to login with error message
     header("Location: ../admin/login.php?error=invalid");
     exit();
 }
