@@ -9,7 +9,7 @@ require_once '../config/db.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MMU Admin | Identity Governance</title>
+    <title>MMU Admin | Add Administrator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
@@ -24,12 +24,11 @@ require_once '../config/db.php';
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-50">
         
         <?php 
-        // 💡 注入共用 Topbar
         $topbar_content = '
         <div class="flex items-center space-x-4">
-            <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Identity Governance / Register Administrator</h2>
+            <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Admin Management / Add New</h2>
             <div class="px-3 py-1 bg-indigo-50 border border-indigo-100 rounded-full text-xs font-bold text-indigo-600 flex items-center">
-                <i data-lucide="shield-check" class="w-3 h-3 mr-1"></i> Root Privilege Verified
+                <i data-lucide="shield-check" class="w-3 h-3 mr-1"></i> Super Admin Verified
             </div>
         </div>';
         include('../includes/admin_topbar.php'); 
@@ -39,27 +38,22 @@ require_once '../config/db.php';
             
             <div class="w-full max-w-2xl">
                 <div class="mb-8 text-center">
-                    <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Register System Administrator</h1>
-                    <p class="text-sm text-slate-500 mt-2">Deploy new administrative nodes. Strict validation and enterprise-grade cryptographic complexity are enforced.</p>
+                    <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Add New Administrator</h1>
+                    <p class="text-sm text-slate-500 mt-2">Create a new administrator account for the system.</p>
                 </div>
 
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                     <form action="../actions/process_add_admin.php" method="POST" id="addAdminForm" class="p-8 space-y-6">
                         
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Administrator ID (e.g., ADM001)</label>
-                            <input type="text" name="aid" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-mmu-blue outline-none text-sm font-mono uppercase transition-all">
-                        </div>
-
                         <div class="grid grid-cols-2 gap-6">
                             <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Entity Full Name</label>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Full Name</label>
                                 <input type="text" name="admin_name" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-mmu-blue outline-none text-sm transition-all">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Institutional Email</label>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Email Address</label>
                                 <input type="email" name="email" id="email" required onkeyup="validateFormState()" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-mmu-blue outline-none text-sm font-mono transition-all">
-                                <p id="email-feedback" class="text-[10px] font-bold text-red-500 mt-1 hidden tracking-wide uppercase">Invalid Email Syntax Domain</p>
+                                <p id="email-feedback" class="text-[10px] font-bold text-red-500 mt-1 hidden tracking-wide uppercase">Invalid Email Format</p>
                             </div>
                         </div>
 
@@ -69,31 +63,30 @@ require_once '../config/db.php';
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Access Level (RBAC Profile)</label>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Access Level</label>
                             <input type="hidden" name="role" value="admin">
                             <div class="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-lg text-sm font-bold text-slate-500 cursor-not-allowed flex items-center">
-                                <i data-lucide="shield" class="w-4 h-4 mr-2 text-mmu-blue"></i> Standard Administrator (Level 1)
+                                <i data-lucide="shield" class="w-4 h-4 mr-2 text-mmu-blue"></i> Standard Administrator
                             </div>
-                            <p class="text-[10px] text-slate-400 mt-1">* Super_Admin nodes cannot be replicated through this interface.</p>
                         </div>
 
                         <div class="border-t border-slate-100 pt-6 mt-6">
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Cryptographic Key (Password)</label>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Password</label>
                             <input type="password" name="password" id="password" required onkeyup="validateFormState()" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-mmu-blue outline-none text-sm font-mono tracking-widest transition-all">
                             
                             <div class="mt-4 p-4 bg-slate-50 border border-slate-200 rounded-lg grid grid-cols-1 md:grid-cols-2 gap-2 text-xs font-bold text-slate-400">
                                 <div id="rule-length" class="flex items-center transition-colors"><span class="icon-slot"></span> Minimum 8 Characters</div>
                                 <div id="rule-upper" class="flex items-center transition-colors"><span class="icon-slot"></span> 1 Uppercase (A-Z)</div>
                                 <div id="rule-lower" class="flex items-center transition-colors"><span class="icon-slot"></span> 1 Lowercase (a-z)</div>
-                                <div id="rule-number" class="flex items-center transition-colors"><span class="icon-slot"></span> 1 Numeric (0-9)</div>
-                                <div id="rule-special" class="flex items-center transition-colors col-span-1 md:col-span-2"><span class="icon-slot"></span> 1 Symbol (@$!%*?&)</div>
+                                <div id="rule-number" class="flex items-center transition-colors"><span class="icon-slot"></span> 1 Number (0-9)</div>
+                                <div id="rule-special" class="flex items-center transition-colors col-span-1 md:col-span-2"><span class="icon-slot"></span> 1 Special Character (@$!%*?&)</div>
                             </div>
                         </div>
 
                         <div class="flex justify-end space-x-4 pt-4">
-                            <a href="manage_admins.php" class="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-slate-100 rounded-lg transition-colors">Abort Sequence</a>
+                            <a href="manage_admins.php" class="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-slate-100 rounded-lg transition-colors">Cancel</a>
                             <button type="submit" id="submitBtn" disabled class="px-6 py-3 text-sm font-bold text-white bg-slate-300 rounded-lg transition-all flex items-center cursor-not-allowed">
-                                <i data-lucide="user-plus" class="w-4 h-4 mr-2"></i> Deploy Administrator
+                                <i data-lucide="save" class="w-4 h-4 mr-2"></i> Save Administrator
                             </button>
                         </div>
                     </form>

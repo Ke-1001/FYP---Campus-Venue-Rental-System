@@ -1,34 +1,38 @@
 <?php
 // File: user/booking_form.php
 session_start();
-$page_title = "Book Venue"; // 💡 語義降維
+$page_title = "Book Venue";
 include("../includes/user_header.php");
 include("../includes/user_navbar.php");
 require_once("../config/db.php");
 
-// 💡 相容性修復：支援新版 uid 與舊版 user_id
-if (!isset($_SESSION['uid']) && !isset($_SESSION['user_id'])) {
-    header("Location: ../user/user_login.php");
+// 💡 權限閘道：嚴格檢查 uid (學號自然鍵)
+if (!isset($_SESSION['uid'])) {
+    header("Location: ../user/user_login.php?error=access_denied");
     exit();
 }
 
-// 💡 適配新架構：接收 VARCHAR 格式的 vid
-$vid = $_GET["vid"] ?? '';
+// 💡 型態嚴格約束：vid 必須為整數 (v3.1 規範)
+$vid = intval($_GET["vid"] ?? 0);
 
-// 💡 適配新架構：venue, vname, max_cap, deposit，並且只能預約 available 的場地
+if ($vid === 0) {
+    die("<div class='min-h-screen flex items-center justify-center bg-slate-50 text-xl font-bold text-slate-800'>Anomaly Detected: Invalid Venue Identifier.</div>");
+}
+
 $sql = "SELECT vid, vname, category, max_cap, deposit, status
         FROM venue
         WHERE vid = ? AND status = 'available'
         LIMIT 1";
 
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("s", $vid);
+// 💡 "i" 代表 Integer
+$stmt->bind_param("i", $vid);
 $stmt->execute();
 $result = $stmt->get_result();
 $venue = $result->fetch_assoc();
 
 if (!$venue) {
-    die("<div class='min-h-screen flex items-center justify-center bg-slate-50 text-xl font-bold text-slate-800'>Error: Venue is not available for booking.</div>");
+    die("<div class='min-h-screen flex items-center justify-center bg-slate-50 text-xl font-bold text-slate-800'>Error: Venue is offline or not available for booking.</div>");
 }
 ?>
 
@@ -43,8 +47,10 @@ if (!$venue) {
         
         <div class="lg:col-span-1">
             <div class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden sticky top-8">
-                <div class="bg-slate-800 px-6 py-5 border-b-4 border-indigo-500">
-                    <h2 class="text-xl font-extrabold text-white tracking-wide">Selected Venue</h2> </div>
+                <div class="bg-slate-800 px-6 py-5 border-b-4 border-indigo-500 flex items-center">
+                    <i data-lucide="map-pin" class="w-5 h-5 text-indigo-400 mr-2"></i>
+                    <h2 class="text-lg font-extrabold text-white tracking-wide">Selected Venue</h2> 
+                </div>
                 <div class="p-6 space-y-4">
                     <div>
                         <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Name</p>
@@ -56,7 +62,7 @@ if (!$venue) {
                     </div>
                     <div>
                         <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Capacity</p>
-                        <p class="text-sm font-medium text-slate-700"><?php echo (int)$venue["max_cap"]; ?> People</p>
+                        <p class="text-sm font-medium text-slate-700"><?php echo (int)$venue["max_cap"]; ?> Pax</p>
                     </div>
                     <div class="pt-4 border-t border-slate-100">
                         <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Deposit Required</p>
@@ -70,7 +76,7 @@ if (!$venue) {
             <div class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden p-8">
                 
                 <div id="calendar-container" class="block">
-                    <div class="flex justify-between items-center mb-6">
+                    <div class="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
                         <h3 id="calendar-header" class="text-2xl font-extrabold text-slate-800"></h3>
                         <div class="flex space-x-2">
                             <button id="btn-prev-month" class="p-2 rounded hover:bg-slate-100 text-slate-500 transition disabled:opacity-30 disabled:cursor-not-allowed">
@@ -90,15 +96,16 @@ if (!$venue) {
                 </div>
 
                 <div id="timeslot-container" class="hidden">
-                    <div class="flex items-center mb-6">
+                    <div class="flex items-center mb-6 border-b border-slate-100 pb-4">
                         <button onclick="returnToCalendar()" class="mr-4 p-2 rounded hover:bg-slate-100 text-slate-500 transition">
                             <i data-lucide="arrow-left" class="w-5 h-5"></i>
                         </button>
-                        <h3 class="text-xl font-extrabold text-slate-800">Select Time: <span id="selected-date-display" class="text-indigo-600"></span></h3> </div>
+                        <h3 class="text-xl font-extrabold text-slate-800">Select Time: <span id="selected-date-display" class="text-indigo-600"></span></h3>
+                    </div>
 
-                    <div class="flex space-x-4 mb-6 text-xs font-bold text-slate-500 uppercase">
+                    <div class="flex flex-wrap gap-4 mb-6 text-xs font-bold text-slate-500 uppercase">
                         <div class="flex items-center"><div class="w-3 h-3 bg-white border-2 border-slate-200 rounded mr-2"></div> Available</div>
-                        <div class="flex items-center"><div class="w-3 h-3 bg-slate-200 rounded mr-2"></div> Blocked</div>
+                        <div class="flex items-center"><div class="w-3 h-3 bg-slate-200 rounded mr-2"></div> Unavailable</div>
                         <div class="flex items-center"><div class="w-3 h-3 bg-indigo-600 rounded mr-2"></div> Selected</div>
                     </div>
 
@@ -117,12 +124,12 @@ if (!$venue) {
 
                         <div>
                             <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Booking Purpose</label>
-                            <input type="text" name="purpose" placeholder="E.g., Club meeting, Study group..." required 
+                            <input type="text" name="purpose" placeholder="e.g., Club meeting, Study group..." required 
                                    class="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm bg-white">
                         </div>
 
                         <button type="submit" id="submitBtn" class="w-full py-4 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-md flex items-center justify-center">
-                            <i data-lucide="check-circle" class="w-4 h-4 mr-2"></i> Confirm & Proceed to Payment
+                            <i data-lucide="check-circle" class="w-4 h-4 mr-2"></i> Confirm Booking & Proceed
                         </button>
                     </form>
 
@@ -211,7 +218,7 @@ if (!$venue) {
                     blockedVectors = data.blocked_vectors;
                     renderTimeGrid();
                 } else {
-                    alert("Error fetching available time slots."); // 💡 語義降維
+                    alert("Error: Unable to fetch time slots.");
                 }
             });
     }
@@ -240,6 +247,7 @@ if (!$venue) {
         for (let h = 0; h < 24; h++) {
             for (let m = 0; m < 60; m += 30) {
                 const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+                
                 let isBlocked = false;
 
                 if (isToday && timeStr <= currentTimeStr) {
@@ -289,7 +297,7 @@ if (!$venue) {
             }
 
             if (!rangeValid) {
-                alert("Time Conflict: The selected time overlaps with an existing booking or its cleaning time."); // 💡 語義降維
+                alert("Time Conflict: The selected time overlaps with an existing booking.");
                 return;
             }
 
@@ -356,13 +364,13 @@ if (!$venue) {
             if (data.status === 'success') {
                 window.location.href = data.redirect_url;
             } else {
-                alert("Booking Failed: " + (data.message || "Unknown error occurred.")); // 💡 語義降維
+                alert("Booking Failed: " + (data.message || "Unknown error occurred."));
                 resetFormButton(submitBtn, originalBtnText);
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert("Connection Error: Could not reach the server."); // 💡 語義降維
+            alert("Connection Error: Could not reach the server.");
             resetFormButton(submitBtn, originalBtnText);
         });
     });

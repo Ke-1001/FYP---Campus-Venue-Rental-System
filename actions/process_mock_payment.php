@@ -3,66 +3,91 @@
 session_start();
 require_once '../config/db.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    
-    // 💡 1. 適配新架構：直接接收 VARCHAR 格式的主鍵 (為相容舊版前端表單，同時接收 bid 或 booking_ref)
-    $bid = htmlspecialchars(trim($_POST['bid'] ?? $_POST['booking_ref']));
-    $amount = (float)$_POST['amount'];
+// 💡 1. 降維打擊：全域接收 GET 與 POST 參數，相容各種前端命名
+$raw_input = $_REQUEST['bid'] ?? $_REQUEST['booking_ref'] ?? $_REQUEST['booking_id'] ?? $_REQUEST['id'] ?? 0;
 
-    // Simulate Network Latency
-    sleep(1); 
-    $transaction_id = 'TXN-' . strtoupper(substr(md5(uniqid(rand(), true)), 0, 8));
+// 強制過濾並轉為整數 (相容 BKG- 前綴或純數字)
+$bid = (int)str_ireplace('BKG-', '', $raw_input);
 
-    $conn->begin_transaction();
+if ($bid === 0) {
+    die("<div style='font-family:sans-serif; padding:20px; color:#ef4444;'>
+         <h3>Fatal: Parameter Missing</h3>
+         <p>No valid Booking ID was received by the payment processor.</p>
+         <pre>Received Payload: " . print_r($_REQUEST, true) . "</pre>
+         </div>");
+}
 
-    try {
-        // 💡 2. 單表原子性更新 (Atomic Single-Table Update)
-        // 將狀態改為小寫 'paid'，寫入交易序號
-        $sql_booking = "UPDATE booking SET payment_status = 'paid', transaction_ref = ? WHERE bid = ?";
-        $stmt_booking = $conn->prepare($sql_booking);
-        $stmt_booking->bind_param("ss", $transaction_id, $bid);
-        $stmt_booking->execute();
-        $stmt_booking->close();
+// 模擬金流延遲與生成交易號
+sleep(1); 
+$transaction_id = 'TXN-' . strtoupper(substr(md5(uniqid(rand(), true)), 0, 8));
 
-        // 💡 3. 已移除 payments 表寫入邏輯 (財務層已成功降維至 booking 表)
+$conn->begin_transaction();
 
-        $conn->commit();
+try {
+    // 💡 2. 狀態機檢查：先確認訂單是否存在以及當前狀態
+    $check_sql = "SELECT payment_status FROM booking WHERE bid = ?";
+    $stmt_check = $conn->prepare($check_sql);
+    $stmt_check->bind_param("i", $bid);
+    $stmt_check->execute();
+    $result = $stmt_check->get_result();
 
-        // 4. Render Modern Success Splash Screen and Auto-Redirect
-        echo '<!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Transaction Complete</title>
-            <script src="https://cdn.tailwindcss.com"></script>
-        </head>
-        <body class="bg-slate-50 flex items-center justify-center min-h-screen">
-            <div class="bg-white p-10 rounded-2xl shadow-xl text-center max-w-sm w-full border border-slate-100">
-                <div class="w-20 h-20 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-                </div>
-                <h2 class="text-2xl font-extrabold text-slate-800 mb-2">Payment Verified</h2>
-                <p class="text-slate-500 text-sm mb-4">Your deposit has been secured.</p>
-                <div class="bg-slate-50 p-4 rounded-lg font-mono text-xs text-slate-600 font-bold mb-6">
-                    REF: ' . $transaction_id . '
-                </div>
-                <div class="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center justify-center">
-                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-emerald-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    Routing to Dashboard...
-                </div>
-            </div>
-            <script>
-                setTimeout(() => { window.location.href = "../user/homepage.php"; }, 2500);
-            </script>
-        </body>
-        </html>';
-
-    } catch (Exception $e) {
-        $conn->rollback();
-        die("Transaction Failed: " . $e->getMessage());
+    if ($result->num_rows === 0) {
+        throw new Exception("Target bid [{$bid}] does not exist in the database. Are you sure the booking was successfully created?");
     }
 
-    $conn->close();
+    $current_status = $result->fetch_assoc()['payment_status'];
+    $stmt_check->close();
+
+    if ($current_status === 'paid') {
+        // 已經付款，視為成功，不報錯
+        $conn->rollback(); // 撤銷無意義的交易
+        $message = "Payment already processed for this booking.";
+    } else {
+        // 💡 3. 執行原子更新
+        $sql_booking = "UPDATE booking SET payment_status = 'paid', transaction_ref = ? WHERE bid = ?";
+        $stmt_booking = $conn->prepare($sql_booking);
+        $stmt_booking->bind_param("si", $transaction_id, $bid);
+        $stmt_booking->execute();
+        
+        if ($stmt_booking->affected_rows === 0) {
+            throw new Exception("State Mutation Failed: Could not update the payment status.");
+        }
+        $stmt_booking->close();
+        $conn->commit();
+        $message = "Payment Verified Successfully.";
+    }
+
+    // 💡 4. 成功畫面與自動跳轉 (不依賴外部視圖，直接在這裡渲染企業級介面)
+    echo '<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Transaction Complete</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="bg-slate-50 flex items-center justify-center min-h-screen font-sans">
+        <div class="bg-white p-10 rounded-2xl shadow-lg border border-slate-200 text-center max-w-sm w-full">
+            <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+            <h2 class="text-2xl font-extrabold text-slate-800 mb-2">' . $message . '</h2>
+            <div class="bg-slate-50 p-3 rounded-lg font-mono text-xs text-slate-600 font-bold mb-6 mt-4 border border-slate-100">
+                REF: ' . $transaction_id . ' <br> BID: ' . $bid . '
+            </div>
+            <p class="text-xs text-slate-400 font-bold uppercase tracking-widest">Redirecting to dashboard...</p>
+            <script>setTimeout(() => { window.location.href = "../user/homepage.php"; }, 2500);</script>
+        </div>
+    </body></html>';
+
+} catch (Exception $e) {
+    $conn->rollback();
+    die("<div style='font-family:sans-serif; padding:20px; color:#ef4444; background:#fef2f2; border:1px solid #f87171; border-radius:8px; max-w:600px; margin:40px auto;'>
+         <h3 style='margin-top:0;'>Transaction Fault</h3>
+         <p><b>Error:</b> " . $e->getMessage() . "</p>
+         <p style='font-size:12px; color:#7f1d1d; margin-top:20px;'>Please check if the booking ID ($bid) actually exists in your `booking` table.</p>
+         <a href='../user/homepage.php' style='display:inline-block; margin-top:10px; padding:8px 16px; background:#ef4444; color:white; text-decoration:none; border-radius:4px; font-weight:bold; font-size:14px;'>Return to Home</a>
+         </div>");
 }
+
+$conn->close();
 ?>

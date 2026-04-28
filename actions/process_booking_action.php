@@ -11,14 +11,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-// 💡 適配新架構：booking_id 為 VARCHAR，移除 intval()
-$bid = htmlspecialchars(trim($_POST['booking_id'] ?? ''));
+// 💡 1. 嚴格轉型：booking_id (bid) 與當前管理員 (aid) 皆為 INT
+$bid = intval($_POST['booking_id'] ?? 0);
 $action_type = $_POST['action_type'] ?? '';
+$admin_aid = intval($_SESSION['aid'] ?? 0);
 
-// 提取當前審批此訂單的管理員 ID
-$admin_aid = $_SESSION['aid'] ?? null;
-
-if (empty($bid) || !in_array($action_type, ['approve', 'reject'], true)) {
+if ($bid === 0 || !in_array($action_type, ['approve', 'reject'], true)) {
     $_SESSION['toast'] = ['type' => 'error', 'msg' => 'Anomaly: Malformed data payload detected.'];
     header("Location: ../admin/pending_requests.php");
     exit;
@@ -27,7 +25,7 @@ if (empty($bid) || !in_array($action_type, ['approve', 'reject'], true)) {
 // 2. Pre-execution State Verification
 $sql_check = "SELECT status FROM booking WHERE bid = ?";
 $stmt_check = $conn->prepare($sql_check);
-$stmt_check->bind_param("s", $bid);
+$stmt_check->bind_param("i", $bid); // "i"
 $stmt_check->execute();
 $result = $stmt_check->get_result();
 
@@ -42,7 +40,6 @@ $booking = $result->fetch_assoc();
 $stmt_check->close();
 
 // Invariant: Only 'pending' requests can be processed.
-// 💡 適配新架構：小寫 pending
 if ($booking['status'] !== 'pending') {
     $_SESSION['toast'] = ['type' => 'error', 'msg' => 'State Fault: Booking is no longer in an actionable state.'];
     header("Location: ../admin/pending_requests.php");
@@ -54,10 +51,10 @@ if ($action_type === 'approve') {
     // Sequence A: Authorization Granted
     $new_state = 'approved';
     
-    // 💡 適配新架構：同時記錄審批人 (aid) 與審批時間 (approve_date)
+    // 💡 2. 綁定型態 "sii" -> String(status), Int(aid), Int(bid)
     $sql_update = "UPDATE booking SET status = ?, aid = ?, approve_date = NOW() WHERE bid = ?";
     $stmt = $conn->prepare($sql_update);
-    $stmt->bind_param("sss", $new_state, $admin_aid, $bid);
+    $stmt->bind_param("sii", $new_state, $admin_aid, $bid);
     
     if ($stmt->execute()) {
         $_SESSION['toast'] = ['type' => 'success', 'msg' => "Authorization Granted: Booking vector {$bid} approved and locked."];
@@ -68,11 +65,12 @@ if ($action_type === 'approve') {
 
 } elseif ($action_type === 'reject') {
     // Sequence B: Request Denied
-    // 💡 適配新架構：無需跨表 Transaction，單表同時更新 status, payment_status 與 aid
     $new_state = 'rejected';
+    
+    // 💡 綁定型態 "sii"
     $sql_update = "UPDATE booking SET status = ?, payment_status = 'refunded', aid = ? WHERE bid = ?";
     $stmt = $conn->prepare($sql_update);
-    $stmt->bind_param("sss", $new_state, $admin_aid, $bid);
+    $stmt->bind_param("sii", $new_state, $admin_aid, $bid);
     
     if ($stmt->execute()) {
         $_SESSION['toast'] = ['type' => 'success', 'msg' => "Request Denied: Booking {$bid} rejected and associated funds flagged for refund."];
@@ -82,7 +80,7 @@ if ($action_type === 'approve') {
     $stmt->close();
 }
 
-// 4. Return Routing (導回 Pending Requests 工作列表)
+// 4. Return Routing
 header("Location: ../admin/pending_requests.php");
 exit;
 ?>

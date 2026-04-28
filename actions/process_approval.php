@@ -1,7 +1,7 @@
 <?php
 // File path: actions/process_approval.php
 session_start();
-require_once '../includes/admin_auth.php'; // 💡 補上安全閘道，確保只有管理員能觸發此 API
+require_once '../includes/admin_auth.php'; // 🔒 確保只有管理員能觸發此 API
 require_once '../config/db.php';
 
 // Security check: ensure bid and action are received
@@ -11,18 +11,24 @@ if (!isset($_GET['id']) || !isset($_GET['action'])) {
     exit;
 }
 
-// 💡 適配新架構：主鍵為 VARCHAR，移除 intval()
-$bid = htmlspecialchars(trim($_GET['id']));
+// 💡 1. 嚴格轉型：將 GET 傳入的識別碼強制轉為整數
+$bid = intval($_GET['id']);
 $action = $_GET['action'];
+
+if ($bid === 0) {
+    $_SESSION['toast'] = ['type' => 'error', 'msg' => 'Fatal: Invalid Booking ID.'];
+    header("Location: ../admin/manage_bookings.php");
+    exit;
+}
 
 $conn->begin_transaction();
 
 try {
     if ($action === 'approve') {
-        // 💡 適配新架構：更新 status 為 approved，並記錄 approve_date
+        // 💡 2. 狀態更新，綁定型態為 "i" (整數)
         $sql = "UPDATE booking SET status = 'approved', approve_date = NOW() WHERE bid = ? AND status = 'pending'";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("s", $bid); // "s" for string
+        $stmt->bind_param("i", $bid); 
         $stmt->execute();
         
         $_SESSION['toast'] = [
@@ -31,10 +37,10 @@ try {
         ];
 
     } elseif ($action === 'reject') {
-        // 💡 適配新架構：在同一個表中同時更新訂單狀態與退款狀態，實現真正的原子性 (Atomicity)
+        // 💡 3. 原子性退回，綁定型態為 "i" (整數)
         $sql_booking = "UPDATE booking SET status = 'rejected', payment_status = 'refunded' WHERE bid = ? AND status = 'pending'";
         $stmt_booking = $conn->prepare($sql_booking);
-        $stmt_booking->bind_param("s", $bid); // "s" for string
+        $stmt_booking->bind_param("i", $bid);
         $stmt_booking->execute();
 
         $_SESSION['toast'] = [
@@ -57,7 +63,7 @@ try {
 
 $conn->close();
 
-// 審批完成後導向 Launchpad 或 Pending Requests
+// 審批完成後導向 Pending Requests
 header("Location: ../admin/pending_requests.php");
 exit;
 ?>

@@ -73,7 +73,7 @@ if (isset($conn)) {
             <li>
                 <a href="manage_admins.php" class="nav-item flex items-center px-4 py-2 <?php echo ($current_page == 'manage_admins.php' || $current_page == 'add_admin.php') ? 'bg-mmu-blue' : 'text-slate-300 hover:bg-slate-800'; ?> rounded-lg transition-colors">
                     <i data-lucide="shield" class="w-4 h-4 shrink-0 text-mmu-accent"></i>
-                    <span class="ml-3 font-medium text-sm nav-text">Administrators</span>
+                    <span class="ml-3 font-medium text-sm nav-text">Personnel Directory</span>
                 </a>
             </li>
             
@@ -94,7 +94,7 @@ if (isset($conn)) {
             <li class="mt-4">
                 <a href="../actions/logout.php" class="nav-item flex items-center px-4 py-3 text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-lg transition-colors">
                     <i data-lucide="log-out" class="w-5 h-5 shrink-0"></i>
-                    <span class="ml-3 font-bold nav-text">Terminate Session</span>
+                    <span class="ml-3 font-bold nav-text">Log Out</span>
                 </a>
             </li>
         </ul>

@@ -2,7 +2,7 @@
 // File: user/user_login.php
 session_start();
 
-// 💡 適配新架構：檢查 uid 而非 user_id
+// 💡 檢查 uid (學號) 是否存在，若已登入則導向首頁
 if (isset($_SESSION['uid']) && isset($_SESSION['role']) && $_SESSION['role'] === 'user') {
     header("Location: homepage.php");
     exit();
@@ -12,8 +12,7 @@ if (isset($_SESSION['uid']) && isset($_SESSION['role']) && $_SESSION['role'] ===
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>User Login - CVBMS</title>
-    <link rel="stylesheet" href="../assets/css/admin_style.css">
+    <title>Student Login - MMU Venue Booking</title>
     <style>
         /* Base styles maintained for layout consistency */
         body { 
@@ -108,32 +107,32 @@ if (isset($_SESSION['uid']) && isset($_SESSION['role']) && $_SESSION['role'] ===
 <body>
 
 <div class="login-box">
-    <h2>Entity Authentication</h2>
+    <h2>Student Login</h2>
     
     <?php
     if (isset($_GET['error'])) {
         if ($_GET['error'] == 'invalid') {
-            echo "<div class='error-msg'>Verification Failed: Invalid credentials.</div>";
+            echo "<div class='error-msg'>Invalid email or password.</div>";
         } elseif ($_GET['error'] == 'access_denied') {
-            echo "<div class='error-msg'>Access Denied: Please authenticate first.</div>";
+            echo "<div class='error-msg'>Please log in to continue.</div>";
         } elseif ($_GET['error'] == 'timeout') {
-            echo "<div class='error-msg'>Session Expired: Please authenticate again.</div>";
+            echo "<div class='error-msg'>Session expired. Please log in again.</div>";
         }
     }
     ?>
 
     <form action="user_login_process.php" method="POST">
         <div class="form-group">
-            <label>Institutional Email</label>
-            <input type="email" name="email" required placeholder="user@student.mmu.edu.my">
+            <label>Student Email</label>
+            <input type="email" name="email" required placeholder="e.g. 1234567890@student.mmu.edu.my">
         </div>
 
         <div class="form-group">
-            <label>Cryptographic Key</label>
+            <label>Password</label>
             <input type="password" name="password" required placeholder="••••••••">
         </div>
 
-        <button type="submit" class="btn-submit">Initiate Session</button>
+        <button type="submit" class="btn-submit">Login</button>
     </form>
 </div>
 

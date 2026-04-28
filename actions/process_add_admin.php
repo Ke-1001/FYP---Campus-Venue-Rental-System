@@ -5,8 +5,7 @@ require_once '../includes/super_admin_auth.php'; // 🔒 API endpoint secured (R
 require_once '../config/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // 💡 1. 接收並清理來自新版表單的 Payload
-    $aid = htmlspecialchars(trim($_POST['aid']));
+    // 💡 1. 接收並清理來自新版表單的 Payload (銷毀 aid 參數，由 DB 自動生成)
     $admin_name = htmlspecialchars(trim($_POST['admin_name']));
     $email = trim($_POST['email']);
     $phone_num = htmlspecialchars(trim($_POST['phone_num']));
@@ -27,15 +26,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // 💡 3. Double Uniqueness Check (檢查 Email 與新架構的主鍵 aid 是否碰撞)
-    $sql_check = "SELECT aid FROM admin WHERE email = ? OR aid = ?";
+    // 💡 3. Double Uniqueness Check (對齊 DB Constraint: 檢查 Email ∪ Admin Name)
+    $sql_check = "SELECT aid FROM admin WHERE email = ? OR admin_name = ?";
     $stmt_check = $conn->prepare($sql_check);
-    $stmt_check->bind_param("ss", $email, $aid);
+    $stmt_check->bind_param("ss", $email, $admin_name);
     $stmt_check->execute();
     if ($stmt_check->get_result()->num_rows > 0) {
         $_SESSION['toast'] = [
             'type' => 'error', 
-            'msg' => 'Conflict: Administrator ID or Email is already registered in the system.'
+            'msg' => 'Conflict: Email or Administrator Name is already registered in the system.'
         ];
         $stmt_check->close();
         header("Location: ../admin/add_admin.php");
@@ -46,19 +45,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // 4. Cryptographic Hashing
     $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
-    // 💡 5. Database Deployment (完美對齊 admin 表的 6 個欄位)
-    $sql = "INSERT INTO admin (aid, admin_name, email, password, phone_num, role) VALUES (?, ?, ?, ?, ?, ?)";
+    // 💡 5. Database Deployment (完美對齊 admin 表，不插入 aid 讓 DB 生成 8000+)
+    $sql = "INSERT INTO admin (admin_name, email, password, phone_num, role) VALUES (?, ?, ?, ?, ?)";
     $stmt = $conn->prepare($sql);
     
     if ($stmt) {
-        // "ssssss" 代表 6 個 String 變數
-        $stmt->bind_param("ssssss", $aid, $admin_name, $email, $password_hash, $phone_num, $role);
+        // "sssss" 代表 5 個 String 變數
+        $stmt->bind_param("sssss", $admin_name, $email, $password_hash, $phone_num, $role);
         if ($stmt->execute()) {
+            // 💡 提取原生的 4 位數 ID
+            $new_aid = $conn->insert_id; 
+            
             $_SESSION['toast'] = [
                 'type' => 'success', 
-                'msg' => 'Node Deployed: Administrator account successfully provisioned.'
+                'msg' => "Node Deployed: Administrator [ID: {$new_aid}] successfully provisioned."
             ];
-            // Route back to the directory upon success
             header("Location: ../admin/manage_admins.php");
         } else {
             $_SESSION['toast'] = ['type' => 'error', 'msg' => 'Database Fault: ' . $stmt->error];
@@ -66,6 +67,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $stmt->close();
     }
+    exit;
+} else {
+    $_SESSION['toast'] = ['type' => 'error', 'msg' => 'Invalid HTTP Request Vector.'];
+    header("Location: ../admin/manage_admins.php");
     exit;
 }
 ?>

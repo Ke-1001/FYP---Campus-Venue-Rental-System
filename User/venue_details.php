@@ -6,69 +6,101 @@ include("../includes/user_header.php");
 include("../includes/user_navbar.php");
 require_once("../config/db.php");
 
-// 💡 1. 適配新架構：接收字串型態的 vid
+// 💡 適配新架構：使用 vid
 $vid = $_GET["vid"] ?? '';
 
-// 💡 2. 適配新架構：使用 venue 表，並允許檢視 maintenance 狀態的場地
-$sql = "SELECT vid, vname, category, max_cap, deposit, status
+$sql = "SELECT vid, vname, category, max_cap, deposit, status, description
         FROM venue
         WHERE vid = ? AND status IN ('available', 'maintenance')
         LIMIT 1";
 
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("s", $vid); // "s" for string
+$stmt->bind_param("s", $vid); 
 $stmt->execute();
 $result = $stmt->get_result();
 $venue = $result->fetch_assoc();
 ?>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
 
-<?php if ($venue): ?>
-    <div class="card">
-        <h2>
-            <?php echo htmlspecialchars($venue["vname"]); ?>
-            <?php if ($venue['status'] === 'maintenance'): ?>
-                <span style="font-size: 12px; color: #d97706; background: #fef3c7; border: 1px solid #fcd34d; padding: 2px 8px; border-radius: 4px; vertical-align: middle; margin-left: 8px; font-weight: bold; text-transform: uppercase;">
-                    Under Maintenance
-                </span>
-            <?php endif; ?>
-        </h2>
+<div class="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
+    <div class="max-w-3xl mx-auto">
+        
+        <?php if ($venue): ?>
+            <div class="mb-6 flex items-center">
+                <a href="venues.php" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 flex items-center transition">
+                    <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i> Back to Venues
+                </a>
+            </div>
 
-        <div class="info-row">
-            <strong>Category:</strong> <?php echo htmlspecialchars($venue["category"]); ?>
-        </div>
+            <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
+                <div class="p-8">
+                    <div class="flex justify-between items-start mb-6 border-b border-slate-100 pb-6">
+                        <div>
+                            <h2 class="text-3xl font-extrabold text-slate-800"><?php echo htmlspecialchars($venue["vname"]); ?></h2>
+                            <p class="text-sm font-bold text-slate-400 uppercase tracking-widest mt-1"><?php echo htmlspecialchars($venue["category"]); ?></p>
+                        </div>
+                        <?php if ($venue['status'] === 'maintenance'): ?>
+                            <span class="px-3 py-1 bg-amber-100 text-amber-700 border border-amber-200 rounded-lg text-xs font-black uppercase tracking-widest flex items-center">
+                                <i data-lucide="wrench" class="w-4 h-4 mr-2"></i> Maintenance
+                            </span>
+                        <?php else: ?>
+                            <span class="px-3 py-1 bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-black uppercase tracking-widest flex items-center">
+                                <i data-lucide="check-circle" class="w-4 h-4 mr-2"></i> Available
+                            </span>
+                        <?php endif; ?>
+                    </div>
 
-        <div class="info-row">
-            <strong>Capacity:</strong> <?php echo (int)$venue["max_cap"]; ?> people
-        </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 flex items-center">
+                            <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm mr-4 text-indigo-600"><i data-lucide="users" class="w-5 h-5"></i></div>
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Maximum Capacity</p>
+                                <p class="text-lg font-bold text-slate-800"><?php echo (int)$venue["max_cap"]; ?> Pax</p>
+                            </div>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 flex items-center">
+                            <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm mr-4 text-emerald-600"><i data-lucide="banknote" class="w-5 h-5"></i></div>
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Required Deposit</p>
+                                <p class="text-lg font-mono font-bold text-slate-800">RM <?php echo number_format((float)$venue["deposit"], 2); ?></p>
+                            </div>
+                        </div>
+                    </div>
 
-        <div class="info-row">
-            <strong>Deposit Required:</strong> RM <?php echo number_format((float)$venue["deposit"], 2); ?>
-        </div>
+                    <?php if(!empty($venue['description'])): ?>
+                    <div class="mb-8">
+                        <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Description</h4>
+                        <p class="text-sm text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-lg border border-slate-100">
+                            <?php echo nl2br(htmlspecialchars($venue['description'])); ?>
+                        </p>
+                    </div>
+                    <?php endif; ?>
 
-        <div class="info-row">
-            <strong>Status:</strong> <?php echo ucfirst(htmlspecialchars($venue["status"])); ?>
-        </div>
+                    <div class="flex justify-end pt-6 border-t border-slate-100">
+                        <?php if ($venue['status'] === 'available'): ?>
+                            <a href="booking_form.php?vid=<?php echo urlencode($venue["vid"]); ?>" class="px-8 py-3 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-md transition flex items-center">
+                                Proceed to Book <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
+                            </a>
+                        <?php else: ?>
+                            <button disabled class="px-8 py-3 text-sm font-bold text-slate-400 bg-slate-100 border border-slate-200 rounded-lg cursor-not-allowed flex items-center">
+                                <i data-lucide="lock" class="w-4 h-4 mr-2"></i> Unavailable for Booking
+                            </button>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        <?php else: ?>
+            <div class="bg-white p-12 rounded-2xl shadow-sm border border-slate-200 text-center">
+                <i data-lucide="search-X" class="w-16 h-16 mx-auto text-slate-300 mb-4"></i>
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">Venue Not Found</h2>
+                <p class="text-slate-500 mb-6">The selected venue does not exist or has been removed from the system.</p>
+                <a href="venues.php" class="px-6 py-2 bg-slate-800 text-white font-bold rounded-lg hover:bg-slate-700 transition">Back to Venues</a>
+            </div>
+        <?php endif; ?>
 
-        <div style="margin-top: 20px;">
-            <?php if ($venue['status'] === 'available'): ?>
-                <a href="booking_form.php?vid=<?php echo urlencode($venue["vid"]); ?>" class="btn" style="margin-right: 10px;">Book Now</a>
-            <?php else: ?>
-                <button class="btn" disabled style="background-color: #94a3b8; border-color: #94a3b8; cursor: not-allowed; margin-right: 10px;">Currently Unavailable</button>
-            <?php endif; ?>
-            
-            <a href="venues.php" class="btn" style="background-color: #64748b; border-color: #64748b;">Back to List</a>
-        </div>
     </div>
-<?php else: ?>
-    <div class="card">
-        <h2>Venue Not Found</h2>
-        <p>The selected venue does not exist or has been removed from the system.</p>
-        <a href="venues.php" class="btn" style="background-color: #64748b; border-color: #64748b;">Back to Venues</a>
-    </div>
-<?php endif; ?>
+</div>
 
-<?php
-$stmt->close();
-$conn->close();
-include("../includes/user_footer.php");
-?>
+<script>lucide.createIcons();</script>
+<?php include("../includes/user_footer.php"); ?>

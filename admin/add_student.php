@@ -1,7 +1,7 @@
 <?php
 // File: admin/add_student.php
 session_start();
-require_once '../includes/admin_auth.php'; // Standard Admin Privilege is sufficient for student registration
+require_once '../includes/admin_auth.php'; 
 require_once '../config/db.php';
 ?>
 <!DOCTYPE html>
@@ -9,7 +9,7 @@ require_once '../config/db.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MMU Admin | Student Registration</title>
+    <title>MMU Admin | Add Student</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
@@ -25,8 +25,7 @@ require_once '../config/db.php';
         
         <header class="h-16 glass-panel border-b border-slate-200 flex items-center justify-between px-6 z-10 shrink-0">
             <?php 
-            $topbar_content = '
-            <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Student Directory / Register Node</h2>';
+            $topbar_content = '<h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Student Directory / Add New</h2>';
             include('../includes/admin_topbar.php'); 
             ?>
         </header>
@@ -35,8 +34,8 @@ require_once '../config/db.php';
             
             <div class="w-full max-w-2xl">
                 <div class="mb-8 text-center">
-                    <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Register Student Entity</h1>
-                    <p class="text-sm text-slate-500 mt-2">Deploy new student nodes. Strict email syntax and cryptographic complexity are enforced.</p>
+                    <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Add New Student</h1>
+                    <p class="text-sm text-slate-500 mt-2">Create a new student account. Valid email format and secure password are required.</p>
                 </div>
 
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
@@ -47,18 +46,18 @@ require_once '../config/db.php';
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Student ID</label>
-                                <input type="text" name="uid" required placeholder="e.g. STU001" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-mmu-blue outline-none text-sm font-mono uppercase transition-all">
+                                <input type="text" name="uid" required placeholder="e.g. 242DT2430C" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-mmu-blue outline-none text-sm font-mono uppercase transition-all">
                             </div>
                             
                             <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Entity Full Name</label>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Full Name</label>
                                 <input type="text" name="username" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-mmu-blue outline-none text-sm transition-all">
                             </div>
                             
                             <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Institutional Email</label>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Email Address</label>
                                 <input type="email" name="email" id="email" required onkeyup="validateFormState()" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-mmu-blue outline-none text-sm font-mono transition-all">
-                                <p id="email-feedback" class="text-[10px] font-bold text-red-500 mt-1 hidden tracking-wide uppercase">Invalid Email Syntax Domain</p>
+                                <p id="email-feedback" class="text-[10px] font-bold text-red-500 mt-1 hidden tracking-wide uppercase">Invalid Email Format</p>
                             </div>
 
                             <div>
@@ -68,30 +67,30 @@ require_once '../config/db.php';
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Access Level (Implicit)</label>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Access Level</label>
                             <div class="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-lg text-sm font-bold text-slate-500 cursor-not-allowed flex items-center">
-                                <i data-lucide="graduation-cap" class="w-4 h-4 mr-2 text-mmu-blue"></i> Standard User Node
+                                <i data-lucide="graduation-cap" class="w-4 h-4 mr-2 text-mmu-blue"></i> Student (User)
                             </div>
-                            <p class="text-[10px] text-slate-400 mt-1">* Entity will be granted standard booking capabilities.</p>
+                            <p class="text-[10px] text-slate-400 mt-1">* Student will have standard booking capabilities.</p>
                         </div>
 
                         <div class="border-t border-slate-100 pt-6 mt-6">
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Cryptographic Key (Password)</label>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Password</label>
                             <input type="password" name="password" id="password" required onkeyup="validateFormState()" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-mmu-blue outline-none text-sm font-mono tracking-widest transition-all">
                             
                             <div class="mt-4 p-4 bg-slate-50 border border-slate-200 rounded-lg grid grid-cols-1 md:grid-cols-2 gap-2 text-xs font-bold text-slate-400">
                                 <div id="rule-length" class="flex items-center transition-colors"><span class="icon-slot"></span> Minimum 8 Characters</div>
-                                <div id="rule-upper" class="flex items-center transition-colors"><span class="icon-slot"></span> 1 Uppercase Letter (A-Z)</div>
-                                <div id="rule-lower" class="flex items-center transition-colors"><span class="icon-slot"></span> 1 Lowercase Letter (a-z)</div>
-                                <div id="rule-number" class="flex items-center transition-colors"><span class="icon-slot"></span> 1 Numeric Digit (0-9)</div>
-                                <div id="rule-special" class="flex items-center transition-colors col-span-1 md:col-span-2"><span class="icon-slot"></span> 1 Special Symbol (@$!%*?&)</div>
+                                <div id="rule-upper" class="flex items-center transition-colors"><span class="icon-slot"></span> 1 Uppercase (A-Z)</div>
+                                <div id="rule-lower" class="flex items-center transition-colors"><span class="icon-slot"></span> 1 Lowercase (a-z)</div>
+                                <div id="rule-number" class="flex items-center transition-colors"><span class="icon-slot"></span> 1 Number (0-9)</div>
+                                <div id="rule-special" class="flex items-center transition-colors col-span-1 md:col-span-2"><span class="icon-slot"></span> 1 Special Character (@$!%*?&)</div>
                             </div>
                         </div>
 
                         <div class="flex justify-end space-x-4 pt-4">
-                            <a href="manage_students.php" class="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-slate-100 rounded-lg transition-colors">Abort Sequence</a>
+                            <a href="manage_students.php" class="px-6 py-3 text-sm font-bold text-slate-500 hover:bg-slate-100 rounded-lg transition-colors">Cancel</a>
                             <button type="submit" id="submitBtn" disabled class="px-6 py-3 text-sm font-bold text-white bg-slate-300 rounded-lg transition-all flex items-center cursor-not-allowed">
-                                <i data-lucide="user-plus" class="w-4 h-4 mr-2"></i> Deploy Student
+                                <i data-lucide="save" class="w-4 h-4 mr-2"></i> Save Student
                             </button>
                         </div>
                     </form>
