@@ -1,35 +1,19 @@
 <?php
 // File: includes/booking_functions.php
 
-/**
- * Check for Time Slot Conflicts (prevent double booking)
- *
- * @param mysqli $conn Database connection object
- * @param int $vid Venue ID (INT UNSIGNED - v3.1 Architecture)
- * @param string $date_booked Booking date (YYYY-MM-DD)
- * @param string $new_start_time Booking start time (HH:MM:SS)
- * @param string $new_end_time Booking end time (HH:MM:SS)
- * @return bool Returns true if a conflict is found, false otherwise
- */
 function checkTimeSlotConflict($conn, $vid, $date_booked, $new_start_time, $new_end_time) {
-    // Logic: A conflict occurs if there exists a booking for the same venue and date where:
-    // 1. existing booking's time_start < new booking's end_time
-    // 2. AND existing booking's computed end_time (time_start + duration + 30 min buffer) > new booking's start_time
-    
+    // 💡 數學定理：若兩區間 [S1, E1] 與 [S2, E2] 重疊，則必滿足 S1 < E2 且 E1 > S2
     $sql = "SELECT COUNT(*) as conflict_count 
             FROM booking 
             WHERE vid = ? 
               AND date_booked = ? 
               AND status IN ('pending', 'approved') 
-              AND time_start < ? 
-              AND ADDTIME(ADDTIME(time_start, SEC_TO_TIME(duration * 60)), '00:30:00') > ?"; 
+              AND (
+                  time_start < ? AND time_end > ?
+              )"; 
               
     $stmt = $conn->prepare($sql);
-    if (!$stmt) { 
-        die("SQL Prepare Error: " . $conn->error); 
-    }
-    
-    // 💡 Strict Type Binding: 'i' (integer for vid), 's' (string for the rest)
+    // 💡 對應順序：$new_end_time (E2) 比較 time_start (S1)；$new_start_time (S2) 比較 time_end (E1)
     $stmt->bind_param("isss", $vid, $date_booked, $new_end_time, $new_start_time);
     $stmt->execute();
     $result = $stmt->get_result();

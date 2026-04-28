@@ -83,46 +83,7 @@ if ($result && $result->num_rows > 0) {
         include('../includes/admin_topbar.php'); 
         ?>
 
-        <div class="flex-1 overflow-y-auto p-8">
-            <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight mb-8">System Overview</h1>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
-                    <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">Active Requests</p>
-                    <h3 class="text-4xl font-black text-slate-800 mt-4 font-mono"><?php echo $kpi_requests; ?></h3>
-                </div>
-                <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
-                    <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">Pending Validations</p>
-                    <h3 class="text-4xl font-black text-amber-500 mt-4 font-mono"><?php echo $kpi_pending; ?></h3>
-                </div>
-                <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
-                    <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">Inspection Conflicts</p>
-                    <h3 class="text-4xl font-black text-red-500 mt-4 font-mono"><?php echo $kpi_conflicts; ?></h3>
-                </div>
-            </div>
-
-            <?php if (!empty($pending_list)): ?>
-            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-8">
-                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-                    <h3 class="text-lg font-extrabold text-slate-800">Priority Queue</h3>
-                    <a href="pending_requests.php" class="text-xs font-bold text-mmu-blue hover:underline">View All</a>
-                </div>
-                <table class="w-full text-left border-collapse">
-                    <tbody class="text-sm text-slate-700 divide-y divide-slate-100">
-                        <?php foreach($pending_list as $b): ?>
-                        <tr class="hover:bg-slate-50 transition-colors">
-                            <td class="px-6 py-3 font-mono text-xs font-bold text-mmu-blue"><?php echo htmlspecialchars($b['id']); ?></td>
-                            <td class="px-6 py-3 font-bold text-slate-800"><?php echo htmlspecialchars($b['applicant']); ?></td>
-                            <td class="px-6 py-3 font-medium text-slate-600"><?php echo htmlspecialchars($b['venue']); ?></td>
-                            <td class="px-6 py-3 text-xs font-mono text-slate-500"><?php echo htmlspecialchars($b['date']) . ' | ' . htmlspecialchars($b['time']); ?></td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-            <?php endif; ?>
-
-        </div>
+        
     </main>
 
     <?php include('../includes/ui_components.php'); ?>

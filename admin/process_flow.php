@@ -35,9 +35,8 @@ if (!$data) {
 
 $is_rejected = ($data['status'] === 'rejected');
 
-// 💡 核心修復：離散狀態矩陣 (Discrete State Matrix)
 $flow_states = [
-    'Request'  => true, // 只要訂單存在即為 True
+    'Request'  => true,
     'Payment'  => ($data['payment_status'] === 'paid' || $data['payment_status'] === 'refunded'),
     'Approval' => ($data['status'] === 'approved' || $data['status'] === 'completed'),
     'Assign'   => ($data['inspector_name'] !== null),
@@ -54,7 +53,7 @@ $flow_states = [
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
-        tailwind.config = { theme: { extend: { colors: { mmu: { blue: '#004aad', dark: '#1e293b', accent: '#38bdf8' } } } } }
+        tailwind.config = { theme: { extend: { colors: { mmu: { blue: '#004aad', dark: '#1e293b' } } } } }
     </script>
     <link rel="stylesheet" href="layout.css?v=1.2">
     <style>
@@ -115,7 +114,6 @@ $flow_states = [
                             
                             $isActive = $flow_states[$label];
                             
-                            // 💡 邏輯：判斷當前節點與下一個節點是否皆成立，以決定連接線是否亮起
                             $nextLabel = $steps[$index + 1] ?? null;
                             $isNextActive = $nextLabel ? $flow_states[$nextLabel] : false;
                             
@@ -152,12 +150,7 @@ $flow_states = [
                             <div>
                                 <p class="text-[10px] text-slate-500 font-bold uppercase mb-0.5">Time Frame</p>
                                 <p class="font-mono text-slate-600">
-                                    <?php 
-                                    $start = new DateTime($data['time_start']);
-                                    $end = clone $start;
-                                    $end->modify("+{$data['duration']} minutes");
-                                    echo $start->format('H:i') . ' - ' . $end->format('H:i');
-                                    ?>
+                                    <?php echo date('H:i', strtotime($data['time_start'])) . ' - ' . date('H:i', strtotime($data['time_end'])); ?>
                                 </p>
                             </div>
                             <div class="pt-2"><p class="text-[10px] text-slate-500 font-bold uppercase mb-0.5">Purpose</p><p class="italic text-slate-600">"<?php echo htmlspecialchars($data['purpose']); ?>"</p></div>
@@ -204,9 +197,7 @@ $flow_states = [
 
     <script>
         lucide.createIcons();
-        function toggleSidebar() {
-            document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed');
-        }
+        function toggleSidebar() { document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed'); }
     </script>
 </body>
 </html>

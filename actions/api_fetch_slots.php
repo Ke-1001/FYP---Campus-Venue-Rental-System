@@ -1,42 +1,47 @@
 <?php
-// File path: actions/api_fetch_slots.php
-header('Content-Type: application/json');
+// File: actions/api_fetch_slots.php
+session_start();
 require_once '../config/db.php';
 
-// 垃圾回收：清除 15 分鐘未付款的幽靈訂單
-$conn->query("DELETE FROM booking WHERE payment_status = 'unpaid' AND created_at < (NOW() - INTERVAL 15 MINUTE)");
+header('Content-Type: application/json');
 
-if (!isset($_GET['venue_id']) || !isset($_GET['date'])) {
-    echo json_encode(['status' => 'error', 'message' => 'Invalid parameters.']);
+$venue_id = isset($_GET['venue_id']) ? intval($_GET['venue_id']) : 0;
+$date = isset($_GET['date']) ? trim($_GET['date']) : '';
+
+if ($venue_id === 0 || empty($date)) {
+    echo json_encode(['status' => 'error', 'message' => 'Parameter Validation Fault.']);
     exit;
 }
 
-// 💡 強制型態轉換：vid 為整數
-$vid = intval($_GET['venue_id']);
-$date = $_GET['date'];
-
-$sql = "SELECT time_start, duration 
+// 💡 提取當日有效訂單的時間端點
+$sql = "SELECT time_start, time_end 
         FROM booking 
         WHERE vid = ? 
-        AND date_booked = ? 
-        AND status IN ('pending', 'approved')";
+          AND date_booked = ? 
+          AND status IN ('pending', 'approved', 'completed')";
 
 $stmt = $conn->prepare($sql);
-// 💡 綁定型態：i(vid), s(date)
-$stmt->bind_param("is", $vid, $date);
+$stmt->bind_param("is", $venue_id, $date);
 $stmt->execute();
 $result = $stmt->get_result();
 
-$booked_slots = [];
+$blocked_vectors = [];
+
 while ($row = $result->fetch_assoc()) {
-    $start_time_obj = new DateTime($row['time_start']);
-    $end_time_obj = clone $start_time_obj;
-    $end_time_obj->modify("+" . ((int)$row['duration'] + 30) . " minutes");
+    $start = date('H:i', strtotime($row['time_start']));
     
-    $booked_slots[] = [
-        'start' => $start_time_obj->format('H:i'), 
-        'end' => $end_time_obj->format('H:i')
+    // 💡 企業級邏輯：為每個結束時間加上 30 分鐘的清潔緩衝 (Buffer)
+    // 這確保了下一組人無法緊接著上一組的結束時間預約
+    $end_with_buffer = date('H:i', strtotime($row['time_end'] . ' + 30 minutes'));
+    
+    $blocked_vectors[] = [
+        'start' => $start,
+        'end' => $end_with_buffer
     ];
 }
-echo json_encode(['status' => 'success', 'date' => $date, 'blocked_vectors' => $booked_slots]);
+
+$stmt->close();
+$conn->close();
+
+echo json_encode(['status' => 'success', 'blocked_vectors' => $blocked_vectors]);
 ?>

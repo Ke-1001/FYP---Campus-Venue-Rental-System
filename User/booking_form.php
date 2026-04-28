@@ -6,13 +6,11 @@ include("../includes/user_header.php");
 include("../includes/user_navbar.php");
 require_once("../config/db.php");
 
-// 💡 權限閘道：嚴格檢查 uid (學號自然鍵)
 if (!isset($_SESSION['uid'])) {
     header("Location: ../user/user_login.php?error=access_denied");
     exit();
 }
 
-// 💡 型態嚴格約束：vid 必須為整數 (v3.1 規範)
 $vid = intval($_GET["vid"] ?? 0);
 
 if ($vid === 0) {
@@ -25,7 +23,6 @@ $sql = "SELECT vid, vname, category, max_cap, deposit, status
         LIMIT 1";
 
 $stmt = $conn->prepare($sql);
-// 💡 "i" 代表 Integer
 $stmt->bind_param("i", $vid);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -35,7 +32,6 @@ if (!$venue) {
     die("<div class='min-h-screen flex items-center justify-center bg-slate-50 text-xl font-bold text-slate-800'>Error: Venue is offline or not available for booking.</div>");
 }
 ?>
-
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
 <script>
@@ -118,18 +114,18 @@ if (!$venue) {
                         <input type="hidden" name="end_time" id="payload_end" value="">
 
                         <div class="bg-indigo-50 p-4 rounded-lg flex justify-between items-center border border-indigo-100">
-                            <span class="text-sm font-bold text-indigo-800 uppercase tracking-wider">Selected Time</span>
+                            <span class="text-sm font-bold text-indigo-800 uppercase tracking-wider">Temporal Vector</span>
                             <span id="vector-display" class="font-mono font-black text-indigo-600 text-lg">--:-- to --:--</span>
                         </div>
 
                         <div>
                             <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Booking Purpose</label>
-                            <input type="text" name="purpose" placeholder="e.g., Club meeting, Study group..." required 
+                            <input type="text" name="purpose" placeholder="e.g., Project Meeting..." required 
                                    class="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm bg-white">
                         </div>
 
                         <button type="submit" id="submitBtn" class="w-full py-4 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-md flex items-center justify-center">
-                            <i data-lucide="check-circle" class="w-4 h-4 mr-2"></i> Confirm Booking & Proceed
+                            <i data-lucide="check-circle" class="w-4 h-4 mr-2"></i> Confirm Configuration & Proceed
                         </button>
                     </form>
 
@@ -153,28 +149,28 @@ if (!$venue) {
     let selectionState = { start: null, end: null };
     let blockedVectors = []; 
 
+    // 💡 時間數學運算元 (確保 $t_2$ 能正確 +30 mins 閉環)
+    function addMinutes(timeStr, mins) {
+        let [h, m] = timeStr.split(':').map(Number);
+        let d = new Date();
+        d.setHours(h, m + mins, 0, 0);
+        return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    }
+
     function renderCalendar() {
         const header = document.getElementById('calendar-header');
         const grid = document.getElementById('calendar-grid');
         const btnPrev = document.getElementById('btn-prev-month');
 
-        if (currentYear === today.getFullYear() && currentMonth === today.getMonth()) {
-            btnPrev.disabled = true;
-        } else {
-            btnPrev.disabled = false;
-        }
-
+        btnPrev.disabled = (currentYear === today.getFullYear() && currentMonth === today.getMonth());
         const date = new Date(currentYear, currentMonth, 1);
         header.innerText = date.toLocaleString('default', { month: 'long', year: 'numeric' });
-        
         grid.innerHTML = '';
         
         const firstDayIndex = date.getDay();
         const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
-        for (let i = 0; i < firstDayIndex; i++) {
-            grid.innerHTML += `<div class="p-4"></div>`;
-        }
+        for (let i = 0; i < firstDayIndex; i++) grid.innerHTML += `<div class="p-4"></div>`;
 
         for (let i = 1; i <= daysInMonth; i++) {
             const checkDate = new Date(currentYear, currentMonth, i);
@@ -218,7 +214,7 @@ if (!$venue) {
                     blockedVectors = data.blocked_vectors;
                     renderTimeGrid();
                 } else {
-                    alert("Error: Unable to fetch time slots.");
+                    alert("System Fault: Unable to synchronize schedule matrices.");
                 }
             });
     }
@@ -228,6 +224,7 @@ if (!$venue) {
         document.getElementById('timeslot-container').classList.add('hidden');
     }
 
+    // 💡 替換：套用 Model α 延遲鎖定演算法
     function renderTimeGrid() {
         const timeGrid = document.getElementById('time-grid');
         timeGrid.innerHTML = '';
@@ -239,28 +236,32 @@ if (!$venue) {
         const dynamicTodayStr = `${currentYearStr}-${currentMonthStr}-${currentDayStr}`;
         
         const isToday = (selectedDateStr === dynamicTodayStr);
-        
-        const currentHour = dynamicNow.getHours();
-        const currentMinute = dynamicNow.getMinutes();
-        const currentTimeStr = `${String(currentHour).padStart(2, '0')}:${String(currentMinute).padStart(2, '0')}`;
+        const currentTimeStr = `${String(dynamicNow.getHours()).padStart(2, '0')}:${String(dynamicNow.getMinutes()).padStart(2, '0')}`;
+
+        // 💡 定義容差常數 k = 25 分鐘
+        const k = 25;
 
         for (let h = 0; h < 24; h++) {
             for (let m = 0; m < 60; m += 30) {
                 const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
                 
-                let isBlocked = false;
+                // 💡 計算鎖定閥值：t_lock = t_slot_start + k
+                const lockTimeStr = addMinutes(timeStr, k);
+                
+                // 狀態評估：只有當前時間超越鎖定閥值時，才判定為 isBlocked = true
+                let isBlocked = (isToday && currentTimeStr >= lockTimeStr);
 
-                if (isToday && timeStr <= currentTimeStr) {
-                    isBlocked = true;
-                }
-
-                for (let block of blockedVectors) {
-                    if (timeStr >= block.start && timeStr < block.end) {
-                        isBlocked = true;
-                        break;
+                // 疊加伺服器端傳回的已佔用時間向量
+                if (!isBlocked) {
+                    for (let block of blockedVectors) {
+                        if (timeStr >= block.start && timeStr < block.end) {
+                            isBlocked = true;
+                            break;
+                        }
                     }
                 }
 
+                // 矩陣節點渲染
                 if (isBlocked) {
                     timeGrid.innerHTML += `<div class="p-2 text-center text-xs font-mono font-bold bg-slate-200 text-slate-400 rounded cursor-not-allowed">${timeStr}</div>`;
                 } else {
@@ -270,45 +271,40 @@ if (!$venue) {
         }
     }
 
+    // 💡 矩陣選擇邏輯重構
     function handleSlotClick(timeStr, btnElement) {
-        if (!selectionState.start || (selectionState.start && selectionState.end)) {
+        if (!selectionState.start) {
             setStartSlot(timeStr, btnElement);
-        } else {
+        } else if (!selectionState.end) {
             if (timeStr === selectionState.start) {
                 selectionState.start = null;
-                selectionState.end = null;
                 resetSlotStyles();
                 document.getElementById('asyncBookingForm').classList.add('hidden');
                 return;
             }
-
             if (timeStr < selectionState.start) {
                 setStartSlot(timeStr, btnElement);
                 return;
             }
 
+            // 校驗區間衝突
             let rangeValid = true;
             for (let block of blockedVectors) {
-                if ((block.start >= selectionState.start && block.start < timeStr) || 
-                    (block.end > selectionState.start && block.end <= timeStr)) {
+                if (block.start >= selectionState.start && block.start <= timeStr) {
                     rangeValid = false;
                     break;
                 }
             }
 
             if (!rangeValid) {
-                alert("Time Conflict: The selected time overlaps with an existing booking.");
+                alert("Vector Conflict: Selected temporal range intersects with locked slots.");
                 return;
             }
 
             selectionState.end = timeStr;
-            paintSelectedRange();
-            
-            document.getElementById('payload_start').value = selectionState.start;
-            document.getElementById('payload_end').value = selectionState.end;
-            document.getElementById('vector-display').innerText = `${selectionState.start} to ${selectionState.end}`;
-            
-            document.getElementById('asyncBookingForm').classList.remove('hidden');
+            finalizeSelection();
+        } else {
+            setStartSlot(timeStr, btnElement);
         }
     }
 
@@ -319,7 +315,7 @@ if (!$venue) {
         btnElement.classList.replace('bg-white', 'bg-indigo-600');
         btnElement.classList.replace('text-slate-600', 'text-white');
         btnElement.classList.replace('border-slate-200', 'border-indigo-600');
-        document.getElementById('asyncBookingForm').classList.add('hidden');
+        finalizeSelection(true); // 預設單一時塊 (30 mins)
     }
 
     function resetSlotStyles() {
@@ -328,15 +324,24 @@ if (!$venue) {
         });
     }
 
-    function paintSelectedRange() {
+    function finalizeSelection(isSingle = false) {
+        let actualStart = selectionState.start;
+        // 💡 將介面點擊的最後一個時塊加上 30 分鐘，形成數學上的真實驗證端點
+        let actualEnd = isSingle ? addMinutes(selectionState.start, 30) : addMinutes(selectionState.end, 30);
+
         document.querySelectorAll('.time-slot-btn').forEach(btn => {
             const slotTime = btn.innerText;
-            if (slotTime >= selectionState.start && slotTime <= selectionState.end) {
+            if (slotTime >= selectionState.start && slotTime <= (selectionState.end || selectionState.start)) {
                 btn.classList.replace('bg-white', 'bg-indigo-600');
                 btn.classList.replace('text-slate-600', 'text-white');
                 btn.classList.replace('border-slate-200', 'border-indigo-600');
             }
         });
+
+        document.getElementById('payload_start').value = actualStart;
+        document.getElementById('payload_end').value = actualEnd;
+        document.getElementById('vector-display').innerText = `${actualStart} to ${actualEnd}`;
+        document.getElementById('asyncBookingForm').classList.remove('hidden');
     }
 
     document.getElementById('asyncBookingForm').addEventListener('submit', function(e) {
@@ -344,33 +349,34 @@ if (!$venue) {
         
         const submitBtn = document.getElementById('submitBtn');
         const originalBtnText = submitBtn.innerHTML;
-        submitBtn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 mr-2 animate-spin"></i> Processing...';
+        submitBtn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 mr-2 animate-spin"></i> Processing Matrix...';
         submitBtn.disabled = true;
         submitBtn.classList.replace('bg-indigo-600', 'bg-slate-400');
         lucide.createIcons();
 
+        // 💡 這裡會自動擷取表單內的所有隱藏 input (包含已更新的 payload_end)
         const formData = new FormData(this);
-        formData.append('is_ajax', 'true'); 
 
         fetch('../actions/process_booking.php', {
             method: 'POST',
             body: formData
         })
         .then(response => {
-            if (!response.ok) throw new Error('Network Error.');
+            if (!response.ok) throw new Error('Network Protocol Error.');
             return response.json(); 
         })
         .then(data => {
             if (data.status === 'success') {
                 window.location.href = data.redirect_url;
             } else {
-                alert("Booking Failed: " + (data.message || "Unknown error occurred."));
+                alert("Execution Halted: " + (data.message || "Unknown anomaly."));
                 resetFormButton(submitBtn, originalBtnText);
             }
         })
         .catch(error => {
-            console.error('Error:', error);
-            alert("Connection Error: Could not reach the server.");
+            console.error('Core Diagnostics:', error);
+            // 若仍報錯，必定是後端 PHP 在解析時發生 Fatal Error
+            alert("Connection Error: Server returned an invalid execution payload. Please check backend logs.");
             resetFormButton(submitBtn, originalBtnText);
         });
     });

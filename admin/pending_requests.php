@@ -1,19 +1,18 @@
 <?php
-// File path: admin/pending_requests.php
+// File: admin/pending_requests.php
 session_start();
 require_once '../config/db.php';
 require_once '../includes/admin_auth.php';
 
-// 💡 1. 引入 Filter 參數 (SAP Fiori 標準)
 $filter_bid = $_GET['f_bid'] ?? '';
 $filter_venue = $_GET['f_venue'] ?? '';
 
-// 💡 2. 動態構建查詢 (Dynamic Query Construction)
+// 💡 提取純數字 bid，使用 time_end 端點座標
 $sql = "SELECT 
             b.bid, 
             b.date_booked, 
             b.time_start,
-            b.duration,
+            b.time_end,
             b.purpose, 
             b.created_at,
             u.uid AS student_id,
@@ -34,10 +33,8 @@ if (!empty($filter_venue)) {
 }
 
 $sql .= " ORDER BY b.created_at ASC";
-
 $result = $conn->query($sql);
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -96,8 +93,8 @@ $result = $conn->query($sql);
                     <span class="text-[10px] text-slate-400 font-bold uppercase tracking-widest"><i data-lucide="clock" class="w-3 h-3 inline pb-0.5"></i> Pending Authorization</span>
                 </div>
                 <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-white text-slate-400 text-[10px] font-black uppercase tracking-widest border-b border-slate-100">
+                    <thead class="bg-white text-[10px] text-slate-400 font-black uppercase tracking-widest border-b border-slate-100">
+                        <tr>
                             <th class="px-6 py-3">Booking ID</th>
                             <th class="px-6 py-3">Student Info</th>
                             <th class="px-6 py-3">Venue & Time</th>
@@ -108,10 +105,8 @@ $result = $conn->query($sql);
                     <tbody class="text-sm divide-y divide-slate-50">
                         <?php if ($result && $result->num_rows > 0): ?>
                             <?php while($row = $result->fetch_assoc()): 
-                                $start_dt = new DateTime($row['time_start']);
-                                $end_dt = clone $start_dt;
-                                $end_dt->modify("+{$row['duration']} minutes");
-                                $time_range = $start_dt->format('H:i') . ' - ' . $end_dt->format('H:i');
+                                // 💡 絕對端點提取，運算複雜度降至 O(1)
+                                $time_range = date('H:i', strtotime($row['time_start'])) . ' - ' . date('H:i', strtotime($row['time_end']));
                             ?>
                             <tr class="hover:bg-slate-50 transition-colors">
                                 <td class="px-6 py-4">
@@ -145,7 +140,7 @@ $result = $conn->query($sql);
                             <?php endwhile; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="5" class="px-6 py-12 text-center text-slate-400 font-medium">
+                                <td colspan="5" class="px-6 py-12 text-center text-slate-500 font-medium">
                                     <i data-lucide="check-circle" class="w-12 h-12 mx-auto text-emerald-400 mb-3 opacity-50"></i>
                                     Queue is clear. No pending requests.
                                 </td>
@@ -199,8 +194,8 @@ $result = $conn->query($sql);
                         <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Execute Decision</label>
                         <select name="action_type" required class="w-full px-4 py-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm bg-white font-bold text-slate-700 transition-all">
                             <option value="" disabled selected>-- Select Authorization State --</option>
-                            <option value="approve" class="text-emerald-600">Approve Booking</option>
-                            <option value="reject" class="text-red-600">Reject & Issue Refund</option>
+                            <option value="approve">Approve Booking</option>
+                            <option value="reject">Reject & Refund</option>
                         </select>
                     </div>
                 </div>
@@ -218,9 +213,7 @@ $result = $conn->query($sql);
     <script>
         lucide.createIcons();
 
-        function toggleSidebar() {
-            document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed');
-        }
+        function toggleSidebar() { document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed'); }
 
         function openActionModal(data) {
             document.getElementById('modal-bid').value = data.bid;
@@ -233,10 +226,7 @@ $result = $conn->query($sql);
             document.getElementById('action-modal').classList.remove('hidden');
         }
 
-        function closeActionModal() {
-            document.getElementById('action-modal').classList.add('hidden');
-        }
+        function closeActionModal() { document.getElementById('action-modal').classList.add('hidden'); }
     </script>
 </body>
 </html>
-<?php $conn->close(); ?>

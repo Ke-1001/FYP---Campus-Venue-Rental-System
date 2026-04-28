@@ -7,12 +7,12 @@ require_once '../includes/admin_auth.php';
 $filter_bid = $_GET['f_bid'] ?? '';
 $filter_venue = $_GET['f_venue'] ?? '';
 
-// 💡 邏輯重構：提取所有 pending 的檢驗任務，並帶出母訂單的 status 與時間向量
+// 💡 直接讀取 time_end
 $sql = "SELECT 
             b.bid, 
             b.date_booked, 
             b.time_start,
-            b.duration,
+            b.time_end,
             b.status AS booking_status,
             u.username, 
             v.vname, 
@@ -79,11 +79,11 @@ $result = $conn->query($sql);
                 <form method="GET" class="flex flex-wrap md:flex-nowrap gap-4 items-end">
                     <div class="w-full md:w-1/3">
                         <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Booking ID</label>
-                        <input type="text" name="f_bid" value="<?php echo htmlspecialchars($filter_bid); ?>" placeholder="Search ID..." class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all">
+                        <input type="text" name="f_bid" value="<?php echo htmlspecialchars($filter_bid); ?>" placeholder="Search ID..." class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:border-indigo-500 outline-none transition-all">
                     </div>
                     <div class="w-full md:w-1/3">
                         <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Venue Name</label>
-                        <input type="text" name="f_venue" value="<?php echo htmlspecialchars($filter_venue); ?>" placeholder="Search Venue..." class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all">
+                        <input type="text" name="f_venue" value="<?php echo htmlspecialchars($filter_venue); ?>" placeholder="Search Venue..." class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:border-indigo-500 outline-none transition-all">
                     </div>
                     <div class="w-full md:w-auto flex space-x-2">
                         <button type="submit" class="px-5 py-2 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-700 transition shadow-sm">Go</button>
@@ -109,13 +109,10 @@ $result = $conn->query($sql);
                     <tbody class="text-sm divide-y divide-slate-50">
                         <?php if ($result && $result->num_rows > 0): ?>
                             <?php while($row = $result->fetch_assoc()): 
-                                // 計算結束時間
-                                $start_dt = new DateTime($row['time_start']);
-                                $end_dt = clone $start_dt;
-                                $end_dt->modify("+{$row['duration']} minutes");
-                                $time_range = $start_dt->format('H:i') . ' - ' . $end_dt->format('H:i');
+                                // 💡 絕對端點提取，無時間偏移
+                                $time_range = date('H:i', strtotime($row['time_start'])) . ' - ' . date('H:i', strtotime($row['time_end']));
                                 
-                                // 判斷實體狀態是否已完成 (Ready for inspection)
+                                // 狀態解鎖條件不變，取決於 sweep_sql
                                 $is_ready = ($row['booking_status'] === 'completed');
                             ?>
                             <tr class="hover:bg-slate-50 transition-colors">
