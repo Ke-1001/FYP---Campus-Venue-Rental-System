@@ -5,6 +5,7 @@ require_once '../config/db.php';
 require_once('../includes/admin_auth.php'); 
 
 // 💡 1. 狀態機同步：清道夫邏輯 (Sweep Logic) - v3.2 端點模式
+// 確保當前時間超越 time_end 時，自動將狀態推移至 completed，解鎖檢驗權限
 $sweep_sql = "
     UPDATE booking 
     SET status = 'completed' 
@@ -13,89 +14,96 @@ $sweep_sql = "
 ";
 $conn->query($sweep_sql);
 
-// 💡 2. 提取 Pending Inspections (使用 time_end 渲染時間向量)
-$sql = "SELECT 
-            b.bid AS raw_id, 
-            b.bid AS ref_id,
-            b.date_booked AS booking_date, 
-            CONCAT(DATE_FORMAT(b.time_start, '%H:%i'), ' - ', DATE_FORMAT(b.time_end, '%H:%i')) AS time_slot, 
-            b.status AS booking_status,
-            u.username AS student_name, 
-            v.vname AS venue_name, 
-            v.deposit AS deposit_paid
-        FROM booking b
-        JOIN user u ON b.uid = u.uid
-        JOIN venue v ON b.vid = v.vid
-        WHERE b.status = 'completed' AND b.payment_status = 'paid'
-        ORDER BY b.date_booked ASC, b.time_start ASC";
+// 💡 2. 向量狀態提取 (Vector State Retrieval) / KPI 計算
+// $N_{pending}$: 已經 ready for inspection 的數量
+$sql_kpi_pending = "SELECT COUNT(*) FROM inspection i JOIN booking b ON i.bid = b.bid WHERE i.ins_status = 'pending' AND b.status = 'completed'";
+$kpi_pending = $conn->query($sql_kpi_pending)->fetch_row()[0] ?? 0;
 
-$result = $conn->query($sql);
+// $N_{tracked}$: 已經完成 (passed/failed) 的歷史數量
+$sql_kpi_tracked = "SELECT COUNT(*) FROM inspection WHERE ins_status IN ('passed', 'failed')";
+$kpi_tracked = $conn->query($sql_kpi_tracked)->fetch_row()[0] ?? 0;
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>MMU Admin | Pending Inspections</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MMU Admin | Inspection Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
         tailwind.config = { theme: { extend: { colors: { mmu: { blue: '#004aad', dark: '#1e293b' } } } } }
     </script>
     <link rel="stylesheet" href="layout.css?v=1.2">
+    <link rel="stylesheet" href="../assets/css/fiori-tile.css">
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
+
     <?php include('../includes/admin_sidebar.php'); ?>
+
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-50">
-        <?php 
-        $topbar_content = '<h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Operations / Inspections</h2>';
-        include('../includes/admin_topbar.php'); 
-        ?>
+        
+            <?php 
+            $topbar_content = '<h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Operations / Inspections Dashboard</h2>';
+            include('../includes/admin_topbar.php'); 
+            ?>
+
         <div class="flex-1 overflow-y-auto p-8 scroll-smooth">
-            <div class="mb-8">
-                <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Pending Inspections</h1>
-                <p class="text-sm text-slate-500 mt-1">Execute post-usage venue assessments and settle financial deposits.</p>
-            </div>
             
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <table class="w-full text-left border-collapse">
-                    <thead class="bg-slate-50 text-[10px] text-slate-400 font-black uppercase tracking-widest border-b border-slate-100">
-                        <tr>
-                            <th class="px-6 py-3">Reference</th>
-                            <th class="px-6 py-3">Entity & Venue</th>
-                            <th class="px-6 py-3">Temporal Vector</th>
-                            <th class="px-6 py-3">Deposit Blocked</th>
-                            <th class="px-6 py-3 text-right">Execution</th>
-                        </tr>
-                    </thead>
-                    <tbody class="text-sm divide-y divide-slate-50">
-                        <?php if ($result && $result->num_rows > 0): ?>
-                            <?php while($row = $result->fetch_assoc()): ?>
-                            <tr class="hover:bg-indigo-50/50 transition-colors">
-                                <td class="px-6 py-4 font-mono font-bold text-indigo-600"><?php echo $row['ref_id']; ?></td>
-                                <td class="px-6 py-4">
-                                    <span class="font-bold text-slate-700 block"><?php echo htmlspecialchars($row['student_name']); ?></span>
-                                    <span class="text-xs text-slate-400 flex items-center"><i data-lucide="map-pin" class="w-3 h-3 mr-1"></i><?php echo htmlspecialchars($row['venue_name']); ?></span>
-                                </td>
-                                <td class="px-6 py-4 font-medium text-slate-600">
-                                    <span class="block"><?php echo $row['booking_date']; ?></span>
-                                    <span class="text-xs font-mono text-slate-400"><?php echo $row['time_slot']; ?></span>
-                                </td>
-                                <td class="px-6 py-4 font-mono font-bold text-emerald-600">RM <?php echo number_format($row['deposit_paid'], 2); ?></td>
-                                <td class="px-6 py-4 text-right">
-                                    <button onclick="window.location.href='execute_inspection.php?bid=<?php echo urlencode($row['raw_id']); ?>'" class="px-3 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded transition shadow-sm">
-                                        Inspect <i data-lucide="chevron-right" class="w-3 h-3 inline ml-1"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            <?php endwhile; ?>
-                        <?php else: ?>
-                            <tr><td colspan="5" class="px-6 py-12 text-center text-slate-400 font-medium">System Clear: No pending inspections required at this time.</td></tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
+            <div class="mb-8 border-b border-slate-200 pb-4">
+                <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Venue Inspections</h1>
+                <p class="text-sm text-slate-500 mt-1">Select a discrete module to execute post-usage assessments and track inspection history.</p>
             </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-10">
+
+                <a href="pending_inspections.php" class="fiori-tile">
+                    <div class="fiori-tile-header">
+                        <h3 class="fiori-tile-title">Pending Inspections</h3>
+                        <i data-lucide="clipboard-list" class="w-5 h-5 fiori-tile-icon"></i>
+                    </div>
+                    <p class="fiori-tile-desc">Execute physical assessments for recently utilized venues.</p>
+                    <div class="fiori-tile-kpi">
+                        <?php echo $kpi_pending; ?>
+                    </div>
+                    <div class="fiori-tile-footer">
+                        Process Queue <i data-lucide="arrow-right" class="w-3 h-3 ml-2"></i>
+                    </div>
+                </a>
+
+                <a href="track_inspections.php" class="fiori-tile">
+                    <div class="fiori-tile-header">
+                        <h3 class="fiori-tile-title">Track Inspections</h3>
+                        <i data-lucide="history" class="w-5 h-5 fiori-tile-icon"></i>
+                    </div>
+                    <p class="fiori-tile-desc">Review historical assessment logs and penalty records.</p>
+                    <div class="fiori-tile-kpi">
+                        <?php echo $kpi_tracked; ?>
+                    </div>
+                    <div class="fiori-tile-footer">
+                        View History <i data-lucide="arrow-right" class="w-3 h-3 ml-2"></i>
+                    </div>
+                </a>
+
+            </div>
+
+            <div class="p-4 bg-indigo-50 border border-indigo-100 rounded-xl flex items-start">
+                <i data-lucide="info" class="w-5 h-5 text-indigo-600 mr-3 mt-0.5 shrink-0"></i>
+                <p class="text-xs font-medium text-indigo-800 leading-relaxed">
+                    <strong>State Synchronization:</strong> The inspection subsystem automatically syncs with the booking temporal vectors ($t_{end}$). Venues will only appear in the execution queue once their allocated usage time has fully elapsed.
+                </p>
+            </div>
+
         </div>
     </main>
-    <script>lucide.createIcons();</script>
+
+    <?php include('../includes/ui_components.php'); ?>
+
+    <script>
+        lucide.createIcons();
+        function toggleSidebar() {
+            document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed');
+        }
+    </script>
 </body>
 </html>
