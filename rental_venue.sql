@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 28, 2026 at 11:50 AM
+-- Generation Time: Apr 29, 2026 at 04:50 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -42,7 +42,8 @@ CREATE TABLE `admin` (
 --
 
 INSERT INTO `admin` (`aid`, `admin_name`, `email`, `password`, `phone_num`, `role`, `created_at`) VALUES
-(8000, 'SuperAdmin', 'SA@mmu.edu.my', '$2y$10$GbLQrylvoBkdteBOBmO9g.Xq8y0MkWAzsz1Gy9IPwjNUqZG6lq0ge', '06123456789', 'super_admin', '2026-04-28 09:43:39');
+(8000, 'SuperAdmin', 'SA@mmu.edu.my', '$2y$10$0av5Zh5QYMrLJyALrb8O5u60U292chJEz7SdcwfkthLTmx0j1RCw2', '06123456789', 'super_admin', '2026-04-28 09:43:39'),
+(8002, 'Siti', 'Siti@mmu.edu.my', '$2y$10$Q3kh7pg/gGCiw.JnpGremOrH26gnUTq.y3LZohGD9qpaPt/k4YZyu', '0122233456', 'admin', '2026-04-28 15:55:39');
 
 -- --------------------------------------------------------
 
@@ -56,7 +57,7 @@ CREATE TABLE `booking` (
   `vid` int(10) UNSIGNED NOT NULL,
   `date_booked` date NOT NULL,
   `time_start` time NOT NULL,
-  `duration` int(10) UNSIGNED NOT NULL COMMENT 'minutes',
+  `time_end` time NOT NULL,
   `status` enum('pending','approved','rejected','completed') NOT NULL DEFAULT 'pending',
   `payment_status` enum('unpaid','paid','refunded') NOT NULL DEFAULT 'unpaid',
   `transaction_ref` varchar(50) DEFAULT NULL,
@@ -65,6 +66,13 @@ CREATE TABLE `booking` (
   `approve_date` datetime DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `booking`
+--
+
+INSERT INTO `booking` (`bid`, `uid`, `vid`, `date_booked`, `time_start`, `time_end`, `status`, `payment_status`, `transaction_ref`, `purpose`, `aid`, `approve_date`, `created_at`) VALUES
+(20000014, '242DT2430C', 1000, '2026-04-29', '01:30:00', '02:30:00', 'completed', 'paid', 'TXN-9203A980', 'test', NULL, NULL, '2026-04-28 17:31:13');
 
 -- --------------------------------------------------------
 
@@ -82,6 +90,13 @@ CREATE TABLE `inspection` (
   `penalty` decimal(10,2) UNSIGNED DEFAULT 0.00,
   `inspected_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `inspection`
+--
+
+INSERT INTO `inspection` (`ins_id`, `bid`, `sid`, `ins_status`, `damage_desc`, `damage_cost`, `penalty`, `inspected_at`) VALUES
+(30000009, 20000014, 9000, 'pending', NULL, 0.00, 0.00, NULL);
 
 -- --------------------------------------------------------
 
@@ -110,8 +125,16 @@ CREATE TABLE `staff` (
   `email` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL,
   `phone_num` varchar(20) NOT NULL,
+  `position` enum('inspector','manager','admin') DEFAULT 'inspector',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `staff`
+--
+
+INSERT INTO `staff` (`sid`, `staff_name`, `email`, `password`, `phone_num`, `position`, `created_at`) VALUES
+(9000, 'Vikram', 'vikram@gmail.com', '$2y$10$hU8obf2c0SE317q2FH1Qs.sWcrUC3MneI6SKOOYTq2ux7AiouOzsO', '0122233456', 'inspector', '2026-04-28 15:25:58');
 
 -- --------------------------------------------------------
 
@@ -127,6 +150,13 @@ CREATE TABLE `user` (
   `phone_num` varchar(20) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `user`
+--
+
+INSERT INTO `user` (`uid`, `username`, `email`, `password`, `phone_num`, `created_at`) VALUES
+('242DT2430C', 'LIM', 'Lim@gmail.com', '$2y$10$7sFovpK/duwjvV1jbwrfROmzxvURhuIXPJfEj5t3ePzg3j4vmqnOO', '0122233456', '2026-04-28 14:04:09');
 
 -- --------------------------------------------------------
 
@@ -150,7 +180,28 @@ CREATE TABLE `venue` (
 --
 
 INSERT INTO `venue` (`vid`, `vname`, `category`, `max_cap`, `deposit`, `status`, `pic`, `description`) VALUES
-(1000, 'MNBR2002', 'Discussion Room', 20, 20.00, 'available', NULL, 'Standard discussion room with AV support.');
+(1000, 'MNBR2002', 'Hall', 20, 20.00, 'available', NULL, 'Standard discussion room with AV support.');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `venue_category`
+--
+
+CREATE TABLE `venue_category` (
+  `category_name` varchar(50) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `venue_category`
+--
+
+INSERT INTO `venue_category` (`category_name`, `created_at`) VALUES
+('Classroom', '2026-04-29 02:21:31'),
+('Hall', '2026-04-29 02:21:31'),
+('Lab', '2026-04-29 02:21:31'),
+('Meeting Room', '2026-04-29 02:21:31');
 
 --
 -- Indexes for dumped tables
@@ -213,6 +264,12 @@ ALTER TABLE `venue`
   ADD UNIQUE KEY `vname` (`vname`);
 
 --
+-- Indexes for table `venue_category`
+--
+ALTER TABLE `venue_category`
+  ADD PRIMARY KEY (`category_name`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -220,31 +277,31 @@ ALTER TABLE `venue`
 -- AUTO_INCREMENT for table `admin`
 --
 ALTER TABLE `admin`
-  MODIFY `aid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8001;
+  MODIFY `aid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8003;
 
 --
 -- AUTO_INCREMENT for table `booking`
 --
 ALTER TABLE `booking`
-  MODIFY `bid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20000000;
+  MODIFY `bid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20000015;
 
 --
 -- AUTO_INCREMENT for table `inspection`
 --
 ALTER TABLE `inspection`
-  MODIFY `ins_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30000000;
+  MODIFY `ins_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30000010;
 
 --
 -- AUTO_INCREMENT for table `report`
 --
 ALTER TABLE `report`
-  MODIFY `rid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40000000;
+  MODIFY `rid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40000004;
 
 --
 -- AUTO_INCREMENT for table `staff`
 --
 ALTER TABLE `staff`
-  MODIFY `sid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9000;
+  MODIFY `sid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9001;
 
 --
 -- AUTO_INCREMENT for table `venue`
