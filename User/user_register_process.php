@@ -3,7 +3,7 @@ require_once '../config/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $full_name = trim($_POST['full_name']);
+    $full_name = trim($_POST['username']);
     $email = trim($_POST['email']);
     $password = $_POST['password'];
 
@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Check if email already exists
-    $check_sql = "SELECT user_id FROM users WHERE email = ?";
+    $check_sql = "SELECT uid FROM user WHERE email = ?";
     $stmt = $conn->prepare($check_sql);
     $stmt->bind_param("s", $email);
     $stmt->execute();
@@ -31,8 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
     // Insert user
-    $sql = "INSERT INTO users (full_name, email, password_hash, role) 
-            VALUES (?, ?, ?, 'User')";
+    $sql = "INSERT INTO user (username, email, password) 
+            VALUES (?, ?, ?)";
     
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("sss", $full_name, $email, $password_hash);
