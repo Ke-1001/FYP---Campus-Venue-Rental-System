@@ -87,13 +87,6 @@ $kpi_tracked = $conn->query($sql_kpi_tracked)->fetch_row()[0] ?? 0;
 
             </div>
 
-            <div class="p-4 bg-indigo-50 border border-indigo-100 rounded-xl flex items-start">
-                <i data-lucide="info" class="w-5 h-5 text-indigo-600 mr-3 mt-0.5 shrink-0"></i>
-                <p class="text-xs font-medium text-indigo-800 leading-relaxed">
-                    <strong>State Synchronization:</strong> The inspection subsystem automatically syncs with the booking temporal vectors ($t_{end}$). Venues will only appear in the execution queue once their allocated usage time has fully elapsed.
-                </p>
-            </div>
-
         </div>
     </main>
 

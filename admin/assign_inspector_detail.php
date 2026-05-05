@@ -47,18 +47,16 @@ $inspectors = $conn->query("SELECT sid, staff_name FROM staff WHERE position = '
 
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-50">
         
-        <header class="h-16 glass-panel border-b border-slate-200 flex items-center justify-between px-6 z-10 shrink-0">
             <?php 
             $topbar_content = '
             <div class="flex items-center">
                 <a href="assign_inspector.php" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 flex items-center mr-4 transition-colors">
                     <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i> Back
                 </a>
-                <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Operations / Staff Allocation</h2>
+                <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">BOOKINGS / ASSIGN INSPECTOR / Inspector Details</h2>
             </div>';
             include('../includes/admin_topbar.php'); 
             ?>
-        </header>
 
         <div class="flex-1 overflow-y-auto p-8 scroll-smooth">
             <div class="max-w-4xl mx-auto w-full">

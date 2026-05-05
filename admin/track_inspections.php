@@ -41,7 +41,6 @@ $result = $conn->query($sql);
 
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-50">
         
-        <header class="h-16 glass-panel border-b border-slate-200 flex items-center justify-between px-6 z-10 shrink-0">
             <?php 
             $topbar_content = '
             <div class="flex items-center">
@@ -52,7 +51,6 @@ $result = $conn->query($sql);
             </div>';
             include('../includes/admin_topbar.php'); 
             ?>
-        </header>
 
         <div class="flex-1 overflow-y-auto p-8 scroll-smooth">
             

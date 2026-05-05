@@ -5,55 +5,23 @@ session_start();
 require_once("../config/db.php");
 require_once('../includes/admin_auth.php'); 
 
-// 💡 1. 適配新架構：清道夫邏輯 (將已批准且時間過期的訂單狀態轉為 completed)
-// 動態使用 time_start 與 duration 來計算結束時間
-$sweep_sql = "
-    UPDATE booking 
-    SET status = 'completed' 
-    WHERE status = 'approved' 
-    AND CONCAT(date_booked, ' ', ADDTIME(time_start, SEC_TO_TIME(duration * 60))) <= NOW()
-";
-$conn->query($sweep_sql);
-
-// 💡 2. 適配新架構：System State Metrics Extraction
-$kpi_requests = $conn->query("SELECT COUNT(*) FROM booking")->fetch_row()[0] ?? 0;
-// 嚴謹的 Pending 狀態：訂單 pending 且已付款
+//bookings
 $kpi_pending = $conn->query("SELECT COUNT(*) FROM booking WHERE status = 'pending' AND payment_status = 'paid'")->fetch_row()[0] ?? 0;
-// 衝突狀態：對接 inspection 表格，抓取 failed 數量
-$kpi_conflicts = $conn->query("SELECT COUNT(*) FROM inspection WHERE ins_status = 'failed'")->fetch_row()[0] ?? 0;
+$kpi_ongoing = $conn->query("SELECT COUNT(*) FROM booking WHERE status = 'approved'")->fetch_row()[0] ?? 0;
+$kpi_returned = $conn->query("SELECT COUNT(*) FROM booking WHERE status = 'completed'")->fetch_row()[0] ?? 0;
+$sql_kpi_assign = "SELECT COUNT(*) FROM booking b LEFT JOIN inspection i ON b.bid = i.bid WHERE b.status IN ('approved', 'completed') AND b.payment_status = 'paid' AND i.ins_id IS NULL";
+$kpi_assign = $conn->query($sql_kpi_assign)->fetch_row()[0] ?? 0;
 
-// 💡 修復 DivisionByZeroError：強制轉型並導入安全防護邏輯
-$total_venues = (int)($conn->query("SELECT COUNT(*) FROM venue WHERE status = 'available'")->fetch_row()[0] ?? 0);
+//inspections
+$sql_kpi_pending = "SELECT COUNT(*) FROM inspection i JOIN booking b ON i.bid = b.bid WHERE i.ins_status = 'pending' AND b.status = 'completed'";
+$kpi_pending = $conn->query($sql_kpi_pending)->fetch_row()[0] ?? 0;
+$sql_kpi_tracked = "SELECT COUNT(*) FROM inspection WHERE ins_status IN ('passed', 'failed')";
+$kpi_tracked = $conn->query($sql_kpi_tracked)->fetch_row()[0] ?? 0;
 
-// 安全除法向量 (Safe Division Vector)
-if ($total_venues > 0) {
-    $kpi_utilization = min(round(($kpi_requests / $total_venues) * 20, 1), 100); 
-} else {
-    $kpi_utilization = 0; // 若無可用場地，利用率絕對為 0
-} 
+//venues
+$kpi_total = $conn->query("SELECT COUNT(*) FROM venue")->fetch_row()[0] ?? 0;
+$kpi_available = $conn->query("SELECT COUNT(*) FROM venue WHERE status = 'available'")->fetch_row()[0] ?? 0;
 
-// 💡 3. 適配新架構：Pending Queue Extraction
-$pending_list = [];
-$sql_pending = "
-    SELECT 
-        b.bid AS id, 
-        u.username AS applicant, 
-        u.email AS uid, 
-        v.vname AS venue, 
-        b.date_booked AS date, 
-        CONCAT(DATE_FORMAT(b.time_start, '%H:%i'), ' - ', DATE_FORMAT(ADDTIME(b.time_start, SEC_TO_TIME(b.duration * 60)), '%H:%i')) AS time 
-    FROM booking b 
-    JOIN user u ON b.uid = u.uid 
-    JOIN venue v ON b.vid = v.vid 
-    WHERE b.status = 'pending' AND b.payment_status = 'paid'
-    ORDER BY b.created_at ASC LIMIT 5";
-
-$result = $conn->query($sql_pending);
-if ($result && $result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
-        $pending_list[] = $row;
-    }
-}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -67,6 +35,7 @@ if ($result && $result->num_rows > 0) {
         tailwind.config = { theme: { extend: { colors: { mmu: { blue: '#004aad', dark: '#1e293b', accent: '#38bdf8' } } } } }
     </script>
     <link rel="stylesheet" href="layout.css?v=1.1">
+    <link rel="stylesheet" href="../assets/css/fiori-tile.css">
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
 
@@ -82,6 +51,158 @@ if ($result && $result->num_rows > 0) {
         </div>';
         include('../includes/admin_topbar.php'); 
         ?>
+
+        <div class="flex-1 overflow-y-auto p-8 scroll-smooth">
+
+            <div class="mb-8 border-b border-slate-200 pb-4">
+                <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Manage Bookings</h1>
+                <p class="text-sm text-slate-500 mt-1">Select a module below to manage venue bookings, assign inspectors, and track records.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+
+                <a href="pending_requests.php" class="fiori-tile">
+                    <div class="fiori-tile-header">
+                        <h3 class="fiori-tile-title">Approval Queue</h3>
+                        <i data-lucide="shield-alert" class="w-5 h-5 fiori-tile-icon"></i>
+                    </div>
+                    <p class="fiori-tile-desc">Review and approve new venue booking requests.</p>
+                    <div class="fiori-tile-kpi">
+                        <?php echo $kpi_pending; ?>
+                    </div>
+                    <div class="fiori-tile-footer">
+                        View Requests <i data-lucide="arrow-right" class="w-3 h-3 ml-2"></i>
+                    </div>
+                </a>
+
+                <a href="assign_inspector.php" class="fiori-tile">
+                    <div class="fiori-tile-header">
+                        <h3 class="fiori-tile-title">Assign Inspector</h3>
+                        <i data-lucide="users" class="w-5 h-5 fiori-tile-icon"></i>
+                    </div>
+                    <p class="fiori-tile-desc">Assign staff to inspect venues after they are used.</p>
+                    <div class="fiori-tile-kpi">
+                        <?php echo $kpi_assign; ?>
+                    </div>
+                    <div class="fiori-tile-footer">
+                        Assign Staff <i data-lucide="arrow-right" class="w-3 h-3 ml-2"></i>
+                    </div>
+                </a>
+
+                <a href="track_bookings.php" class="fiori-tile">
+                    <div class="fiori-tile-header">
+                        <h3 class="fiori-tile-title">Track Bookings</h3>
+                        <i data-lucide="activity" class="w-5 h-5 fiori-tile-icon"></i>
+                    </div>
+                    <p class="fiori-tile-desc">Monitor ongoing bookings and view past records.</p>
+                    <div class="fiori-tile-kpi">
+                        <?php echo ($kpi_ongoing + $kpi_returned); ?>
+                    </div>
+                    <div class="fiori-tile-footer">
+                        View Bookings <i data-lucide="arrow-right" class="w-3 h-3 ml-2"></i>
+                    </div>
+                </a>
+
+            </div>
+
+            <div class="mt-12 mb-8 border-b border-slate-200 pb-4">
+                <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Venue Inspections</h1>
+                <p class="text-sm text-slate-500 mt-1">Select a discrete module to execute post-usage assessments and track inspection history.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-10">
+
+                <a href="pending_inspections.php" class="fiori-tile">
+                    <div class="fiori-tile-header">
+                        <h3 class="fiori-tile-title">Pending Inspections</h3>
+                        <i data-lucide="clipboard-list" class="w-5 h-5 fiori-tile-icon"></i>
+                    </div>
+                    <p class="fiori-tile-desc">Execute physical assessments for recently utilized venues.</p>
+                    <div class="fiori-tile-kpi">
+                        <?php echo $kpi_pending; ?>
+                    </div>
+                    <div class="fiori-tile-footer">
+                        Process Queue <i data-lucide="arrow-right" class="w-3 h-3 ml-2"></i>
+                    </div>
+                </a>
+
+                <a href="track_inspections.php" class="fiori-tile">
+                    <div class="fiori-tile-header">
+                        <h3 class="fiori-tile-title">Track Inspections</h3>
+                        <i data-lucide="history" class="w-5 h-5 fiori-tile-icon"></i>
+                    </div>
+                    <p class="fiori-tile-desc">Review historical assessment logs and penalty records.</p>
+                    <div class="fiori-tile-kpi">
+                        <?php echo $kpi_tracked; ?>
+                    </div>
+                    <div class="fiori-tile-footer">
+                        View History <i data-lucide="arrow-right" class="w-3 h-3 ml-2"></i>
+                    </div>
+                </a>
+
+            </div>
+
+            <div class="mt-12 mb-8 border-b border-slate-200 pb-4">
+                <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Venue Registry</h1>
+                <p class="text-sm text-slate-500 mt-1">Configure physical assets, capacity constraints, and financial deposit requirements.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+
+                <a href="register_venue.php" class="fiori-tile">
+                    <div class="fiori-tile-header">
+                        <h3 class="fiori-tile-title">Register Venue</h3>
+                        <i data-lucide="plus-square" class="w-5 h-5 fiori-tile-icon"></i>
+                    </div>
+                    <p class="fiori-tile-desc">Add a new physical venue to the system repository.</p>
+                    <div class="fiori-tile-kpi">
+                        <i data-lucide="door-open" class="w-8 h-8 opacity-20"></i>
+                    </div>
+                    <div class="fiori-tile-footer">
+                        New Entry <i data-lucide="arrow-right" class="w-3 h-3 ml-2"></i>
+                    </div>
+                </a>
+
+                <a href="venue_directory.php" class="fiori-tile">
+                    <div class="fiori-tile-header">
+                        <h3 class="fiori-tile-title">Venue Directory</h3>
+                        <i data-lucide="database" class="w-5 h-5 fiori-tile-icon"></i>
+                    </div>
+                    <p class="fiori-tile-desc">Manage existing venues, capacities, and statuses.</p>
+                    <div class="fiori-tile-kpi">
+                        <?php echo $kpi_total; ?>
+                    </div>
+                    <div class="fiori-tile-footer">
+                        View Records <i data-lucide="arrow-right" class="w-3 h-3 ml-2"></i>
+                    </div>
+                </a>
+
+                <a href="manage_categories.php" class="fiori-tile">
+                    <div class="fiori-tile-header">
+                        <h3 class="fiori-tile-title">Manage Categories</h3>
+                        <i data-lucide="tags" class="w-5 h-5 fiori-tile-icon"></i>
+                    </div>
+                    <p class="fiori-tile-desc">Define and govern persistent venue classification tags.</p>
+                    <div class="fiori-tile-kpi">
+                        <?php 
+                        // 💡 可以在頂部 PHP 加入這行: $kpi_cat = $conn->query("SELECT COUNT(*) FROM venue_category")->fetch_row()[0] ?? 0;
+                        echo $kpi_cat ?? '--'; 
+                        ?>
+                    </div>
+                    <div class="fiori-tile-footer">
+                        Configure Tags <i data-lucide="arrow-right" class="w-3 h-3 ml-2"></i>
+                    </div>
+                </a>
+
+            </div>
+            
+            
+        </div>
+
+            
+            
+
+        
 
         
     </main>

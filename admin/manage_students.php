@@ -14,6 +14,8 @@ require_once('../includes/admin_auth.php');
     <script>
         tailwind.config = { theme: { extend: { colors: { mmu: { blue: '#004aad', dark: '#1e293b' } } } } }
     </script>
+    <link rel="stylesheet" href="layout.css?v=1.2">
+    <link rel="stylesheet" href="../assets/css/fiori-tile.css">
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans h-screen flex overflow-hidden">
 
@@ -69,6 +71,11 @@ require_once('../includes/admin_auth.php');
             </div>
         </div>
     </main>
-    <script>lucide.createIcons();</script>
+    <script>
+        lucide.createIcons();
+        function toggleSidebar() {
+            document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed');
+        }
+    </script>
 </body>
 </html>

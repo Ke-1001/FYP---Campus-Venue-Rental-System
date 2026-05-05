@@ -1,10 +1,8 @@
 <?php
-// File: admin/manage_bookings.php
 session_start();
 require_once("../config/db.php");
 require_once('../includes/admin_auth.php'); 
 
-// 1. Live Metrics Extraction (狀態機數據提取)
 $kpi_pending = $conn->query("SELECT COUNT(*) FROM booking WHERE status = 'pending' AND payment_status = 'paid'")->fetch_row()[0] ?? 0;
 $kpi_ongoing = $conn->query("SELECT COUNT(*) FROM booking WHERE status = 'approved'")->fetch_row()[0] ?? 0;
 $kpi_returned = $conn->query("SELECT COUNT(*) FROM booking WHERE status = 'completed'")->fetch_row()[0] ?? 0;
@@ -32,16 +30,15 @@ $kpi_assign = $conn->query($sql_kpi_assign)->fetch_row()[0] ?? 0;
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-50">
         
         <?php 
-        // 💡 語義降維：簡化 Topbar 標題
         $topbar_content = '<h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Bookings / Dashboard</h2>';
         include('../includes/admin_topbar.php'); 
         ?>
 
         <div class="flex-1 overflow-y-auto p-8 scroll-smooth">
-            
+
             <div class="mb-8 border-b border-slate-200 pb-4">
-                <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Manage Bookings</h1>
-                <p class="text-xs text-slate-500 mt-1">Select a module below to manage venue bookings, assign inspectors, and track records.</p>
+                <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Manage Bookings</h1>
+                <p class="text-sm text-slate-500 mt-1">Select a module below to manage venue bookings, assign inspectors, and track records.</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -89,24 +86,7 @@ $kpi_assign = $conn->query($sql_kpi_assign)->fetch_row()[0] ?? 0;
                 </a>
 
             </div>
-
-            <div class="mt-10 p-6 bg-white rounded-lg border border-slate-200 flex flex-col md:flex-row justify-between items-center shadow-sm">
-                <div class="mb-4 md:mb-0">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">System Status</p>
-                    <h4 class="text-sm font-bold text-slate-700 mt-1">Status: <span class="text-emerald-600 ml-1">Normal</span></h4>
-                </div>
-                <div class="flex space-x-12">
-                    <div>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-1 mb-1">Active Bookings</p>
-                        <p class="text-lg font-mono text-slate-800"><?php echo $kpi_ongoing; ?></p>
-                    </div>
-                    <div>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-1 mb-1">Pending Inspections</p>
-                        <p class="text-lg font-mono text-slate-800"><?php echo $kpi_returned; ?></p>
-                    </div>
-                </div>
-            </div>
-
+            
         </div>
     </main>
 

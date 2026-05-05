@@ -89,18 +89,6 @@ $kpi_available = $conn->query("SELECT COUNT(*) FROM venue WHERE status = 'availa
 
             </div>
 
-            <div class="mt-10 p-6 bg-white rounded-2xl border border-slate-200 flex items-center shadow-sm">
-                <div class="flex-1">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Asset Availability Ratio</p>
-                    <h4 class="text-lg font-bold text-slate-700 mt-1">
-                        $\eta = \frac{N_{available}}{N_{total}} \approx <?php echo ($kpi_total > 0) ? round(($kpi_available/$kpi_total)*100, 1) : 0; ?>\%$
-                    </h4>
-                </div>
-                <div class="text-right">
-                    <span class="px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-bold border border-emerald-100 uppercase tracking-widest">System Healthy</span>
-                </div>
-            </div>
-
         </div>
     </main>
 

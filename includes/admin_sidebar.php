@@ -34,6 +34,7 @@ if (isset($conn)) {
     
     <nav class="flex-1 overflow-y-auto py-4">
         <ul class="space-y-1 px-3">
+
             <li>
                 <a href="dashboard.php" class="nav-item flex items-center px-4 py-3 <?php echo ($current_page == 'dashboard.php') ? 'bg-mmu-blue' : 'text-slate-300 hover:bg-slate-800'; ?> rounded-lg transition-colors">
                     <i data-lucide="layout-dashboard" class="w-5 h-5 shrink-0"></i>
@@ -42,7 +43,7 @@ if (isset($conn)) {
             </li>
             
             <li>
-                <a href="manage_bookings.php" class="nav-item flex items-center px-4 py-3 <?php echo ($current_page == 'manage_bookings.php') ? 'bg-mmu-blue' : 'text-slate-300 hover:bg-slate-800'; ?> rounded-lg transition-colors">
+                <a href="manage_bookings.php" class="nav-item flex items-center px-4 py-3 <?php echo ($current_page == 'manage_bookings.php' || $current_page == 'pending_requests.php' || $current_page == 'assign_inspector.php' || $current_page == 'assign_inspector_detail.php' || $current_page == 'track_bookings.php' || $current_page == 'process_flow.php') ? 'bg-mmu-blue' : 'text-slate-300 hover:bg-slate-800'; ?> rounded-lg transition-colors">
                     <i data-lucide="calendar-check" class="w-5 h-5 shrink-0"></i>
                     <span class="ml-3 font-medium nav-text">Manage Bookings</span>
                     <?php if ($pending_bookings_count > 0): ?>
@@ -84,12 +85,15 @@ if (isset($conn)) {
                 </a>
             </li>
             
-            <li class="pt-4 nav-header">
+            <li class="pt-4 pb-2 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider nav-header">Financial</li>
+                
+            <li>
                 <a href="report.php" class="nav-item flex items-center px-4 py-3 <?php echo ($current_page == 'report.php') ? 'bg-mmu-blue' : 'text-slate-300 hover:bg-slate-800'; ?> rounded-lg transition-colors">
-                    <i data-lucide="line-chart" class="w-5 h-5 shrink-0"></i>
+                    <i data-lucide="line-chart" class="w-4 h-4 shrink-0"></i>
                     <span class="ml-3 font-medium nav-text">Statistical Reports</span>
                 </a>
             </li>
+                
 
             <li class="mt-4">
                 <a href="../actions/logout.php" class="nav-item flex items-center px-4 py-3 text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-lg transition-colors">
@@ -97,6 +101,7 @@ if (isset($conn)) {
                     <span class="ml-3 font-bold nav-text">Log Out</span>
                 </a>
             </li>
+
         </ul>
     </nav>
 
