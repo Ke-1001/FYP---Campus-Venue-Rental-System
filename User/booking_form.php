@@ -207,7 +207,7 @@ if (!$venue) {
         selectionState = { start: null, end: null };
         document.getElementById('asyncBookingForm').classList.add('hidden');
 
-        fetch(`../actions/api_fetch_slots.php?venue_id=${venueId}&date=${dateStr}`)
+        fetch(`../api/api_fetch_slots.php?venue_id=${venueId}&date=${dateStr}`)
             .then(res => res.json())
             .then(data => {
                 if(data.status === 'success') {
