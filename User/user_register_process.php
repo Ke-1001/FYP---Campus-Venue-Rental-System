@@ -1,50 +1,31 @@
 <?php
-require_once '../config/db.php';
+include("../config/db.php");
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+$uid = $_POST['uid'];
+$username = $_POST['username'];
+$email = $_POST['email'];
+$phone_num = $_POST['phone_num'];
+$password = password_hash($_POST['password'], PASSWORD_DEFAULT);
 
-    $full_name = trim($_POST['full_name']);
-    $email = trim($_POST['email']);
-    $password = $_POST['password'];
+// 复合去重校验: 确保 ID 或 Email 均未被占用
+$stmt = $conn->prepare("SELECT uid FROM user WHERE uid = ? OR email = ?");
+$stmt->bind_param("ss", $uid, $email);
+$stmt->execute();
+$result = $stmt->get_result();
 
-    // Password strength validation
-    $pattern = "/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/";
-
-    if (!preg_match($pattern, $password)) {
-        header("Location: ../User/user_register.php?error=weak_password");
-        exit();
-    }
-
-    // Check if email already exists
-    $check_sql = "SELECT user_id FROM users WHERE email = ?";
-    $stmt = $conn->prepare($check_sql);
-    $stmt->bind_param("s", $email);
-    $stmt->execute();
-    $check_result = $stmt->get_result();
-
-    if ($check_result->num_rows > 0) {
-        header("Location: ../User/user_register.php?error=email_exists");
-        exit();
-    }
-
-    // Hash password securely
-    $password_hash = password_hash($password, PASSWORD_DEFAULT);
-
-    // Insert user
-    $sql = "INSERT INTO users (full_name, email, password_hash, role) 
-            VALUES (?, ?, ?, 'User')";
-    
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("sss", $full_name, $email, $password_hash);
-
-    if ($stmt->execute()) {
-        header("Location: ../User/user_login.php?success=registered");
-        exit();
-    } else {
-        header("Location: ../User/user_register.php?error=failed");
-        exit();
-    }
+if ($result->num_rows > 0) {
+    header("Location: user_register.php?error=exists");
+    exit();
 }
 
-$conn->close();
+// 执行规范化注入
+$stmt = $conn->prepare("INSERT INTO user (uid, username, email, password, phone_num) VALUES (?, ?, ?, ?, ?)");
+$stmt->bind_param("sssss", $uid, $username, $email, $password, $phone_num);
+
+if ($stmt->execute()) {
+    header("Location: user_login.php?success=registered");
+} else {
+    header("Location: user_register.php?error=failed");
+}
+exit();
 ?>

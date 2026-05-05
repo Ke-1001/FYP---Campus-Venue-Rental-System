@@ -2,7 +2,7 @@
 session_start();
 require_once '../config/db.php';
 
-$sql = "SELECT venue_id, venue_name FROM venues LIMIT 3";
+$sql = "SELECT vid, vname FROM venue LIMIT 3";
 $result = $conn->query($sql);
 ?>
 
@@ -110,8 +110,8 @@ $result = $conn->query($sql);
 <div class="navbar">
     <div>
         <strong>CVBMS</strong>
-        <?php if (isset($_SESSION['user_id'])): ?>
-            <span>Welcome, <?php echo $_SESSION['full_name']; ?> </span>
+        <?php if (isset($_SESSION['uid'])): ?>
+            <span>Welcome, <?php echo $_SESSION['username']; ?> </span>
         <?php endif; ?>
     </div>
 
@@ -120,10 +120,11 @@ $result = $conn->query($sql);
         <a href="venues.php">Venues</a>
         <a href="my_bookings.php">My Bookings</a>
         
-        <?php if (isset($_SESSION['user_id'])): ?>
+        <?php if (isset($_SESSION['uid'])): ?>
             <a href="profile.php">Profile</a>
             <a href="../User/user_logout.php">Logout</a>
         <?php else: ?>
+            <a href="../user/user_register.php">Register</a>
             <a href="../user/user_login.php">Login</a>
         <?php endif; ?>
     </div>
@@ -166,8 +167,8 @@ $result = $conn->query($sql);
     <?php if ($result->num_rows > 0): ?>
         <?php while($row = $result->fetch_assoc()): ?>
             <div class="venue-card">
-                <h3><?php echo $row['venue_name']; ?></h3>
-                <a href="venue_details.php?id=<?php echo $row['venue_id']; ?>">
+                <h3><?php echo $row['vname']; ?></h3>
+                <a href="venue_details.php?id=<?php echo $row['vid']; ?>">
                     View Details
                 </a>
             </div>
