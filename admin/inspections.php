@@ -4,22 +4,10 @@ session_start();
 require_once '../config/db.php';
 require_once('../includes/admin_auth.php'); 
 
-// 💡 1. 狀態機同步：清道夫邏輯 (Sweep Logic) - v3.2 端點模式
-// 確保當前時間超越 time_end 時，自動將狀態推移至 completed，解鎖檢驗權限
-$sweep_sql = "
-    UPDATE booking 
-    SET status = 'completed' 
-    WHERE status = 'approved' 
-    AND CONCAT(date_booked, ' ', time_end) <= NOW()
-";
-$conn->query($sweep_sql);
-
-// 💡 2. 向量狀態提取 (Vector State Retrieval) / KPI 計算
-// $N_{pending}$: 已經 ready for inspection 的數量
+// 💡 向量狀態提取 (Vector State Retrieval) / KPI 計算
 $sql_kpi_pending = "SELECT COUNT(*) FROM inspection i JOIN booking b ON i.bid = b.bid WHERE i.ins_status = 'pending' AND b.status = 'completed'";
 $kpi_pending = $conn->query($sql_kpi_pending)->fetch_row()[0] ?? 0;
 
-// $N_{tracked}$: 已經完成 (passed/failed) 的歷史數量
 $sql_kpi_tracked = "SELECT COUNT(*) FROM inspection WHERE ins_status IN ('passed', 'failed')";
 $kpi_tracked = $conn->query($sql_kpi_tracked)->fetch_row()[0] ?? 0;
 ?>
@@ -43,10 +31,12 @@ $kpi_tracked = $conn->query($sql_kpi_tracked)->fetch_row()[0] ?? 0;
 
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-50">
         
+        <header class="h-16 glass-panel border-b border-slate-200 flex items-center justify-between px-6 z-10 shrink-0">
             <?php 
             $topbar_content = '<h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Operations / Inspections Dashboard</h2>';
             include('../includes/admin_topbar.php'); 
             ?>
+        </header>
 
         <div class="flex-1 overflow-y-auto p-8 scroll-smooth">
             
@@ -94,9 +84,7 @@ $kpi_tracked = $conn->query($sql_kpi_tracked)->fetch_row()[0] ?? 0;
 
     <script>
         lucide.createIcons();
-        function toggleSidebar() {
-            document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed');
-        }
+        function toggleSidebar() { document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed'); }
     </script>
 </body>
 </html>

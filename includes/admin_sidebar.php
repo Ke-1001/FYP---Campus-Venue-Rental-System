@@ -3,22 +3,38 @@
 
 $current_page = basename($_SERVER['PHP_SELF']);
 
-// 1. Dynamic Notification Metrics Calculation
+// 💡 1. 全域狀態機同步 (Global Sweep Logic)
+// 將原先隱藏在 inspections.php 的邏輯拉到全域，確保無論管理員在哪個 Tab 刷新，
+// 只要時間超過 time_end，系統就會自動推進 booking status。
+if (isset($conn)) {
+    $sweep_sql = "
+        UPDATE booking 
+        SET status = 'completed' 
+        WHERE status = 'approved' 
+        AND CONCAT(date_booked, ' ', time_end) <= NOW()
+    ";
+    $conn->query($sweep_sql);
+}
+
+// 💡 2. 動態 Badge 計算 (精確化過濾)
 $pending_bookings_count = 0;
 $pending_inspections_count = 0;
 
 if (isset($conn)) {
-    // 💡 Metric A: Pending Approval Node (Synchronized with new schema vectors)
-    // Condition: status is 'pending' ∩ payment_status is 'paid'
+    // Metric A: 等待批准的預約
     $sql_bookings_count = "SELECT COUNT(*) FROM booking WHERE status = 'pending' AND payment_status = 'paid'";
     $res_bookings = $conn->query($sql_bookings_count);
     if ($res_bookings) {
         $pending_bookings_count = $res_bookings->fetch_row()[0];
     }
 
-    // 💡 Metric B: Pending Inspection Node (Replaced 'Returned' state)
-    // Condition: status is 'completed' ∩ payment_status is 'paid' (Deposit held, awaiting inspection)
-    $sql_inspections_count = "SELECT COUNT(*) FROM booking WHERE status = 'completed' AND payment_status = 'paid'";
+    // Metric B: 等待執行的檢驗 (修正 Bug: 只計算 pending 狀態的檢驗，忽略已 passed/failed 的歷史紀錄)
+    $sql_inspections_count = "
+        SELECT COUNT(*) 
+        FROM inspection i 
+        JOIN booking b ON i.bid = b.bid 
+        WHERE i.ins_status = 'pending' AND b.status = 'completed'
+    ";
     $res_inspections = $conn->query($sql_inspections_count);
     if ($res_inspections) {
         $pending_inspections_count = $res_inspections->fetch_row()[0];
@@ -53,7 +69,7 @@ if (isset($conn)) {
             </li>
 
             <li>
-                <a href="inspections.php" class="nav-item flex items-center px-4 py-3 <?php echo ($current_page == 'inspections.php') ? 'bg-mmu-blue' : 'text-slate-300 hover:bg-slate-800'; ?> rounded-lg transition-colors">
+                <a href="inspections.php" class="nav-item flex items-center px-4 py-3 <?php echo ($current_page == 'inspections.php' || $current_page == 'pending_inspections.php' || $current_page == 'execute_inspection.php' || $current_page == 'track_inspections.php') ? 'bg-mmu-blue' : 'text-slate-300 hover:bg-slate-800'; ?> rounded-lg transition-colors">
                     <i data-lucide="clipboard-check" class="w-5 h-5 shrink-0"></i>
                     <span class="ml-3 font-medium nav-text">Inspections</span>
                     <?php if ($pending_inspections_count > 0): ?>
@@ -63,7 +79,7 @@ if (isset($conn)) {
             </li>
 
             <li>
-                <a href="manage_venues.php" class="nav-item flex items-center px-4 py-3 <?php echo ($current_page == 'manage_venues.php') ? 'bg-mmu-blue' : 'text-slate-300 hover:bg-slate-800'; ?> rounded-lg transition-colors">
+                <a href="manage_venues.php" class="nav-item flex items-center px-4 py-3 <?php echo ($current_page == 'manage_venues.php' || $current_page == 'register_venue.php' || $current_page == 'edit_venue.php' || $current_page == 'venue_directory.php') ? 'bg-mmu-blue' : 'text-slate-300 hover:bg-slate-800'; ?> rounded-lg transition-colors">
                     <i data-lucide="map-pin" class="w-5 h-5 shrink-0"></i>
                     <span class="ml-3 font-medium nav-text">Venue Registry</span>
                 </a>
