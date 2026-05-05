@@ -191,7 +191,7 @@ session_start();
         }
         fb.textContent = 'Verifying...'; fb.className = 'text-[11px] font-bold h-4 text-emerald-400';
         try {
-            const res = await fetch(`api_check_uid.php?uid=${encodeURIComponent(uid)}`);
+            const res = await fetch(`../api/api_check_uid.php?uid=${encodeURIComponent(uid)}`);
             const data = await res.json();
             if (data.exists) {
                 fb.textContent = 'ID Unavailable'; fb.className = 'text-[11px] font-bold h-4 text-red-400';
@@ -217,7 +217,7 @@ session_start();
         }
         fb.textContent = 'Verifying...'; fb.className = 'text-[11px] font-bold h-4 text-emerald-400';
         try {
-            const res = await fetch(`api_check_email.php?email=${encodeURIComponent(email)}`);
+            const res = await fetch(`../api/api_check_email.php?email=${encodeURIComponent(email)}`);
             const data = await res.json();
             if (data.exists) {
                 fb.textContent = 'Email Registered'; fb.className = 'text-[11px] font-bold h-4 text-red-400';
