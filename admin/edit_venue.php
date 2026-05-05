@@ -5,22 +5,18 @@ require_once '../config/db.php';
 require_once '../includes/admin_auth.php';
 
 $vid = intval($_GET['vid'] ?? 0);
-
-if ($vid === 0) {
-    die("Error: NULL pointer reference for Venue ID.");
-}
+if ($vid === 0) die("Error: NULL pointer reference for Venue ID.");
 
 $stmt = $conn->prepare("SELECT * FROM venue WHERE vid = ? LIMIT 1");
 $stmt->bind_param("i", $vid);
 $stmt->execute();
 $venue = $stmt->get_result()->fetch_assoc();
+if (!$venue) die("Anomaly: Venue object not found in persistent storage.");
 
-if (!$venue) {
-    die("Anomaly: Venue object not found in persistent storage.");
-}
-
-// 💡 戰術回滾：使用 DISTINCT 從現有場地中投影出類別集合
-$cat_sql = "SELECT DISTINCT category FROM venue WHERE category IS NOT NULL AND category != '' ORDER BY category ASC";
+// 💡 唯一性投影：提取不重複且正規化的現有類別
+$cat_sql = "SELECT DISTINCT UPPER(TRIM(category)) AS category_name 
+            FROM venue WHERE category IS NOT NULL AND category != '' 
+            ORDER BY category_name ASC";
 $categories_result = $conn->query($cat_sql);
 ?>
 <!DOCTYPE html>
@@ -30,18 +26,14 @@ $categories_result = $conn->query($cat_sql);
     <title>MMU Admin | Edit Venue</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script>
-        tailwind.config = { theme: { extend: { colors: { mmu: { blue: '#004aad', dark: '#1e293b' } } } } }
-    </script>
+    <script>tailwind.config = { theme: { extend: { colors: { mmu: { blue: '#004aad', dark: '#1e293b' } } } } }</script>
     <link rel="stylesheet" href="layout.css?v=1.2">
     <link rel="stylesheet" href="../assets/css/fiori-tile.css">
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
-
     <?php include('../includes/admin_sidebar.php'); ?>
-
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-50">
-        
+        <header class="h-16 glass-panel border-b border-slate-200 flex items-center justify-between px-6 z-10 shrink-0">
             <?php 
             $topbar_content = '
             <div class="flex items-center">
@@ -52,10 +44,9 @@ $categories_result = $conn->query($cat_sql);
             </div>';
             include('../includes/admin_topbar.php'); 
             ?>
-
+        </header>
         <div class="flex-1 overflow-y-auto p-8 scroll-smooth flex justify-center">
             <div class="w-full max-w-2xl">
-                
                 <div class="mb-8 flex justify-between items-end">
                     <div>
                         <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Edit Asset: <?php echo $vid; ?></h1>
@@ -65,46 +56,43 @@ $categories_result = $conn->query($cat_sql);
                         Node ID: <?php echo $vid; ?>
                     </span>
                 </div>
-
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                     <div class="px-8 py-4 bg-slate-50 border-b border-slate-100">
                         <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest">Mutation Details</h3>
                     </div>
-
                     <form action="../actions/process_venue.php" method="POST" class="p-8 space-y-6">
                         <input type="hidden" name="action" value="update">
                         <input type="hidden" name="vid" value="<?php echo $vid; ?>">
-
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div class="md:col-span-2">
                                 <label class="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-wide">Venue Name</label>
                                 <input type="text" name="vname" value="<?php echo htmlspecialchars($venue['vname']); ?>" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm transition-all">
                             </div>
-
+                            
+                            <!-- 💡 混合輸入器：預載現有值，並確保輸出大寫 -->
                             <div>
                                 <label class="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-wide">Category</label>
-                                <input list="category-options" name="category" value="<?php echo htmlspecialchars($venue['category']); ?>" required placeholder="Select or type category..." class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm bg-white font-medium transition-all">
+                                <input list="category-options" name="category" value="<?php echo htmlspecialchars(strtoupper($venue['category'])); ?>" required oninput="this.value = this.value.toUpperCase()" placeholder="Select or type category..." class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm bg-white font-mono font-bold text-indigo-700 transition-all uppercase">
                                 <datalist id="category-options">
                                     <?php 
                                     if ($categories_result && $categories_result->num_rows > 0) {
                                         while ($cat_row = $categories_result->fetch_assoc()) {
-                                            echo '<option value="' . htmlspecialchars($cat_row['category']) . '"></option>';
+                                            echo '<option value="' . htmlspecialchars($cat_row['category_name']) . '"></option>';
                                         }
                                     }
                                     ?>
                                 </datalist>
+                                <p class="text-[9px] text-slate-400 mt-1 italic">Input will be strictly normalized to uppercase.</p>
                             </div>
 
                             <div>
                                 <label class="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-wide">Max Capacity</label>
                                 <input type="number" name="max_cap" value="<?php echo $venue['max_cap']; ?>" min="1" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-mono transition-all">
                             </div>
-
                             <div>
                                 <label class="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-wide">Required Deposit (RM)</label>
                                 <input type="number" name="deposit" value="<?php echo $venue['deposit']; ?>" step="0.01" min="0" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-mono transition-all">
                             </div>
-
                             <div>
                                 <label class="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-wide">Current Status</label>
                                 <select name="status" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm bg-white font-bold">
@@ -113,7 +101,6 @@ $categories_result = $conn->query($cat_sql);
                                 </select>
                             </div>
                         </div>
-
                         <div class="pt-6 border-t border-slate-100 flex justify-between items-center">
                             <span class="text-[10px] text-slate-400 font-mono italic">Last Data Update Trace: [O(1) Access]</span>
                             <div class="flex space-x-3">
@@ -128,12 +115,9 @@ $categories_result = $conn->query($cat_sql);
             </div>
         </div>
     </main>
-
     <script>
         lucide.createIcons();
-        function toggleSidebar() {
-            document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed');
-        }
+        function toggleSidebar() { document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed'); }
     </script>
 </body>
 </html>

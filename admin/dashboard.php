@@ -177,23 +177,6 @@ $kpi_available = $conn->query("SELECT COUNT(*) FROM venue WHERE status = 'availa
                     </div>
                 </a>
 
-                <a href="manage_categories.php" class="fiori-tile">
-                    <div class="fiori-tile-header">
-                        <h3 class="fiori-tile-title">Manage Categories</h3>
-                        <i data-lucide="tags" class="w-5 h-5 fiori-tile-icon"></i>
-                    </div>
-                    <p class="fiori-tile-desc">Define and govern persistent venue classification tags.</p>
-                    <div class="fiori-tile-kpi">
-                        <?php 
-                        // 💡 可以在頂部 PHP 加入這行: $kpi_cat = $conn->query("SELECT COUNT(*) FROM venue_category")->fetch_row()[0] ?? 0;
-                        echo $kpi_cat ?? '--'; 
-                        ?>
-                    </div>
-                    <div class="fiori-tile-footer">
-                        Configure Tags <i data-lucide="arrow-right" class="w-3 h-3 ml-2"></i>
-                    </div>
-                </a>
-
             </div>
             
             
