@@ -2,33 +2,30 @@
 session_start();
 include("../config/db.php");
 
-$identifier = $_POST['login_identifier'];
+$email = $_POST['email'];
 $password = $_POST['password'];
 
-// 采用 ID 为主，Email 为辅的复合查询
-$stmt = $conn->prepare("SELECT * FROM user WHERE uid = ? OR email = ?");
-$stmt->bind_param("ss", $identifier, $identifier);
+$stmt = $conn->prepare("SELECT * FROM user WHERE email = ?");
+$stmt->bind_param("s", $email);
 $stmt->execute();
 $result = $stmt->get_result();
 
 if ($row = $result->fetch_assoc()) {
-    
 
     if (password_verify($password, $row['password'])) {
-        // 状态水化 (State Hydration)
+
         $_SESSION['uid'] = $row['uid'];
-        $_SESSION['username'] = $row['username']; // 🔴 新增：将数据库中的 username 映射至 Session
-        $_SESSION['role'] = 'user'; 
+        $_SESSION['user_role'] = 'User';
 
         header("Location: homepage.php");
         exit();
+
     } else {
-        header("Location: user_login.php?error=invalid");
-        exit();
+        header("Location: user_login.php?error=Wrong password");
     }
 
-} else {
-    header("Location: user_login.php?error=invalid");
+} else 
+    header("Location: user_login.php?error=Invalid email");
     exit();
 }
 ?>
