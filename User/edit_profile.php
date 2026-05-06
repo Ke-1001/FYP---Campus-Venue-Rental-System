@@ -1,100 +1,85 @@
 <?php
-session_start();
-require_once '../config/db.php';
+include("../includes/auth.php");
+include("../includes/header.php");
+include("../config/db.php");
 
-if (!isset($_SESSION['user_id'])) {
-    header("Location: user_login.php?error=access_denied");
-    exit();
+$uid = $_SESSION['uid'];
+$message = "";
+
+// 处理更新
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
+    $username = trim($_POST['username']);
+    $email = trim($_POST['email']);
+    $phone = trim($_POST['phone_num']);
+
+    if (empty($username) || empty($email)) {
+        $message = "<p class='text-red-500 mb-3'>Username and Email are required</p>";
+    } else {
+
+        $stmt = $conn->prepare("
+            UPDATE users 
+            SET username = ?, email = ?, phone_num = ?
+            WHERE uid = ?
+        ");
+        $stmt->bind_param("sssi", $username, $email, $phone, $uid);
+        $stmt->execute();
+
+        // 更新 session
+        $_SESSION['username'] = $username;
+        $_SESSION['email'] = $email;
+        $_SESSION['phone_num'] = $phone;
+
+        $message = "<p class='text-green-500 mb-3'>Profile updated successfully</p>";
+    }
 }
 
-$user_id = $_SESSION['user_id'];
-
-// FETCH CURRENT DATA
-$sql = "SELECT full_name, email FROM users WHERE user_id = ?";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $user_id);
+// 读取当前数据
+$stmt = $conn->prepare("SELECT username, email, phone_num FROM users WHERE uid = ?");
+$stmt->bind_param("i", $uid);
 $stmt->execute();
 $result = $stmt->get_result();
 $user = $result->fetch_assoc();
-
-// UPDATE PROFILE
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $full_name = trim($_POST['full_name']);
-    $email = trim($_POST['email']);
-
-    $update = "UPDATE users SET full_name = ?, email = ? WHERE user_id = ?";
-    $stmt = $conn->prepare($update);
-    $stmt->bind_param("ssi", $full_name, $email, $user_id);
-
-    if ($stmt->execute()) {
-        header("Location: profile.php?updated=1");
-        exit();
-    }
-}
 ?>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Edit Profile</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    <style>
-        body{
-            margin:0;
-            font-family:'Poppins', sans-serif;
-            background: linear-gradient(120deg,#4e73df,#1cc88a);
-            height:100vh;
-            display:flex;
-            justify-content:center;
-            align-items:center;
-        }
+<h2 class="text-2xl font-bold mb-6">Edit Profile</h2>
 
-        .edit-box{
-            background:white;
-            width:450px;
-            padding:40px;
-            border-radius:12px;
-            box-shadow:0 10px 30px rgba(0,0,0,0.2);
-        }
+<div class="bg-white rounded-xl shadow p-6 max-w-lg">
 
-        h2{
-            margin-bottom:25px;
-        }
+    <?php echo $message; ?>
 
-        input{
-            width:100%;
-            padding:12px;
-            margin:10px 0 20px;
-            border-radius:6px;
-            border:1px solid #ccc;
-        }
+    <form method="POST" class="space-y-4">
 
-        button{
-            padding:10px 18px;
-            background:#4e73df;
-            color:white;
-            border:none;
-            border-radius:6px;
-            cursor:pointer;
-            font-weight:600;
-        }
-    </style>
-</head>
-<body>
+        <div>
+            <label class="block text-sm text-gray-600 mb-1">Username</label>
+            <input type="text" name="username"
+                value="<?php echo htmlspecialchars($user['username'] ?? ''); ?>"
+                class="w-full border rounded-lg p-2 focus:outline-none focus:ring focus:ring-blue-200"
+                required>
+        </div>
 
-<div class="edit-box">
-    <h2>Edit Profile</h2>
+        <div>
+            <label class="block text-sm text-gray-600 mb-1">Email</label>
+            <input type="email" name="email"
+                value="<?php echo htmlspecialchars($user['email'] ?? ''); ?>"
+                class="w-full border rounded-lg p-2 focus:outline-none focus:ring focus:ring-blue-200"
+                required>
+        </div>
 
-    <form method="POST">
-        <label>Full Name</label>
-        <input type="text" name="full_name" value="<?php echo htmlspecialchars($user['full_name']); ?>" required>
+        <div>
+            <label class="block text-sm text-gray-600 mb-1">Phone</label>
+            <input type="text" name="phone_num"
+                value="<?php echo htmlspecialchars($user['phone_num'] ?? ''); ?>"
+                class="w-full border rounded-lg p-2 focus:outline-none focus:ring focus:ring-blue-200">
+        </div>
 
-        <label>Email</label>
-        <input type="email" name="email" value="<?php echo htmlspecialchars($user['email']); ?>" required>
+        <button type="submit"
+            class="w-full py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+            Update Profile
+        </button>
 
-        <button type="submit">Save Changes</button>
     </form>
+
 </div>
 
-</body>
-</html>
+</div></body></html>

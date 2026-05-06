@@ -118,3 +118,28 @@ input[type="time"] {
     border-radius: 6px;
     box-sizing: border-box;
 }
+
+.glass {
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(to right, #3b82f6, #6366f1);
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        .input-dark {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        .input-dark::placeholder {
+            color: #aaa;
+        }
