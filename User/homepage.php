@@ -200,8 +200,9 @@ $result = $conn->query($sql);
                                 <?php echo htmlspecialchars($row['description'] ?? 'No topological description provided for this structural asset.'); ?>
                             </p>
                             
-                            <a href="venue_details.php?id=<?php echo $row['vid']; ?>" 
-                               class="block w-full text-center py-3.5 bg-white/10 hover:bg-mmu-core text-white text-sm font-bold rounded-xl border border-white/10 hover:border-mmu-core transition-all shadow-lg hover:shadow-[0_4px_20px_rgba(0,74,173,0.5)]">
+                            <!-- 修复参数名为 vid -->
+                            <a href="venue_details.php?vid=<?php echo $row['vid']; ?>" 
+                            class="block w-full text-center py-3.5 bg-white/10 hover:bg-mmu-core text-white text-sm font-bold rounded-xl border border-white/10 hover:border-mmu-core transition-all shadow-lg hover:shadow-[0_4px_20px_rgba(0,74,173,0.5)]">
                                 Inspect Details
                             </a>
                         </div>
