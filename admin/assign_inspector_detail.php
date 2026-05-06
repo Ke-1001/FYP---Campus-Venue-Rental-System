@@ -82,7 +82,7 @@ $inspectors = $conn->query("SELECT sid, staff_name FROM staff WHERE position = '
                                     <p class="font-bold text-indigo-600"><?php echo htmlspecialchars($booking['vname']); ?></p>
                                 </div>
                                 <div>
-                                    <p class="text-slate-500 text-[10px] font-bold uppercase tracking-tight">Financial Block</p>
+                                    <p class="text-slate-500 text-[10px] font-bold uppercase tracking-tight">Deposit</p>
                                     <p class="font-mono font-bold text-emerald-600">RM <?php echo number_format($booking['deposit'], 2); ?></p>
                                 </div>
                             </div>
@@ -98,7 +98,7 @@ $inspectors = $conn->query("SELECT sid, staff_name FROM staff WHERE position = '
                                     <label class="block text-xs font-black text-slate-500 uppercase mb-3 tracking-widest">Select Allocation Strategy</label>
                                     <div class="relative">
                                         <select name="sid" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all appearance-none">
-                                            <option value="" disabled selected>-- Choose Personnel --</option>
+                                            <option value="" disabled selected>-- Choose Inspector --</option>
                                             <option value="RA01" class="text-indigo-600 font-black">RA01 - Random Assignment (System Auto)</option>
                                             <optgroup label="Available Inspectors">
                                                 <?php while($ins = $inspectors->fetch_assoc()): ?>

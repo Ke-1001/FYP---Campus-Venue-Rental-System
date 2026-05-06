@@ -15,6 +15,7 @@ require_once('../includes/admin_auth.php');
         tailwind.config = { theme: { extend: { colors: { mmu: { blue: '#004aad', dark: '#1e293b' } } } } }
     </script>
     <link rel="stylesheet" href="layout.css?v=1.2">
+    <link rel="stylesheet" href="../assets/css/fiori-tile.css">
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans h-screen flex overflow-hidden">
 
@@ -36,38 +37,32 @@ require_once('../includes/admin_auth.php');
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
                 
-                <a href="add_admin.php" class="group bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-indigo-500 hover:shadow-md transition-all">
-                    <div class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-indigo-600 transition-colors">
-                        <i data-lucide="shield-plus" class="w-6 h-6 text-indigo-600 group-hover:text-white"></i>
+                <a href="add_admin.php" class="fiori-tile">
+                    <div class="fiori-tile-header">
+                        <h3 class="fiori-tile-title">Add Admin</h3>
+                        <i data-lucide="shield" class="w-5 h-5 fiori-tile-icon"></i>
                     </div>
-                    <h3 class="font-bold text-slate-800">Add New Admin</h3>
-                    <p class="text-xs text-slate-500 mt-1">Create a new administrator account.</p>
+                    <p class="fiori-tile-desc">Add a new administrator to the system.</p>
+                    <div class="fiori-tile-kpi">
+                        <i data-lucide="user" class="w-8 h-8 opacity-20"></i>
+                    </div>
+                    <div class="fiori-tile-footer">
+                        ADD NOW <i data-lucide="arrow-right" class="w-3 h-3 ml-2"></i>
+                    </div>
                 </a>
+                
 
-                <!-- 💡 解鎖 Admin Directory -->
-                <a href="admin_directory.php" class="group bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-indigo-500 hover:shadow-md transition-all">
-                    <div class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-indigo-600 transition-colors">
-                        <i data-lucide="shield" class="w-6 h-6 text-indigo-600 group-hover:text-white"></i>
+
+                <a href="admin_directory.php" class="fiori-tile">
+                    <div class="fiori-tile-header">
+                        <h3 class="fiori-tile-title">Admin Directory</h3>
+                        <i data-lucide="shield" class="w-6 h-6  group-hover:text-white"></i>
                     </div>
-                    <h3 class="font-bold text-slate-800">Admin Directory</h3>
-                    <p class="text-xs text-slate-500 mt-1">Full list and profile management.</p>
+                    <p class="fiori-tile-desc">Manage existing administrators, their roles, and contact information.</p>
+                    <div class="fiori-tile-footer">
+                        View Admins <i data-lucide="arrow-right" class="w-3 h-3 ml-2"></i>
+                    </div>
                 </a>
-
-                <div class="group bg-white p-6 rounded-2xl shadow-sm border border-slate-200 cursor-not-allowed opacity-60">
-                    <div class="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center mb-4">
-                        <i data-lucide="key" class="w-6 h-6 text-slate-400"></i>
-                    </div>
-                    <h3 class="font-bold text-slate-400">System Roles</h3>
-                    <p class="text-xs text-slate-400 mt-1">Define permissions and access levels.</p>
-                </div>
-
-                <div class="group bg-white p-6 rounded-2xl shadow-sm border border-slate-200 cursor-not-allowed opacity-60">
-                    <div class="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center mb-4">
-                        <i data-lucide="history" class="w-6 h-6 text-slate-400"></i>
-                    </div>
-                    <h3 class="font-bold text-slate-400">Activity Logs</h3>
-                    <p class="text-xs text-slate-400 mt-1">Monitor administrative operations.</p>
-                </div>
 
             </div>
 
@@ -78,22 +73,44 @@ require_once('../includes/admin_auth.php');
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
                 
-                <a href="add_staff.php" class="group bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-emerald-500 hover:shadow-md transition-all">
-                    <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-emerald-600 transition-colors">
-                        <i data-lucide="user-plus" class="w-6 h-6 text-emerald-600 group-hover:text-white"></i>
+                <a href="add_staff.php" class="fiori-tile">
+                    <div class="fiori-tile-header">
+                        <h3 class="fiori-tile-title">Add Staff</h3>
+                        <i data-lucide="plus-square" class="w-5 h-5 fiori-tile-icon"></i>
                     </div>
-                    <h3 class="font-bold text-slate-800">Add New Staff</h3>
-                    <p class="text-xs text-slate-500 mt-1">Register an inspector or staff member.</p>
+                    <p class="fiori-tile-desc">Add a new staff member to the system.</p>
+                    <div class="fiori-tile-kpi">
+                        <i data-lucide="user" class="w-8 h-8 opacity-20"></i>
+                    </div>
+                    <div class="fiori-tile-footer">
+                        ADD NOW <i data-lucide="arrow-right" class="w-3 h-3 ml-2"></i>
+                    </div>
                 </a>
 
-                <!-- 💡 解鎖 Staff Directory -->
-                <a href="staff_directory.php" class="group bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-emerald-500 hover:shadow-md transition-all">
-                    <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center mb-4 group-hover:bg-emerald-600 transition-colors">
-                        <i data-lucide="users" class="w-6 h-6 text-emerald-600 group-hover:text-white"></i>
+
+                
+
+                <a href="staff_directory.php" class="fiori-tile">
+                    <div class="fiori-tile-header">
+                        <h3 class="fiori-tile-title">Staff Directory</h3>
+                        <i data-lucide="users" class="w-6 h-6  group-hover:text-white"></i>
                     </div>
-                    <h3 class="font-bold text-slate-800">Staff Directory</h3>
-                    <p class="text-xs text-slate-500 mt-1">View and manage operational staff.</p>
+                    <p class="fiori-tile-desc">Manage existing staff members, their roles, and contact information.</p>
+                    <div class="fiori-tile-kpi">
+                        <?php 
+                        // Fetch total staff count for KPI
+                        $staff_count_query = "SELECT COUNT(*) AS total_staff FROM staff";
+                        $staff_count_result = mysqli_query($conn, $staff_count_query);
+                        $staff_count_row = mysqli_fetch_assoc($staff_count_result);
+                        echo $staff_count_row['total_staff'];
+                        ?>
+                    </div>
+                    <div class="fiori-tile-footer">
+                        View Staffs <i data-lucide="arrow-right" class="w-3 h-3 ml-2"></i>
+                    </div>
                 </a>
+
+                
 
             </div>
 
@@ -102,7 +119,9 @@ require_once('../includes/admin_auth.php');
 
     <script>
         lucide.createIcons();
-        function toggleSidebar() { document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed'); }
+        function toggleSidebar() {
+            document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed');
+        }
     </script>
 </body>
 </html>

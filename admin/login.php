@@ -38,7 +38,7 @@ if ($admin_identifier && in_array($admin_role, ['admin', 'super_admin'], true)) 
             <div class="w-16 h-16 bg-mmu-blue/20 text-mmu-accent rounded-2xl flex items-center justify-center mx-auto mb-4 border border-mmu-blue/30">
                 <i data-lucide="shield-alert" class="w-8 h-8"></i>
             </div>
-            <h2 class="text-2xl font-extrabold text-white tracking-wide">Command Center</h2>
+            <h2 class="text-2xl font-extrabold text-white tracking-wide">Admin Panel</h2>
             <p class="text-slate-400 text-sm mt-2 font-mono uppercase tracking-widest">Authorized Personnel Only</p>
         </div>
 

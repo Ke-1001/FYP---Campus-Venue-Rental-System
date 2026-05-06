@@ -44,8 +44,7 @@ if (isset($conn)) {
 <aside id="system-sidebar" class="mmu-sidebar bg-mmu-dark text-white flex flex-col shadow-2xl z-20 shrink-0">
     
     <div class="brand-header h-16 flex items-center px-6 border-b border-slate-700 shrink-0 transition-all">
-        <i data-lucide="building-2" class="w-6 h-6 text-mmu-accent shrink-0"></i>
-        <span class="ml-3 text-lg font-bold tracking-wider brand-text">MMU Admin</span>
+        <span class="ml-3 text-lg font-bold tracking-wider brand-text">CVBMS MANAGEMENT</span>
     </div>
     
     <nav class="flex-1 overflow-y-auto py-4">
@@ -88,7 +87,7 @@ if (isset($conn)) {
             <li class="pt-4 pb-2 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider nav-header">Identity Management</li>
             
             <li>
-                <a href="manage_admins.php" class="nav-item flex items-center px-4 py-2 <?php echo ($current_page == 'manage_admins.php' || $current_page == 'add_admin.php') ? 'bg-mmu-blue' : 'text-slate-300 hover:bg-slate-800'; ?> rounded-lg transition-colors">
+                <a href="manage_admins.php" class="nav-item flex items-center px-4 py-2 <?php echo ($current_page == 'manage_admins.php' || $current_page == 'add_admin.php' || $current_page == 'admin_directory.php' || $current_page == 'add_staff.php' || $current_page == 'staff_directory.php') ? 'bg-mmu-blue' : 'text-slate-300 hover:bg-slate-800'; ?> rounded-lg transition-colors">
                     <i data-lucide="shield" class="w-4 h-4 shrink-0 text-mmu-accent"></i>
                     <span class="ml-3 font-medium text-sm nav-text">Personnel Directory</span>
                 </a>

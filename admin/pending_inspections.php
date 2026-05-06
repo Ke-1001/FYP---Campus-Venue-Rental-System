@@ -60,7 +60,6 @@ $now = new DateTime('now', $tz);
 
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-50">
         
-        <header class="h-16 glass-panel border-b border-slate-200 flex items-center justify-between px-6 z-10 shrink-0">
             <?php 
             $topbar_content = '
             <div class="flex items-center">
@@ -71,14 +70,13 @@ $now = new DateTime('now', $tz);
             </div>';
             include('../includes/admin_topbar.php'); 
             ?>
-        </header>
 
         <div class="flex-1 overflow-y-auto p-8 scroll-smooth">
             
             <div class="mb-6 flex justify-between items-end">
                 <div>
                     <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Pending Inspections</h1>
-                    <p class="text-xs text-slate-500 mt-1">Monitor upcoming physical assessments using multidimensional data queries.</p>
+                    <p class="text-xs text-slate-500 mt-1">Review upcoming physical assessments.</p>
                 </div>
             </div>
 
@@ -97,12 +95,12 @@ $now = new DateTime('now', $tz);
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Asset Query</label>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Asset</label>
                         <input type="text" name="f_venue" value="<?php echo htmlspecialchars($filter_venue); ?>" placeholder="Venue or Category..." class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:border-indigo-500 outline-none">
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Usage Date</label>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Date</label>
                         <input type="date" name="f_date" value="<?php echo htmlspecialchars($filter_date); ?>" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:border-indigo-500 outline-none text-slate-600">
                     </div>
 
@@ -203,7 +201,7 @@ $now = new DateTime('now', $tz);
                             <tr>
                                 <td colspan="5" class="px-6 py-12 text-center text-slate-500 font-medium">
                                     <i data-lucide="search-x" class="w-12 h-12 mx-auto text-slate-300 mb-3 opacity-50"></i>
-                                    Query returned zero vectors. No pending inspections match criteria.
+                                    No pending inspections match criteria.
                                 </td>
                             </tr>
                         <?php endif; ?>

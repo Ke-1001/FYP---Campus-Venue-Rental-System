@@ -136,7 +136,8 @@ $flow_states = [
                         <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2">Entity & Venue</h3>
                         <div class="space-y-4 text-sm flex-1">
                             <div><p class="text-[10px] text-slate-500 font-bold uppercase mb-0.5">Student Name</p><p class="font-bold text-slate-700"><?php echo htmlspecialchars($data['username']); ?></p></div>
-                            <div><p class="text-[10px] text-slate-500 font-bold uppercase mb-0.5">Contact</p><p class="font-mono text-slate-600"><?php echo htmlspecialchars($data['student_phone']); ?></p></div>
+                            <div><p class="text-[10px] text-slate-500 font-bold uppercase mb-0.5">Contact</p><p class="font-mono text-slate-600"><?php echo htmlspecialchars($data['student_phone']); ?></p>
+                                <p class="font-mono text-slate-600"><?php echo htmlspecialchars($data['student_email']); ?></p></div>
                             <div class="pt-2"><p class="text-[10px] text-slate-500 font-bold uppercase mb-0.5">Venue Allocated</p><p class="font-bold text-indigo-600"><?php echo htmlspecialchars($data['vname']); ?></p></div>
                         </div>
                     </div>
@@ -144,9 +145,9 @@ $flow_states = [
                     <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col">
                         <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2">Schedule Data</h3>
                         <div class="space-y-4 text-sm flex-1">
-                            <div><p class="text-[10px] text-slate-500 font-bold uppercase mb-0.5">Usage Date</p><p class="font-bold text-slate-700"><?php echo $data['date_booked']; ?></p></div>
+                            <div><p class="text-[10px] text-slate-500 font-bold uppercase mb-0.5">Date</p><p class="font-bold text-slate-700"><?php echo $data['date_booked']; ?></p></div>
                             <div>
-                                <p class="text-[10px] text-slate-500 font-bold uppercase mb-0.5">Time Frame</p>
+                                <p class="text-[10px] text-slate-500 font-bold uppercase mb-0.5">Time</p>
                                 <p class="font-mono text-slate-600">
                                     <?php echo date('H:i', strtotime($data['time_start'])) . ' - ' . date('H:i', strtotime($data['time_end'])); ?>
                                 </p>
