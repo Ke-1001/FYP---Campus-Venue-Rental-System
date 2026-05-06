@@ -101,18 +101,28 @@ $result = $conn->query($sql);
             </div>
 
             <div class="hidden md:flex space-x-8">
-                <a href="homepage.php" class="text-white font-semibold px-2 py-2 text-sm drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]">Home</a>
-                <a href="venues.php" class="text-slate-400 hover:text-white transition-colors px-2 py-2 text-sm font-medium">Venues</a>
-                <a href="my_bookings.php" class="text-slate-400 hover:text-white transition-colors px-2 py-2 text-sm font-medium">My Bookings</a>
+                <a href="homepage.php" class="text-white font-semibold px-2 py-2 text-lg drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]">Home</a>
+                <a href="venues.php" class="text-slate-400 hover:text-white transition-colors px-2 py-2 text-lg font-medium">Venues</a>
+                <a href="my_bookings.php" class="text-slate-400 hover:text-white transition-colors px-2 py-2 text-lg font-medium">My Bookings</a>
             </div>
 
             <div class="flex items-center gap-4">
                 <?php if (isset($_SESSION['uid'])): ?>
-                    <div class="flex items-center gap-2 bg-white/10 py-1.5 px-4 rounded-full border border-white/10 backdrop-blur-md">
+                    <div id="userBtn" class="flex items-center gap-2 bg-white/10 py-1.5 px-4 rounded-full border border-white/10 backdrop-blur-md cursor-pointer">
                         <i data-lucide="user" class="w-4 h-4 text-mmu-glow"></i>
-                        <span class="text-sm font-semibold text-white max-w-[100px] truncate">
-                            <?php echo htmlspecialchars($_SESSION['username'] ?? 'Student', ENT_QUOTES, 'UTF-8'); ?>
-                        </span>
+                            <span class="text-sm font-semibold text-white max-w-[100px] truncate">
+                                <?php echo htmlspecialchars($_SESSION['username'], ENT_QUOTES, 'UTF-8'); ?>
+                            </span>
+                        </div>
+
+                        <!-- 下拉资料卡 -->
+                        <div id="userDropdown" class="hidden absolute top-10 right-30 mt-2 w-72 bg-white rounded-xl shadow-lg p-5 text-black z-50">
+                            <p class="font-medium mb-2">
+                                Username: <?php echo htmlspecialchars($_SESSION['username'], ENT_QUOTES, 'UTF-8'); ?><br>
+                                Student ID: <?php echo htmlspecialchars($_SESSION['uid'], ENT_QUOTES, 'UTF-8'); ?><br>
+                                Email: <?php echo htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8'); ?><br>
+                                Phone: <?php echo htmlspecialchars($_SESSION['phone_num'], ENT_QUOTES, 'UTF-8'); ?>
+                            </p>
                     </div>
                     <a href="profile.php" class="text-slate-400 hover:text-white transition-colors"><i data-lucide="settings" class="w-5 h-5"></i></a>
                     <a href="../User/user_logout.php" class="text-red-400 hover:text-red-300 transition-colors"><i data-lucide="log-out" class="w-5 h-5"></i></a>
@@ -229,6 +239,20 @@ $result = $conn->query($sql);
 
 <script>
     lucide.createIcons();
+
+    const btn = document.getElementById("userBtn");
+    const dropdown = document.getElementById("userDropdown");
+
+    // 点击头像 → toggle
+    btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        dropdown.classList.toggle("hidden");
+    });
+
+    // 点击页面其他地方 → 关闭
+    document.addEventListener("click", function () {
+        dropdown.classList.add("hidden");
+    });
 </script>
 
 </body>

@@ -10,5 +10,7 @@ if (!isset($page_title)) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $page_title; ?></title>
     <link rel="stylesheet" href="../includes/user.css">
+
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
