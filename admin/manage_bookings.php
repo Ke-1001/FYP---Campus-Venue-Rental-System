@@ -45,7 +45,7 @@ $kpi_assign = $conn->query($sql_kpi_assign)->fetch_row()[0] ?? 0;
 
                 <a href="pending_requests.php" class="fiori-tile">
                     <div class="fiori-tile-header">
-                        <h3 class="fiori-tile-title">Approval Queue</h3>
+                        <h3 class="fiori-tile-title">Pending Requests</h3>
                         <i data-lucide="shield-alert" class="w-5 h-5 fiori-tile-icon"></i>
                     </div>
                     <p class="fiori-tile-desc">Review and approve new venue booking requests.</p>

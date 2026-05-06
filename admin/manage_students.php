@@ -59,7 +59,7 @@ $result = $conn->query($sql);
             <div class="mb-6 flex justify-between items-end">
                 <div>
                     <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Student Directory</h1>
-                    <p class="text-sm text-slate-500 mt-1">Manage registered student accounts and review their contact vectors.</p>
+                    <p class="text-sm text-slate-500 mt-1">Manage registered student accounts and review their contacts.</p>
                 </div>
                 <div>
                     <a href="add_student.php" class="px-5 py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-xl shadow-sm hover:bg-indigo-700 transition flex items-center transform active:scale-95">
@@ -73,7 +73,7 @@ $result = $conn->query($sql);
                 <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                     
                     <div class="md:col-span-2">
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Identity Query</label>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Student Informations</label>
                         <div class="relative">
                             <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
                             <input type="text" name="f_query" value="<?php echo htmlspecialchars($filter_query); ?>" placeholder="Search UID, Name, or Email..." class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:border-indigo-500 outline-none transition-colors">
@@ -81,7 +81,7 @@ $result = $conn->query($sql);
                     </div>
                     
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Temporal Sorting</label>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Sorting</label>
                         <select name="f_sort" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:border-indigo-500 outline-none bg-white font-medium text-slate-700 transition-colors">
                             <option value="newest" <?php if($filter_sort==='newest') echo 'selected'; ?>>Newest Registered</option>
                             <option value="oldest" <?php if($filter_sort==='oldest') echo 'selected'; ?>>Oldest Registered</option>
@@ -103,14 +103,14 @@ $result = $conn->query($sql);
             <!-- 💡 資料名錄 -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="px-6 py-4 border-b border-slate-100 bg-slate-50">
-                    <h3 class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Student Population Index (<?php echo $result->num_rows; ?>)</h3>
+                    <h3 class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Student Index (<?php echo $result->num_rows; ?>)</h3>
                 </div>
                 <table class="w-full text-left border-collapse">
                     <thead class="bg-white text-[10px] text-slate-400 font-black uppercase tracking-widest border-b border-slate-100">
                         <tr>
                             <th class="px-6 py-3">Reference (UID)</th>
                             <th class="px-6 py-3">Student Profile</th>
-                            <th class="px-6 py-3">Contact Vectors</th>
+                            <th class="px-6 py-3">Contact Information</th>
                             <th class="px-6 py-3">Account State</th>
                             <th class="px-6 py-3 text-right">Execution</th>
                         </tr>
@@ -142,9 +142,6 @@ $result = $conn->query($sql);
                                         <a href="edit_student.php?uid=<?php echo urlencode($row['uid']); ?>" class="p-2 text-indigo-500 hover:bg-indigo-50 rounded-lg transition" title="Modify Record">
                                             <i data-lucide="settings-2" class="w-4 h-4"></i>
                                         </a>
-                                        <a href="delete_student.php?uid=<?php echo urlencode($row['uid']); ?>" class="p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition" title="Purge Record" onclick="return confirm('CRITICAL WARNING: This will permanently purge the student and ALL their associated booking/inspection records. Proceed?');">
-                                            <i data-lucide="user-minus" class="w-4 h-4"></i>
-                                        </a>
                                     </div>
                                 </td>
                             </tr>
@@ -153,7 +150,7 @@ $result = $conn->query($sql);
                             <tr>
                                 <td colspan="5" class="px-6 py-12 text-center text-slate-400 font-medium">
                                     <i data-lucide="users" class="w-8 h-8 mx-auto text-slate-300 mb-3 opacity-50"></i>
-                                    Query returned zero vectors. No students match the criteria.
+                                    No students match the criteria.
                                 </td>
                             </tr>
                         <?php endif; ?>

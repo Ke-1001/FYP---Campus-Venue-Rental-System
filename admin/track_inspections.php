@@ -92,7 +92,7 @@ $result = $conn->query($sql);
             
             <div class="mb-6">
                 <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Inspection History</h1>
-                <p class="text-xs text-slate-500 mt-1">Trace historical venue assessments and financial penalties using multidimensional queries.</p>
+                <p class="text-xs text-slate-500 mt-1">Trace historical venue assessments and financial penalties.</p>
             </div>
 
             <!-- 💡 多維度過濾矩陣 (Multi-dimensional Filter Matrix) -->
@@ -110,12 +110,12 @@ $result = $conn->query($sql);
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Asset Query</label>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Asset</label>
                         <input type="text" name="f_venue" value="<?php echo htmlspecialchars($filter_venue); ?>" placeholder="Venue or Category..." class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:border-indigo-500 outline-none">
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Usage Date</label>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Date</label>
                         <input type="date" name="f_date" value="<?php echo htmlspecialchars($filter_date); ?>" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:border-indigo-500 outline-none text-slate-600">
                     </div>
 
@@ -155,7 +155,7 @@ $result = $conn->query($sql);
                         <tr>
                             <th class="px-6 py-3">Reference</th>
                             <th class="px-6 py-3">Student & Asset</th>
-                            <th class="px-6 py-3">Inspector Auth</th>
+                            <th class="px-6 py-3">Inspector</th>
                             <th class="px-6 py-3">Assessment Outcome</th>
                             <th class="px-6 py-3 text-right">Tracing Flow</th>
                         </tr>
@@ -207,7 +207,7 @@ $result = $conn->query($sql);
                             <tr>
                                 <td colspan="5" class="px-6 py-12 text-center text-slate-500 font-medium">
                                     <i data-lucide="search-x" class="w-12 h-12 mx-auto text-slate-300 mb-3 opacity-50"></i>
-                                    Query returned zero vectors. No historical records match criteria.
+                                    No historical records match criteria.
                                 </td>
                             </tr>
                         <?php endif; ?>

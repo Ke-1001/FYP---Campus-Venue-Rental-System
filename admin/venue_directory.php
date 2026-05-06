@@ -69,7 +69,7 @@ $result = $conn->query($sql);
             
             <div class="mb-6">
                 <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Venue Registry Directory</h1>
-                <p class="text-xs text-slate-500 mt-1">Search, filter, and manage existing physical assets within the system.</p>
+                <p class="text-xs text-slate-500 mt-1">Search, filter, and manage existing venues.</p>
             </div>
 
             <!-- 💡 標準化多維度過濾矩陣 (Standardized Filter Matrix) -->
@@ -77,12 +77,12 @@ $result = $conn->query($sql);
                 <form method="GET" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
                     
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Venue Node</label>
-                        <input type="text" name="f_name" value="<?php echo htmlspecialchars($filter_name); ?>" placeholder="Search entity name..." class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:border-indigo-500 outline-none transition-all">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Venue </label>
+                        <input type="text" name="f_name" value="<?php echo htmlspecialchars($filter_name); ?>" placeholder="Search venue name..." class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:border-indigo-500 outline-none transition-all">
                     </div>
                     
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Category Projection</label>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Category</label>
                         <div class="relative">
                             <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
                             <input list="category-suggestions" name="f_cat" value="<?php echo htmlspecialchars($filter_cat); ?>" oninput="this.value = this.value.toUpperCase()" placeholder="Type or select keyword..." class="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:border-indigo-500 outline-none transition-all uppercase font-medium text-indigo-700">
@@ -99,7 +99,7 @@ $result = $conn->query($sql);
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Hardware State</label>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Venue State</label>
                         <select name="f_status" class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:border-indigo-500 outline-none bg-white font-medium text-slate-700">
                             <option value="">All States</option>
                             <option value="available" <?php if($filter_status==='available') echo 'selected'; ?>>Available</option>
@@ -123,15 +123,15 @@ $result = $conn->query($sql);
             <!-- 💡 名錄矩陣 -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-                    <h3 class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Asset Index (<?php echo $result->num_rows; ?>)</h3>
+                    <h3 class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Venue Index (<?php echo $result->num_rows; ?>)</h3>
                 </div>
                 <table class="w-full text-left border-collapse">
                     <thead class="bg-white text-[10px] text-slate-400 font-black uppercase tracking-widest border-b border-slate-100">
                         <tr>
-                            <th class="px-6 py-4">Venue Node</th>
-                            <th class="px-6 py-4">Classification</th>
-                            <th class="px-6 py-4">Capacity Threshold</th>
-                            <th class="px-6 py-4">Financial Block</th>
+                            <th class="px-6 py-4">Venue</th>
+                            <th class="px-6 py-4">Category</th>
+                            <th class="px-6 py-4">Capacity</th>
+                            <th class="px-6 py-4">Deposit</th>
                             <th class="px-6 py-4">Current State</th>
                             <th class="px-6 py-4 text-right">Execution</th>
                         </tr>
@@ -170,7 +170,7 @@ $result = $conn->query($sql);
                             <tr>
                                 <td colspan="6" class="px-6 py-12 text-center text-slate-400 font-medium">
                                     <i data-lucide="search-x" class="w-8 h-8 mx-auto text-slate-300 mb-3 opacity-50"></i>
-                                    Query returned zero vectors. No venues match the specified parameters.
+                                    No venues match the specified parameters.
                                 </td>
                             </tr>
                         <?php endif; ?>

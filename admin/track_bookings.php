@@ -70,7 +70,6 @@ $result = $conn->query($sql);
 
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-50">
         
-        <header class="h-16 glass-panel border-b border-slate-200 flex items-center justify-between px-6 z-10 shrink-0">
             <?php 
             $topbar_content = '
             <div class="flex items-center">
@@ -81,13 +80,12 @@ $result = $conn->query($sql);
             </div>';
             include('../includes/admin_topbar.php'); 
             ?>
-        </header>
 
         <div class="flex-1 overflow-y-auto p-8 scroll-smooth">
             
             <div class="mb-6">
-                <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">System Tracking Matrix</h1>
-                <p class="text-xs text-slate-500 mt-1">Filter and trace historical booking records across all entity dimensions.</p>
+                <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Bookings Tracking</h1>
+                <p class="text-xs text-slate-500 mt-1">Trace historical booking records.</p>
             </div>
 
             <!-- 💡 多維度過濾矩陣 (5-Dimensional Filter Matrix) -->
@@ -105,12 +103,12 @@ $result = $conn->query($sql);
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Asset Query</label>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Asset</label>
                         <input type="text" name="f_venue" value="<?php echo htmlspecialchars($filter_venue); ?>" placeholder="Venue or Category..." class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:border-indigo-500 outline-none">
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Usage Date</label>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Date</label>
                         <input type="date" name="f_date" value="<?php echo htmlspecialchars($filter_date); ?>" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:border-indigo-500 outline-none text-slate-600">
                     </div>
                     
@@ -148,7 +146,7 @@ $result = $conn->query($sql);
                             <th class="px-6 py-3">Reference</th>
                             <th class="px-6 py-3">Student Context</th>
                             <th class="px-6 py-3">Asset & Time</th>
-                            <th class="px-6 py-3">State Vector</th>
+                            <th class="px-6 py-3">Status</th>
                             <th class="px-6 py-3 text-right">Tracing Flow</th>
                         </tr>
                     </thead>
@@ -203,7 +201,7 @@ $result = $conn->query($sql);
                             <tr>
                                 <td colspan="5" class="px-6 py-12 text-center text-slate-400 font-medium">
                                     <i data-lucide="search-x" class="w-12 h-12 mx-auto text-slate-300 mb-3 opacity-50"></i>
-                                    Query returned zero vectors. No records found matching criteria.
+                                    No records found matching criteria.
                                 </td>
                             </tr>
                         <?php endif; ?>
