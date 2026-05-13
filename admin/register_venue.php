@@ -4,102 +4,169 @@ session_start();
 require_once '../config/db.php';
 require_once '../includes/admin_auth.php';
 
-// 💡 唯一性投影：提取不重複且正規化的現有類別
-$cat_sql = "SELECT DISTINCT UPPER(TRIM(category)) AS category_name 
-            FROM venue WHERE category IS NOT NULL AND category != '' 
-            ORDER BY category_name ASC";
-$categories_result = $conn->query($cat_sql);
+// 💡 提取正規化的類別清單
+$cat_res = $conn->query("SELECT * FROM vcategory ORDER BY category ASC");
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>MMU Admin | Register Venue</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MMU Admin | Register Asset</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script>tailwind.config = { theme: { extend: { colors: { mmu: { blue: '#004aad', dark: '#1e293b' } } } } }</script>
+    <script>tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b' } } } } }</script>
     <link rel="stylesheet" href="layout.css?v=1.2">
-    <link rel="stylesheet" href="../assets/css/fiori-tile.css">
+    <link rel="stylesheet" href="../assets/css/fiori_forms.css">
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
+    
     <?php include('../includes/admin_sidebar.php'); ?>
-    <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-50">
+    
+    <main class="flex-1 flex flex-col h-screen overflow-hidden bg-[#f4f4f4] relative">
+        
+        <header class="h-16 glass-panel border-b border-slate-200 flex items-center justify-between px-6 z-10 shrink-0 bg-white">
             <?php 
             $topbar_content = '
             <div class="flex items-center">
-                <a href="manage_venues.php" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 flex items-center mr-4 transition-colors">
+                <a href="venue_directory.php" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 flex items-center mr-4 transition-colors">
                     <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i> Back
                 </a>
                 <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Asset Management / Register Venue</h2>
             </div>';
             include('../includes/admin_topbar.php'); 
             ?>
-        <div class="flex-1 overflow-y-auto p-8 scroll-smooth flex justify-center">
-            <div class="w-full max-w-2xl">
-                <div class="mb-8">
-                    <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Register New Asset</h1>
-                    <p class="text-sm text-slate-500 mt-1">Initialize a new physical venue node within the system architecture.</p>
-                </div>
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div class="px-8 py-4 bg-slate-50 border-b border-slate-100">
-                        <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest">Entity Attributes</h3>
-                    </div>
-                    <form action="../actions/process_venue.php" method="POST" class="p-8 space-y-6">
-                        <input type="hidden" name="action" value="create">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="md:col-span-2">
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-wide">Venue Name ($V_{name}$)</label>
-                                <input type="text" name="vname" required placeholder="e.g. Grand Hall, Lab 101" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm transition-all">
-                            </div>
-                            
-                            <!-- 💡 混合輸入器：結合前端即時大寫轉換 (oninput) -->
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-wide">Category</label>
-                                <input list="category-options" name="category" required oninput="this.value = this.value.toUpperCase()" placeholder="Select or type category..." class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm bg-white font-mono font-bold text-indigo-700 transition-all uppercase">
-                                <datalist id="category-options">
-                                    <?php 
-                                    if ($categories_result && $categories_result->num_rows > 0) {
-                                        while ($cat_row = $categories_result->fetch_assoc()) {
-                                            echo '<option value="' . htmlspecialchars($cat_row['category_name']) . '"></option>';
-                                        }
-                                    }
-                                    ?>
-                                </datalist>
-                                <p class="text-[9px] text-slate-400 mt-1 italic">Input will be strictly normalized to uppercase.</p>
-                            </div>
+        </header>
 
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-wide">Max Capacity ($C_{max}$)</label>
-                                <input type="number" name="max_cap" min="1" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-mono transition-all">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-wide">Required Deposit ($D$)</label>
-                                <div class="relative">
-                                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">RM</span>
-                                    <input type="number" name="deposit" step="0.01" min="0" required class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-mono transition-all">
+        <form action="../actions/process_venue.php" method="POST" enctype="multipart/form-data" class="flex-1 flex flex-col overflow-hidden">
+            <input type="hidden" name="action" value="create">
+
+            <div class="flex-1 overflow-y-auto p-4 md:p-8 space-y-6">
+                
+                <div class="bg-white border border-slate-200 rounded-lg shadow-sm">
+                    <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+                        <h2 class="text-base font-bold text-slate-800">Basic Data</h2>
+                    </div>
+
+                    <div class="p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        
+                        <div class="lg:col-span-6 space-y-4">
+                            <h3 class="text-sm font-bold text-slate-800 mb-4">Identification Data</h3>
+                            
+                            <div class="grid grid-cols-3 gap-4 items-center">
+                                <label class="col-span-1 text-sm text-fiori-label">Venue ID:</label>
+                                <div class="col-span-2">
+                                    <input type="text" name="vid" maxlength="10" required placeholder="e.g. MNBR2002" class="fiori-input font-mono uppercase">
                                 </div>
                             </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-wide">Initial Status</label>
-                                <select name="status" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm bg-white font-bold text-emerald-600">
-                                    <option value="available" selected>Available</option>
-                                    <option value="maintenance" class="text-red-500">Maintenance</option>
-                                </select>
+
+                            <div class="grid grid-cols-3 gap-4 items-center">
+                                <label class="col-span-1 text-sm text-fiori-label">Display Name:</label>
+                                <div class="col-span-2">
+                                    <input type="text" name="vname" required placeholder="Official Venue Name" class="fiori-input">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-3 gap-4 items-center">
+                                <label class="col-span-1 text-sm text-fiori-label">Classification:</label>
+                                <div class="col-span-2 relative">
+                                    <select name="vcid" required class="fiori-input appearance-none pr-8 bg-white cursor-pointer transition-colors">
+                                        <?php while($c = $cat_res->fetch_assoc()): ?>
+                                            <option value="<?php echo $c['vcid']; ?>"><?php echo htmlspecialchars($c['category']); ?></option>
+                                        <?php endwhile; ?>
+                                    </select>
+                                    <i data-lucide="chevron-down" class="w-4 h-4 text-fiori-label absolute right-2 top-2 pointer-events-none"></i>
+                                </div>
                             </div>
                         </div>
-                        <div class="pt-6 border-t border-slate-100 flex justify-end">
-                            <button type="submit" class="px-8 py-3 bg-indigo-600 text-white text-sm font-bold rounded-xl shadow-md hover:bg-indigo-700 transition transform active:scale-[0.98] flex items-center">
-                                <i data-lucide="save" class="w-4 h-4 mr-2"></i> Register Asset
-                            </button>
+
+                        <div class="lg:col-span-6 space-y-4">
+                            <h3 class="text-sm font-bold text-slate-800 mb-4">Operational Parameters</h3>
+                            
+                            <div class="grid grid-cols-3 gap-4 items-center">
+                                <label class="col-span-1 text-sm text-fiori-label">Max Capacity:</label>
+                                <div class="col-span-2 relative">
+                                    <input type="number" name="max_cap" min="1" required class="fiori-input font-mono pr-12">
+                                    <span class="absolute right-3 top-2 text-xs text-slate-400 font-bold">PAX</span>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-3 gap-4 items-center">
+                                <label class="col-span-1 text-sm text-fiori-label">Security Deposit:</label>
+                                <div class="col-span-2 relative">
+                                    <span class="absolute left-3 top-2 text-xs text-slate-400 font-bold">RM</span>
+                                    <input type="number" name="deposit" step="0.01" min="0" required class="fiori-input font-mono pl-10 text-emerald-700 font-bold">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-3 gap-4 items-center border-t border-slate-100 pt-4 mt-2">
+                                <label class="col-span-1 text-sm text-fiori-label">Initial State:</label>
+                                <div class="col-span-2 relative">
+                                    <select name="status" class="fiori-input appearance-none pr-8 bg-white cursor-pointer font-bold text-emerald-600">
+                                        <option value="available">Available</option>
+                                        <option value="maintenance" class="text-red-500">Maintenance</option>
+                                    </select>
+                                    <i data-lucide="chevron-down" class="w-4 h-4 text-fiori-label absolute right-2 top-2 pointer-events-none"></i>
+                                </div>
+                            </div>
+
                         </div>
-                    </form>
+                    </div>
                 </div>
+
+                <div class="bg-white border border-slate-200 rounded-lg shadow-sm">
+                    <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+                        <h2 class="text-base font-bold text-slate-800">Physical Assets</h2>
+                    </div>
+                    <div class="p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        
+                        <div class="lg:col-span-6 space-y-4">
+                            <h3 class="text-sm font-bold text-slate-800 mb-2">Venue Description</h3>
+                            <textarea name="description" rows="5" required placeholder="Provide physical details and available equipment..." class="fiori-input w-full resize-none p-3"></textarea>
+                        </div>
+
+                        <div class="lg:col-span-6 space-y-4">
+                            <h3 class="text-sm font-bold text-slate-800 mb-2">Image Gallery</h3>
+                            <div class="w-full border-2 border-dashed border-slate-300 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors p-6 flex flex-col items-center justify-center relative cursor-pointer" onclick="document.getElementById('venue_pics').click()">
+                                <i data-lucide="image-plus" class="w-8 h-8 text-slate-400 mb-2"></i>
+                                <span class="text-sm font-bold text-slate-600">Click to Browse Images</span>
+                                <p class="text-[10px] text-slate-400 mt-1 uppercase tracking-widest">JPG, PNG Supported</p>
+                                <input type="file" name="venue_pics[]" id="venue_pics" multiple accept="image/*" class="hidden">
+                            </div>
+                            <div id="file-list" class="text-xs text-slate-500 font-mono mt-2 empty:hidden"></div>
+                        </div>
+
+                    </div>
+                </div>
+
             </div>
-        </div>
+
+            <div class="border-t border-slate-200 bg-white px-6 py-3 flex justify-end space-x-2 shrink-0 z-20 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+                <button type="button" onclick="window.location.href='venue_directory.php'" class="px-5 py-2 text-sm font-bold text-indigo-600 hover:bg-indigo-50 rounded transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" class="px-5 py-2 text-sm font-bold text-white bg-[#0a6ed1] hover:bg-[#085caf] rounded transition-colors shadow-sm">
+                    Save Venue Record
+                </button>
+            </div>
+
+        </form>
     </main>
+
     <script>
         lucide.createIcons();
         function toggleSidebar() { document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed'); }
+
+        // 簡單的前端選取檔案回饋
+        document.getElementById('venue_pics').addEventListener('change', function(e) {
+            const fileList = document.getElementById('file-list');
+            if(this.files.length > 0) {
+                fileList.innerHTML = `<i data-lucide="check-circle" class="w-3 h-3 inline text-emerald-500 mr-1"></i> ${this.files.length} file(s) selected for upload.`;
+                lucide.createIcons();
+            } else {
+                fileList.innerHTML = '';
+            }
+        });
     </script>
 </body>
 </html>

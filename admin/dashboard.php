@@ -32,7 +32,7 @@ $kpi_available = $conn->query("SELECT COUNT(*) FROM venue WHERE status = 'availa
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
-        tailwind.config = { theme: { extend: { colors: { mmu: { blue: '#004aad', dark: '#1e293b', accent: '#38bdf8' } } } } }
+        tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b', accent: '#38bdf8' } } } } }
     </script>
     <link rel="stylesheet" href="layout.css?v=1.1">
     <link rel="stylesheet" href="../assets/css/fiori-tile.css">
@@ -179,48 +179,12 @@ $kpi_available = $conn->query("SELECT COUNT(*) FROM venue WHERE status = 'availa
 
             </div>
 
-            <div class="mb-6">
-                <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Admin Management</h1>
-                <p class="text-sm text-slate-500 mt-1">Control administrative access levels and core system personnel.</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-                
-                <a href="add_admin.php" class="fiori-tile">
-                    <div class="fiori-tile-header">
-                        <h3 class="fiori-tile-title">Add Admin</h3>
-                        <i data-lucide="shield" class="w-5 h-5 fiori-tile-icon"></i>
-                    </div>
-                    <p class="fiori-tile-desc">Add a new administrator to the system.</p>
-                    <div class="fiori-tile-kpi">
-                        <i data-lucide="user" class="w-8 h-8 opacity-20"></i>
-                    </div>
-                    <div class="fiori-tile-footer">
-                        ADD NOW <i data-lucide="arrow-right" class="w-3 h-3 ml-2"></i>
-                    </div>
-                </a>
-                
-
-
-                <a href="admin_directory.php" class="fiori-tile">
-                    <div class="fiori-tile-header">
-                        <h3 class="fiori-tile-title">Admin Directory</h3>
-                        <i data-lucide="shield" class="w-6 h-6  group-hover:text-white"></i>
-                    </div>
-                    <p class="fiori-tile-desc">Manage existing administrators, their roles, and contact information.</p>
-                    <div class="fiori-tile-footer">
-                        View Admins <i data-lucide="arrow-right" class="w-3 h-3 ml-2"></i>
-                    </div>
-                </a>
-
-            </div>
-
-            <div class="mb-6 border-t border-slate-200 pt-10">
-                <h2 class="text-2xl font-extrabold text-slate-800 tracking-tight">Staff Management</h2>
+            <div class="mt-12 mb-8 border-b border-slate-200 pb-4">
+                <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Staff Management</h1>
                 <p class="text-sm text-slate-500 mt-1">Manage operational personnel, including venue inspectors and maintenance crew.</p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 
                 <a href="add_staff.php" class="fiori-tile">
                     <div class="fiori-tile-header">
@@ -235,9 +199,6 @@ $kpi_available = $conn->query("SELECT COUNT(*) FROM venue WHERE status = 'availa
                         ADD NOW <i data-lucide="arrow-right" class="w-3 h-3 ml-2"></i>
                     </div>
                 </a>
-
-
-                
 
                 <a href="staff_directory.php" class="fiori-tile">
                     <div class="fiori-tile-header">
@@ -260,6 +221,44 @@ $kpi_available = $conn->query("SELECT COUNT(*) FROM venue WHERE status = 'availa
                 </a>
 
                 
+
+            </div>
+
+
+            <div class="mt-12 mb-8 border-b border-slate-200 pb-4">
+                <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Semester Management</h1>
+                <p class="text-sm text-slate-500 mt-1">Configure configure semester start time and end time.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+
+                <a href="semester_management.php" class="fiori-tile">
+                    <div class="fiori-tile-header">
+                        <h3 class="fiori-tile-title">Manage semester</h3>
+                        <i data-lucide="plus-square" class="w-5 h-5 fiori-tile-icon"></i>
+                    </div>
+                    <p class="fiori-tile-desc">Configure semester start and end time.</p>
+                    <div class="fiori-tile-kpi">
+                        <i data-lucide="door-open" class="w-8 h-8 opacity-20"></i>
+                    </div>
+                    <div class="fiori-tile-footer">
+                        New Entry <i data-lucide="arrow-right" class="w-3 h-3 ml-2"></i>
+                    </div>
+                </a>
+
+                <a href="venue_directory.php" class="fiori-tile">
+                    <div class="fiori-tile-header">
+                        <h3 class="fiori-tile-title">Academic Schedule</h3>
+                        <i data-lucide="database" class="w-5 h-5 fiori-tile-icon"></i>
+                    </div>
+                    <p class="fiori-tile-desc">Manage existing venues, capacities, and statuses.</p>
+                    <div class="fiori-tile-kpi">
+                        <?php echo $kpi_total; ?>
+                    </div>
+                    <div class="fiori-tile-footer">
+                        View Records <i data-lucide="arrow-right" class="w-3 h-3 ml-2"></i>
+                    </div>
+                </a>
 
             </div>
             

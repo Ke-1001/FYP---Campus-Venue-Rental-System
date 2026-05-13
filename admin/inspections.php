@@ -20,7 +20,7 @@ $kpi_tracked = $conn->query($sql_kpi_tracked)->fetch_row()[0] ?? 0;
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
-        tailwind.config = { theme: { extend: { colors: { mmu: { blue: '#004aad', dark: '#1e293b' } } } } }
+        tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b' } } } } }
     </script>
     <link rel="stylesheet" href="layout.css?v=1.2">
     <link rel="stylesheet" href="../assets/css/fiori-tile.css">

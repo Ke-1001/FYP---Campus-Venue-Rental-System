@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $staff_name = htmlspecialchars(trim($_POST['staff_name']));
     $email = trim($_POST['email']);
     $phone_num = htmlspecialchars(trim($_POST['phone_num']));
-    $position = $_POST['position']; // 'inspector' 或 'manager'
+    $position = $_POST['position']; // 'inspector'
     $password = $_POST['password'];
 
     // 2. 密碼複雜度安全檢測

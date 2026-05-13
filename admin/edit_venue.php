@@ -26,7 +26,7 @@ $categories_result = $conn->query($cat_sql);
     <title>MMU Admin | Edit Venue</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script>tailwind.config = { theme: { extend: { colors: { mmu: { blue: '#004aad', dark: '#1e293b' } } } } }</script>
+    <script>tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b' } } } } }</script>
     <link rel="stylesheet" href="layout.css?v=1.2">
     <link rel="stylesheet" href="../assets/css/fiori-tile.css">
 </head>

@@ -1,23 +1,24 @@
 <?php
-// File: admin/add_staff.php
+// File: admin/add_admin.php
 session_start();
+require_once '../includes/super_admin_auth.php'; // 🔒 Enforce Super Admin Privilege
 require_once '../config/db.php';
-require_once '../includes/admin_auth.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MMU Admin | Register Personnel</title>
+    <title>MMU Admin | Add Administrator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
-        tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b' } } } } }
+        tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b', accent: '#38bdf8' } } } } }
     </script>
     <link rel="stylesheet" href="layout.css?v=1.2">
     <link rel="stylesheet" href="../assets/css/fiori_forms.css">
     <style>
+        /* 隱藏 WebKit 原生日曆圖示，以維持 Fiori UI 視覺純粹度 */
         input[type="date"]::-webkit-calendar-picker-indicator {
             display: none;
             -webkit-appearance: none;
@@ -28,74 +29,69 @@ require_once '../includes/admin_auth.php';
 
     <?php include('../includes/admin_sidebar.php'); ?>
 
-    <main class="flex-1 flex flex-col h-screen overflow-hidden bg-[#f4f4f4] relative">
+    <main class="flex-1 flex flex-col h-screen overflow-hidden bg-fiori-bg relative">
         
-        <?php 
-        $topbar_content = '
-        <div class="flex items-center">
-            <a href="staff_directory.php" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 flex items-center mr-4 transition-colors">
-                <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i> Back
-            </a>
-            <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Identity Management / Register Personnel</h2>
-        </div>';
+        <?php
+        $topbar_content = '<h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Personnel Management / Register Admin</h2>';
         include('../includes/admin_topbar.php'); 
         ?>
 
-        <form action="../actions/process_personnel.php" method="POST" id="addStaffForm" class="flex-1 flex flex-col overflow-hidden">
-            <input type="hidden" name="action" value="create">
-
-            <div class="flex-1 overflow-y-auto p-4 md:p-8">
-                <div class="bg-white border border-slate-200 rounded-lg shadow-sm">
+        <form action="../actions/process_add_admin.php" method="POST" id="addAdminForm" class="flex-1 flex flex-col overflow-hidden">
+            
+            <div class="flex-1 overflow-y-auto">
+                <div class="fiori-form-container">
                     
-                    <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-white">
-                        <h2 class="text-base font-bold text-slate-800">Basic Personnel Data</h2>
+                    <div class="fiori-section-header">
+                        <h2 class="text-base font-bold text-fiori-text">Basic Data</h2>
+                        <a href="#" class="text-fiori-blue hover:underline text-sm font-semibold">Change Role Assignment Data</a>
                     </div>
 
                     <div class="p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
                         
                         <div class="lg:col-span-6 space-y-4">
-                            <h3 class="text-sm font-bold text-slate-800 mb-4">Identity Data</h3>
+                            <h3 class="text-sm font-bold text-fiori-text mb-4">Identity Data</h3>
                             
                             <div class="grid grid-cols-3 gap-4 items-center">
-                                <label class="col-span-1 text-sm text-fiori-label">Authorization Level:</label>
+                                <label class="col-span-1 text-sm text-fiori-label">Access Level:</label>
                                 <div class="col-span-2 relative">
-                                    <select name="access_level" required class="fiori-input appearance-none pr-8 bg-white cursor-pointer transition-colors font-bold text-indigo-700">
-                                        <option value="" disabled selected>Select Role Assignment</option>
-                                        <optgroup label="System Core">
-                                            <option value="super_admin">Super Administrator</option>
-                                            <option value="admin">Standard Administrator</option>
-                                        </optgroup>
-                                        <optgroup label="Operations">
-                                            <option value="inspector">Venue Inspector</option>
-                                        </optgroup>
-                                    </select>
-                                    <i data-lucide="chevron-down" class="w-4 h-4 text-fiori-label absolute right-2 top-2 pointer-events-none"></i>
+                                    <input type="text" value="Standard Administrator (01)" class="fiori-input fiori-readonly" readonly>
                                 </div>
                             </div>
 
                             <div class="grid grid-cols-3 gap-4 items-center">
                                 <label class="col-span-1 text-sm text-fiori-label">Full Name:</label>
                                 <div class="col-span-2">
-                                    <input type="text" name="full_name" id="full_name" required placeholder="e.g., Siti Nurhaliza" class="fiori-input">
+                                    <input type="text" name="admin_name" id="admin_name" required class="fiori-input">
                                 </div>
                             </div>
 
                             <div class="grid grid-cols-3 gap-4 items-center">
                                 <label class="col-span-1 text-sm text-fiori-label">Date Created:</label>
                                 <div class="col-span-2 relative">
-                                    <input type="date" value="<?php echo date('Y-m-d'); ?>" class="fiori-input fiori-readonly pr-8" readonly>
-                                    <i data-lucide="calendar" class="w-4 h-4 text-fiori-label absolute right-2 top-2"></i>
+                                    <input type="date" name="date_created" id="date_created" value="<?php echo date('Y-m-d'); ?>" class="fiori-input pr-8 cursor-pointer hover:border-[#0a6ed1] transition-colors" required>
+                                    <i data-lucide="calendar" onclick="document.getElementById('date_created').showPicker()" class="w-4 h-4 text-fiori-label absolute right-2 top-2 cursor-pointer hover:text-[#0a6ed1] transition-colors"></i>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-3 gap-4 items-center">
+                                <label class="col-span-1 text-sm text-fiori-label">System Module:</label>
+                                <div class="col-span-2 relative">
+                                    <select class="fiori-input appearance-none pr-8 bg-white cursor-pointer hover:border-[#0a6ed1] transition-colors">
+                                        <option>Core Management (01)</option>
+                                        <option>Financials (02)</option>
+                                    </select>
+                                    <i data-lucide="chevron-down" class="w-4 h-4 text-fiori-label absolute right-2 top-2 pointer-events-none"></i>
                                 </div>
                             </div>
                         </div>
 
                         <div class="lg:col-span-6 space-y-4">
-                            <h3 class="text-sm font-bold text-slate-800 mb-4">System Credentials Data</h3>
+                            <h3 class="text-sm font-bold text-fiori-text mb-4">System Credentials Data</h3>
                             
                             <div class="grid grid-cols-3 gap-4 items-start">
                                 <label class="col-span-1 text-sm text-fiori-label mt-1">Email Address:</label>
                                 <div class="col-span-2 relative">
-                                    <input type="email" name="email" id="email" required onkeyup="validateERPForm()" placeholder="name@mmu.edu.my" class="fiori-input pr-8">
+                                    <input type="email" name="email" id="email" required onkeyup="validateERPForm()" class="fiori-input pr-8">
                                     <i data-lucide="mail" class="w-4 h-4 text-fiori-label absolute right-2 top-2"></i>
                                     <p id="email-feedback" class="text-xs text-red-600 mt-1 hidden">Invalid email format</p>
                                 </div>
@@ -104,14 +100,14 @@ require_once '../includes/admin_auth.php';
                             <div class="grid grid-cols-3 gap-4 items-center">
                                 <label class="col-span-1 text-sm text-fiori-label">Contact Number:</label>
                                 <div class="col-span-2 relative">
-                                    <input type="text" name="phone" id="phone" required placeholder="0123456789" class="fiori-input font-mono">
+                                    <input type="text" name="phone_num" id="phone_num" class="fiori-input">
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-3 gap-4 items-start border-t border-slate-100 pt-4 mt-2">
+                            <div class="grid grid-cols-3 gap-4 items-start border-t border-gray-100 pt-4 mt-2">
                                 <label class="col-span-1 text-sm text-fiori-label mt-1">Initial Password:</label>
                                 <div class="col-span-2">
-                                    <input type="password" name="password" id="password" required onkeyup="validateERPForm()" placeholder="Assign secure password" class="fiori-input bg-[#fffdf0] font-mono">
+                                    <input type="password" name="password" id="password" required onkeyup="validateERPForm()" class="fiori-input bg-[#fffdf0]">
                                     <div class="mt-2 flex flex-wrap gap-x-3 gap-y-1">
                                         <span id="rule-length" class="validation-tag">Len $\ge$ 8</span>
                                         <span id="rule-upper" class="validation-tag">Upper [A-Z]</span>
@@ -127,11 +123,11 @@ require_once '../includes/admin_auth.php';
                 </div>
             </div>
 
-            <div class="border-t border-slate-200 bg-white px-6 py-3 flex justify-end space-x-2 shrink-0 z-20 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
-                <button type="button" onclick="window.location.href='staff_directory.php'" class="px-5 py-2 text-sm font-bold text-indigo-600 hover:bg-indigo-50 rounded transition-colors">
+            <div class="fiori-footer-toolbar">
+                <button type="button" onclick="window.location.href='manage_admins.php'" class="fiori-btn-cancel">
                     Cancel
                 </button>
-                <button type="submit" id="submitBtn" disabled class="px-5 py-2 text-sm font-bold text-white bg-[#0a6ed1] hover:bg-[#085caf] rounded transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                <button type="submit" id="submitBtn" disabled class="fiori-btn-primary">
                     Save Document
                 </button>
             </div>
@@ -139,10 +135,16 @@ require_once '../includes/admin_auth.php';
         </form>
     </main>
 
+    <?php include('../includes/ui_components.php'); ?>
+
     <script>
         lucide.createIcons();
-        function toggleSidebar() { document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed'); }
 
+        function toggleSidebar() {
+            document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed');
+        }
+
+        // 修正: 函數名稱已統一為 validateERPForm，解決事件綁定斷裂問題
         function validateERPForm() {
             const emailInput = document.getElementById('email');
             const emailFeedback = document.getElementById('email-feedback');
@@ -151,15 +153,19 @@ require_once '../includes/admin_auth.php';
 
             if (emailInput.value.length > 0) {
                 if (isEmailValid) {
-                    emailInput.style.borderColor = '#89919a';
+                    emailInput.style.borderColor = 'var(--fiori-border)';
                     emailFeedback.classList.add('hidden');
                 } else {
-                    emailInput.style.borderColor = '#ee0000';
+                    emailInput.style.borderColor = 'var(--fiori-error)';
                     emailFeedback.classList.remove('hidden');
                 }
+            } else {
+                emailInput.style.borderColor = 'var(--fiori-border)';
+                emailFeedback.classList.add('hidden');
             }
 
             const pwd = document.getElementById('password').value;
+            
             const reqs = {
                 length: pwd.length >= 8,
                 upper: /[A-Z]/.test(pwd),
@@ -168,11 +174,13 @@ require_once '../includes/admin_auth.php';
                 special: /[@$!%*?&]/.test(pwd)
             };
 
+            // 修正: 將映射邏輯對齊至 fiori_forms.css 的 .validation-tag，解決 Null Reference 問題
             const toggleRule = (id, isValid) => {
                 const el = document.getElementById(id);
-                if (el) {
-                    if (isValid) el.classList.add('valid');
-                    else el.classList.remove('valid');
+                if (isValid) {
+                    el.classList.add('valid');
+                } else {
+                    el.classList.remove('valid');
                 }
             };
 
@@ -185,10 +193,13 @@ require_once '../includes/admin_auth.php';
             const isPwdSecure = Object.values(reqs).every(val => val === true);
             const btn = document.getElementById('submitBtn');
 
+            // 執行按鈕狀態控制
             if (isPwdSecure && isEmailValid) {
                 btn.disabled = false;
+                btn.style.opacity = "1";
             } else {
                 btn.disabled = true;
+                btn.style.opacity = "0.5";
             }
         }
     </script>

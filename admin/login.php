@@ -22,10 +22,10 @@ if ($admin_identifier && in_array($admin_role, ['admin', 'super_admin'], true)) 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
-        tailwind.config = { theme: { extend: { colors: { mmu: { blue: '#004aad', dark: '#0f172a', accent: '#38bdf8' } } } } }
+        tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#0f172a', accent: '#38bdf8' } } } } }
     </script>
 </head>
-<body class="bg-mmu-dark flex items-center justify-center min-h-screen font-sans selection:bg-mmu-accent selection:text-white relative overflow-hidden">
+<body class="bg-cstyle-dark flex items-center justify-center min-h-screen font-sans selection:bg-mmu-accent selection:text-white relative overflow-hidden">
 
     <div class="absolute top-0 left-0 w-full h-full overflow-hidden z-0 opacity-20 pointer-events-none">
         <div class="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-mmu-blue blur-[120px]"></div>
@@ -35,10 +35,7 @@ if ($admin_identifier && in_array($admin_role, ['admin', 'super_admin'], true)) 
     <div class="w-full max-w-md bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-8 z-10">
         
         <div class="text-center mb-8">
-            <div class="w-16 h-16 bg-mmu-blue/20 text-mmu-accent rounded-2xl flex items-center justify-center mx-auto mb-4 border border-mmu-blue/30">
-                <i data-lucide="shield-alert" class="w-8 h-8"></i>
-            </div>
-            <h2 class="text-2xl font-extrabold text-white tracking-wide">Admin Panel</h2>
+            <h2 class="text-2xl font-extrabold text-white tracking-wide">CVBMS Management</h2>
             <p class="text-slate-400 text-sm mt-2 font-mono uppercase tracking-widest">Authorized Personnel Only</p>
         </div>
 

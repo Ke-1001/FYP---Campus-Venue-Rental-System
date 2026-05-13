@@ -4,32 +4,62 @@ session_start();
 require_once '../config/db.php';
 require_once '../includes/admin_auth.php';
 
-// 💡 提取多維度過濾參數
+// 💡 1. 提取多維度過濾參數
 $filter_query = trim($_GET['f_query'] ?? '');
-$filter_pos = trim($_GET['f_pos'] ?? '');
+$filter_role = trim($_GET['f_role'] ?? '');
 
-// 💡 建構查詢引擎
-$sql = "SELECT sid, staff_name, email, phone_num, position, created_at FROM staff WHERE 1=1";
+// 💡 2. 建構多型態聚合查詢 (Polymorphic Union Query)
+// ⚠️ 修正：已在 SELECT 中加入 status 欄位
+$base_sql = "
+    SELECT * FROM (
+        SELECT 
+            'Admin' AS entity_type,
+            aid AS entity_id,
+            admin_name AS name,
+            email,
+            phone_num,
+            role AS access_level,
+            created_at,
+            status
+        FROM admin
+        
+        UNION ALL
+        
+        SELECT 
+            'Staff' AS entity_type,
+            sid AS entity_id,
+            staff_name AS name,
+            email,
+            phone_num,
+            position AS access_level,
+            created_at,
+            status
+        FROM staff
+    ) AS unified_directory
+    WHERE 1=1
+";
 
+// 💡 3. 動態注入過濾條件 (應用於子查詢外層)
 if (!empty($filter_query)) {
-    $sql .= " AND (staff_name LIKE '%" . $conn->real_escape_string($filter_query) . "%' OR sid LIKE '%" . $conn->real_escape_string($filter_query) . "%' OR email LIKE '%" . $conn->real_escape_string($filter_query) . "%')";
+    $safe_query = $conn->real_escape_string($filter_query);
+    $base_sql .= " AND (name LIKE '%$safe_query%' OR entity_id LIKE '%$safe_query%' OR email LIKE '%$safe_query%')";
 }
-if (!empty($filter_pos)) {
-    $sql .= " AND position = '" . $conn->real_escape_string($filter_pos) . "'";
+if (!empty($filter_role)) {
+    $base_sql .= " AND access_level = '" . $conn->real_escape_string($filter_role) . "'";
 }
 
-$sql .= " ORDER BY position ASC, staff_name ASC";
-$result = $conn->query($sql);
+$base_sql .= " ORDER BY entity_type ASC, access_level ASC, name ASC";
+$result = $conn->query($base_sql);
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>MMU Admin | Staff Directory</title>
+    <title>MMU Admin | Unified Staff Directory</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
-        tailwind.config = { theme: { extend: { colors: { mmu: { blue: '#004aad', dark: '#1e293b' } } } } }
+        tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b' } } } } }
     </script>
     <link rel="stylesheet" href="layout.css?v=1.2">
 </head>
@@ -46,7 +76,7 @@ $result = $conn->query($sql);
                 <a href="manage_admins.php" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 flex items-center mr-4 transition-colors">
                     <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i> Back
                 </a>
-                <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Personnel Management / Staff Directory</h2>
+                <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Identity Management / Staff Directory</h2>
             </div>';
             include('../includes/admin_topbar.php'); 
             ?>
@@ -56,12 +86,14 @@ $result = $conn->query($sql);
             
             <div class="mb-6 flex justify-between items-end">
                 <div>
-                    <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Inspection Personnel</h1>
-                    <p class="text-xs text-slate-500 mt-1">Manage operational staff, inspectors, and ground crew.</p>
+                    <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Unified Personnel Index</h1>
+                    <p class="text-xs text-slate-500 mt-1">Govern cross-departmental entities including Administrators and Field Inspectors.</p>
                 </div>
+                <a href="add_staff.php" class="px-5 py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-xl shadow-sm hover:bg-indigo-700 transition flex items-center transform active:scale-95">
+                    <i data-lucide="user-plus" class="w-4 h-4 mr-2"></i> Register New Staff
+                </a>
             </div>
 
-            <!-- 💡 多維度過濾矩陣 -->
             <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 mb-6">
                 <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                     
@@ -69,22 +101,26 @@ $result = $conn->query($sql);
                         <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Identity Query</label>
                         <div class="relative">
                             <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
-                            <input type="text" name="f_query" value="<?php echo htmlspecialchars($filter_query); ?>" placeholder="Search SID, Name, or Email..." class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:border-indigo-500 outline-none">
+                            <input type="text" name="f_query" value="<?php echo htmlspecialchars($filter_query); ?>" placeholder="Search ID, Name, or Email..." class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:border-indigo-500 outline-none transition-all">
                         </div>
                     </div>
                     
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Designation</label>
-                        <select name="f_pos" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:border-indigo-500 outline-none bg-white font-medium text-slate-700">
-                            <option value="">All Positions</option>
-                            <option value="inspector" <?php if($filter_pos==='inspector') echo 'selected'; ?>>Inspector</option>
-                            <option value="manager" <?php if($filter_pos==='manager') echo 'selected'; ?>>Manager</option>
-                            <option value="admin" <?php if($filter_pos==='admin') echo 'selected'; ?>>Admin (Staff)</option>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Access Privilege</label>
+                        <select name="f_role" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:border-indigo-500 outline-none bg-white font-medium text-slate-700 transition-all">
+                            <option value="">All Roles</option>
+                            <optgroup label="System Core">
+                                <option value="super_admin" <?php if($filter_role==='super_admin') echo 'selected'; ?>>Super Admin</option>
+                                <option value="admin" <?php if($filter_role==='admin') echo 'selected'; ?>>Standard Admin</option>
+                            </optgroup>
+                            <optgroup label="Operations">
+                                <option value="inspector" <?php if($filter_role==='inspector') echo 'selected'; ?>>Inspector</option>
+                            </optgroup>
                         </select>
                     </div>
 
                     <div class="flex space-x-2">
-                        <button type="submit" class="w-full px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-700 transition flex items-center justify-center">
+                        <button type="submit" class="w-full px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-700 transition flex items-center justify-center shadow-sm">
                             <i data-lucide="filter" class="w-4 h-4 mr-1"></i> Apply
                         </button>
                         <a href="staff_directory.php" class="px-4 py-2 bg-slate-100 text-slate-600 text-sm font-bold rounded-lg hover:bg-slate-200 transition flex items-center justify-center" title="Reset Filters">
@@ -94,29 +130,32 @@ $result = $conn->query($sql);
                 </form>
             </div>
 
-            <!-- 💡 資料名錄 -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50">
-                    <h3 class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Staff Index (<?php echo $result->num_rows; ?>)</h3>
+                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                    <h3 class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Global Personnel Index (<?php echo $result->num_rows; ?>)</h3>
                 </div>
                 <table class="w-full text-left border-collapse">
                     <thead class="bg-white text-[10px] text-slate-400 font-black uppercase tracking-widest border-b border-slate-100">
                         <tr>
-                            <th class="px-6 py-3">Reference (SID)</th>
+                            <th class="px-6 py-3">Reference ID</th>
                             <th class="px-6 py-3">Personnel Profile</th>
                             <th class="px-6 py-3">Contact Vectors</th>
-                            <th class="px-6 py-3">Designation</th>
+                            <th class="px-6 py-3">Authorization Level</th>
                             <th class="px-6 py-3 text-right">Execution</th>
                         </tr>
                     </thead>
                     <tbody class="text-sm divide-y divide-slate-50">
                         <?php if ($result && $result->num_rows > 0): ?>
-                            <?php while($row = $result->fetch_assoc()): ?>
-                            <tr class="hover:bg-slate-50 transition-colors">
-                                <td class="px-6 py-4 font-mono font-bold text-slate-600"><?php echo htmlspecialchars($row['sid']); ?></td>
+                            <?php while($row = $result->fetch_assoc()): 
+                                $is_admin = ($row['entity_type'] === 'Admin');
+                                $id_prefix = $is_admin ? 'aid=' : 'sid=';
+                                $edit_target = $is_admin ? 'edit_admin.php' : 'edit_staff.php';
+                            ?>
+                            <tr class="hover:bg-slate-50 transition-colors <?php echo ($row['status'] === 'inactive') ? 'opacity-60' : ''; ?>">
+                                <td class="px-6 py-4 font-mono font-bold text-slate-500"><?php echo htmlspecialchars($row['entity_id']); ?></td>
                                 <td class="px-6 py-4">
-                                    <span class="font-bold text-slate-800 block"><?php echo htmlspecialchars($row['staff_name']); ?></span>
-                                    <span class="text-[9px] text-slate-400 font-mono uppercase mt-1">Joined: <?php echo date('M Y', strtotime($row['created_at'])); ?></span>
+                                    <span class="font-bold text-slate-800 block"><?php echo htmlspecialchars($row['name']); ?></span>
+                                    <span class="text-[9px] text-slate-400 font-mono uppercase mt-1 block">Joined: <?php echo date('M Y', strtotime($row['created_at'])); ?></span>
                                 </td>
                                 <td class="px-6 py-4">
                                     <a href="mailto:<?php echo htmlspecialchars($row['email']); ?>" class="text-xs text-indigo-600 hover:underline block font-medium">
@@ -127,30 +166,49 @@ $result = $conn->query($sql);
                                     </span>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <?php if ($row['position'] === 'manager'): ?>
-                                        <span class="px-2 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded text-[10px] font-black uppercase tracking-widest flex items-center w-max">
-                                            <i data-lucide="briefcase" class="w-3 h-3 mr-1.5"></i> Manager
+                                    <?php 
+                                    $role_ui = match($row['access_level']) {
+                                        'super_admin' => ['bg-purple-50 text-purple-700 border-purple-200', 'key', 'Super Admin'],
+                                        'admin'       => ['bg-indigo-50 text-indigo-700 border-indigo-200', 'shield', 'Admin'],
+                                        'inspector'   => ['bg-amber-50 text-amber-700 border-amber-200', 'hard-hat', 'Inspector'],
+                                        default       => ['bg-slate-100 text-slate-600 border-slate-200', 'user', 'Unknown']
+                                    };
+                                    ?>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="px-2.5 py-1 border <?php echo $role_ui[0]; ?> rounded-full text-[10px] font-black uppercase tracking-widest inline-flex items-center">
+                                            <i data-lucide="<?php echo $role_ui[1]; ?>" class="w-3 h-3 mr-1.5"></i> <?php echo $role_ui[2]; ?>
                                         </span>
-                                    <?php else: ?>
-                                        <span class="px-2 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded text-[10px] font-black uppercase tracking-widest flex items-center w-max">
-                                            <i data-lucide="hard-hat" class="w-3 h-3 mr-1.5"></i> Inspector
-                                        </span>
-                                    <?php endif; ?>
+                                        
+                                        <?php if ($row['status'] === 'inactive') :?>
+                                            <span class="px-2 py-1 bg-slate-200 text-slate-500 border border-slate-300 rounded text-[9px] font-black uppercase tracking-widest flex items-center">
+                                                <i data-lucide="user-x" class="w-3 h-3 mr-1"></i> Inactive
+                                            </span>
+                                        <?php endif;?>
+                                    </div>
                                 </td>
                                 <td class="px-6 py-4 text-right">
                                     <div class="flex items-center justify-end space-x-2">
-                                        <a href="edit_staff.php?sid=<?php echo $row['sid']; ?>" class="p-2 text-indigo-500 hover:bg-indigo-50 rounded transition" title="Modify Staff">
+                                        <a href="<?php echo $edit_target . '?' . $id_prefix . $row['entity_id']; ?>" class="p-2 text-indigo-500 hover:bg-indigo-50 rounded transition" title="Modify Privilege">
                                             <i data-lucide="settings-2" class="w-4 h-4"></i>
                                         </a>
-                                        <a href="delete_staff.php?sid=<?php echo $row['sid']; ?>" class="p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded transition" title="Terminate Access" onclick="return confirm('Revoking access for this staff member. Proceed?');">
-                                            <i data-lucide="user-minus" class="w-4 h-4"></i>
-                                        </a>
+                                        
+                                        <?php if ($row['status'] === 'active'): ?>
+                                            <a href="../actions/process_personnel_deletion.php?type=<?php echo strtolower($row['entity_type']); ?>&id=<?php echo $row['entity_id']; ?>" 
+                                                class="p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded transition" 
+                                                onclick="return confirm('CRITICAL WARNING: Executing conditional deletion. If traces exist, entity will be deactivated. Proceed?');" title="Deactivate / Purge">
+                                                <i data-lucide="user-minus" class="w-4 h-4"></i>
+                                            </a>
+                                        <?php else: ?>
+                                            <button disabled class="p-2 text-slate-300 cursor-not-allowed" title="Account already inactive">
+                                                <i data-lucide="user-minus" class="w-4 h-4"></i>
+                                            </button>
+                                        <?php endif; ?>
                                     </div>
                                 </td>
                             </tr>
                             <?php endwhile; ?>
                         <?php else: ?>
-                            <tr><td colspan="5" class="px-6 py-12 text-center text-slate-400 font-medium"><i data-lucide="search-x" class="w-8 h-8 mx-auto text-slate-300 mb-3 opacity-50"></i>No staff match criteria.</td></tr>
+                            <tr><td colspan="5" class="px-6 py-12 text-center text-slate-400 font-medium"><i data-lucide="search-x" class="w-8 h-8 mx-auto text-slate-300 mb-3 opacity-50"></i>No personnel match the selected criteria.</td></tr>
                         <?php endif; ?>
                     </tbody>
                 </table>

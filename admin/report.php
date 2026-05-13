@@ -68,7 +68,7 @@ if ($result && $result->num_rows > 0) {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         tailwind.config = {
-            theme: { extend: { colors: { mmu: { blue: '#004aad', dark: '#1e293b', accent: '#38bdf8' } } } }
+            theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b', accent: '#38bdf8' } } } }
         }
     </script>
     <link rel="stylesheet" href="layout.css?v=1.2">
