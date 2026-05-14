@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 29, 2026 at 04:50 AM
+-- Generation Time: May 11, 2026 at 01:16 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -33,6 +33,7 @@ CREATE TABLE `admin` (
   `email` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL,
   `phone_num` varchar(20) NOT NULL,
+  `profile_pic` varchar(255) NOT NULL,
   `role` enum('super_admin','admin') NOT NULL DEFAULT 'admin',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -41,9 +42,9 @@ CREATE TABLE `admin` (
 -- Dumping data for table `admin`
 --
 
-INSERT INTO `admin` (`aid`, `admin_name`, `email`, `password`, `phone_num`, `role`, `created_at`) VALUES
-(8000, 'SuperAdmin', 'SA@mmu.edu.my', '$2y$10$0av5Zh5QYMrLJyALrb8O5u60U292chJEz7SdcwfkthLTmx0j1RCw2', '06123456789', 'super_admin', '2026-04-28 09:43:39'),
-(8002, 'Siti', 'Siti@mmu.edu.my', '$2y$10$Q3kh7pg/gGCiw.JnpGremOrH26gnUTq.y3LZohGD9qpaPt/k4YZyu', '0122233456', 'admin', '2026-04-28 15:55:39');
+INSERT INTO `admin` (`aid`, `admin_name`, `email`, `password`, `phone_num`, `profile_pic`, `role`, `created_at`) VALUES
+(8000, 'SuperAdmin', 'SA@mmu.edu.my', '$2y$10$0av5Zh5QYMrLJyALrb8O5u60U292chJEz7SdcwfkthLTmx0j1RCw2', '06123456789', '', 'super_admin', '2026-04-28 09:43:39'),
+(8002, 'Siti', 'Siti@mmu.edu.my', '$2y$10$Q3kh7pg/gGCiw.JnpGremOrH26gnUTq.y3LZohGD9qpaPt/k4YZyu', '0122233456', '', 'admin', '2026-04-28 15:55:39');
 
 -- --------------------------------------------------------
 
@@ -54,7 +55,7 @@ INSERT INTO `admin` (`aid`, `admin_name`, `email`, `password`, `phone_num`, `rol
 CREATE TABLE `booking` (
   `bid` int(10) UNSIGNED NOT NULL,
   `uid` varchar(15) NOT NULL,
-  `vid` int(10) UNSIGNED NOT NULL,
+  `vid` varchar(10) NOT NULL,
   `date_booked` date NOT NULL,
   `time_start` time NOT NULL,
   `time_end` time NOT NULL,
@@ -72,7 +73,13 @@ CREATE TABLE `booking` (
 --
 
 INSERT INTO `booking` (`bid`, `uid`, `vid`, `date_booked`, `time_start`, `time_end`, `status`, `payment_status`, `transaction_ref`, `purpose`, `aid`, `approve_date`, `created_at`) VALUES
-(20000014, '242DT2430C', 1000, '2026-04-29', '01:30:00', '02:30:00', 'completed', 'paid', 'TXN-9203A980', 'test', NULL, NULL, '2026-04-28 17:31:13');
+(20000014, '242DT2430C', 'MSMR2016', '2026-04-29', '13:30:00', '14:30:00', 'completed', 'paid', 'TXN-9203A980', 'test', 8002, '2026-04-29 12:44:41', '2026-04-28 17:31:13'),
+(20000015, '242DT2429C', 'MSMR2016', '2026-07-02', '11:00:00', '14:30:00', 'pending', '', NULL, 'test', NULL, NULL, '2026-05-06 02:33:41'),
+(20000016, '242DT2429C', 'MSMR2016', '2026-05-08', '09:30:00', '10:30:00', 'pending', '', NULL, 'test', NULL, NULL, '2026-05-06 02:33:52'),
+(20000017, '242DT2421C', 'MSMR2016', '2026-05-06', '16:30:00', '18:30:00', 'approved', 'paid', 'TXN-C80129AA', 'Discussion', 8000, '2026-05-06 14:47:59', '2026-05-06 06:33:38'),
+(20000018, '242DT2429C', 'MSMR2016', '2026-05-07', '16:30:00', '17:30:00', 'pending', 'paid', 'TXN-7538644A', 'teae', NULL, NULL, '2026-05-06 06:45:07'),
+(20000019, '242DT2429C', 'MSMX0003', '2026-05-13', '12:30:00', '18:30:00', 'pending', 'paid', 'TXN-WO89K1Z6', 'For large event\'s discussion', NULL, NULL, '2026-05-11 10:42:36'),
+(20000020, '242DT2429C', 'MSMX2001', '2026-05-16', '09:00:00', '10:30:00', 'approved', 'paid', 'TXN-D5TU789Q', 'For project video recording', 8002, '2026-05-12 08:37:40', '2026-05-11 10:44:26');
 
 -- --------------------------------------------------------
 
@@ -96,7 +103,21 @@ CREATE TABLE `inspection` (
 --
 
 INSERT INTO `inspection` (`ins_id`, `bid`, `sid`, `ins_status`, `damage_desc`, `damage_cost`, `penalty`, `inspected_at`) VALUES
-(30000009, 20000014, 9000, 'pending', NULL, 0.00, 0.00, NULL);
+(30000009, 20000014, 9000, 'failed', '', 0.00, 0.00, NULL),
+(30000010, 20000017, 9000, 'pending', NULL, 0.00, 0.00, NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `inspic`
+--
+
+CREATE TABLE `inspic` (
+  `pic_id` int(11) NOT NULL,
+  `pic_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `ins_id` int(10) NOT NULL,
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -113,6 +134,13 @@ CREATE TABLE `report` (
   `created_at` date NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `report`
+--
+
+INSERT INTO `report` (`rid`, `ins_id`, `final_deduct`, `refund_status`, `penalty_status`, `created_at`) VALUES
+(40000004, 30000009, 0.00, '', 'none', '0000-00-00');
+
 -- --------------------------------------------------------
 
 --
@@ -125,6 +153,7 @@ CREATE TABLE `staff` (
   `email` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL,
   `phone_num` varchar(20) NOT NULL,
+  `profile_pic` varchar(255) NOT NULL,
   `position` enum('inspector','manager','admin') DEFAULT 'inspector',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -133,8 +162,8 @@ CREATE TABLE `staff` (
 -- Dumping data for table `staff`
 --
 
-INSERT INTO `staff` (`sid`, `staff_name`, `email`, `password`, `phone_num`, `position`, `created_at`) VALUES
-(9000, 'Vikram', 'vikram@gmail.com', '$2y$10$hU8obf2c0SE317q2FH1Qs.sWcrUC3MneI6SKOOYTq2ux7AiouOzsO', '0122233456', 'inspector', '2026-04-28 15:25:58');
+INSERT INTO `staff` (`sid`, `staff_name`, `email`, `password`, `phone_num`, `profile_pic`, `position`, `created_at`) VALUES
+(9000, 'Vikram', 'vikram@gmail.com', '$2y$10$hU8obf2c0SE317q2FH1Qs.sWcrUC3MneI6SKOOYTq2ux7AiouOzsO', '0122233456', '', 'inspector', '2026-04-28 15:25:58');
 
 -- --------------------------------------------------------
 
@@ -148,6 +177,7 @@ CREATE TABLE `user` (
   `email` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL,
   `phone_num` varchar(20) NOT NULL,
+  `profile_pic` varchar(255) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -155,8 +185,34 @@ CREATE TABLE `user` (
 -- Dumping data for table `user`
 --
 
-INSERT INTO `user` (`uid`, `username`, `email`, `password`, `phone_num`, `created_at`) VALUES
-('242DT2430C', 'LIM', 'Lim@gmail.com', '$2y$10$7sFovpK/duwjvV1jbwrfROmzxvURhuIXPJfEj5t3ePzg3j4vmqnOO', '0122233456', '2026-04-28 14:04:09');
+INSERT INTO `user` (`uid`, `username`, `email`, `password`, `phone_num`, `profile_pic`, `created_at`) VALUES
+('242DT2421C', 'test', 'test@gmail.com', '$2y$10$TjGMkbwlVVQO.fRym2HgAOWAv3yrUL3/a0GyZjYu5LwPZZjRg6wmm', '01241241124', '', '2026-05-06 06:21:11'),
+('242DT2429C', 'KamJS', 'kam@gmail.com', '$2y$10$b9IdO4GLAwsebemQD0x1Q.MKQL1UlyAn6ZhVyKtRkbYRghAbt4VMC', '01156811078', '', '2026-05-05 02:46:08'),
+('242DT2430C', 'LIM', 'Lim@gmail.com', '$2y$10$7sFovpK/duwjvV1jbwrfROmzxvURhuIXPJfEj5t3ePzg3j4vmqnOO', '0122233456', '', '2026-04-28 14:04:09'),
+('242DT245Y6', 'Frank', 'kai@student.mmu.edu.my', '$2y$10$aM1vOkGZ/5mKORZGGsxWCOfWYZkoOhDDbQV.gyBZa5m/lH9u1Lt5C', '0112334456', '', '2026-05-06 06:17:40'),
+('242DT267S4', 'Adam', 'yai@student.mmu.edu.my', '$2y$10$7Ph4jv5qNttlbv3xFlEYDOjQ8RI/7u/F5YTmzF7WSdiMYeL353lW2', '0111232455', '', '2026-05-06 06:19:43');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `vcategory`
+--
+
+CREATE TABLE `vcategory` (
+  `vcid` int(11) NOT NULL,
+  `category` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `vcategory`
+--
+
+INSERT INTO `vcategory` (`vcid`, `category`, `description`) VALUES
+(1, 'Discussion Room', 'A small room with a max capacity of 30 people for discussion.'),
+(2, 'Lecture Hall', 'A lecture hall with a max capacity of 100 people.'),
+(3, 'Large Lecture Hall', 'The larger lecture hall that can accommodate up to 400 people at the same time.'),
+(4, 'Sport Court', 'Court for sports activities.');
 
 -- --------------------------------------------------------
 
@@ -165,13 +221,12 @@ INSERT INTO `user` (`uid`, `username`, `email`, `password`, `phone_num`, `create
 --
 
 CREATE TABLE `venue` (
-  `vid` int(10) UNSIGNED NOT NULL,
+  `vid` varchar(10) NOT NULL,
   `vname` varchar(100) NOT NULL,
-  `category` varchar(50) NOT NULL,
+  `vcid` int(11) NOT NULL,
   `max_cap` int(10) UNSIGNED NOT NULL,
   `deposit` decimal(10,2) UNSIGNED NOT NULL,
   `status` enum('available','maintenance','booked') NOT NULL DEFAULT 'available',
-  `pic` varchar(255) DEFAULT NULL,
   `description` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -179,29 +234,37 @@ CREATE TABLE `venue` (
 -- Dumping data for table `venue`
 --
 
-INSERT INTO `venue` (`vid`, `vname`, `category`, `max_cap`, `deposit`, `status`, `pic`, `description`) VALUES
-(1000, 'MNBR2002', 'Hall', 20, 20.00, 'available', NULL, 'Standard discussion room with AV support.');
+INSERT INTO `venue` (`vid`, `vname`, `vcid`, `max_cap`, `deposit`, `status`, `description`) VALUES
+('MSMR2012', 'Tutorial Room B5', 1, 25, 20.00, 'available', 'A small room which is good for small group discussion.'),
+('MSMR2013', 'Tutorial Room B4', 1, 40, 20.00, 'available', 'A small room which is good for small group discussion.'),
+('MSMR2014', 'Tutorial Room B3', 1, 35, 20.00, 'available', 'A small room which is good for small group discussion.'),
+('MSMR2015', 'Tutorial Room B2', 1, 30, 20.00, 'maintenance', 'A small room which is good for small group discussion.'),
+('MSMR2016', 'Tutorial Room B1', 1, 30, 20.00, 'available', 'A room with 30 person of capacity.'),
+('MSMR3012', 'Tutorial Room A8', 1, 25, 20.00, 'available', 'A room with 25 person of capacity.'),
+('MSMR3013', 'Tutorial Room A9', 1, 40, 20.00, 'available', 'Small room with full equipment used for discussion.'),
+('MSMR3014', 'Tutorial Room A10', 1, 35, 20.00, 'available', 'Small room with full equipment used for discussion.'),
+('MSMR3015', 'Tutorial Room A11', 1, 40, 20.00, 'available', 'Small room with full equipment used for discussion.'),
+('MSMR3016', 'Tutorial Room A12', 1, 20, 20.00, 'available', 'Small room with full equipment for discussion.'),
+('MSMX0001', 'Lecture Hall A1', 3, 380, 120.00, 'available', 'A large hall for large events and exams.'),
+('MSMX0002', 'Lecture Hall A2', 3, 380, 120.00, 'available', 'A large hall for large events and exams.'),
+('MSMX0003', 'Lecture Hall A3', 3, 380, 120.00, 'available', 'A large hall for large events and exams.'),
+('MSMX0004', 'Lecture Hall A4', 3, 380, 120.00, 'maintenance', 'A large hall for large events and exams.'),
+('MSMX2001', 'Lecture Hall B1', 2, 100, 40.00, 'maintenance', 'Lecture hall that can accommodate 100 people.'),
+('MSMX2002', 'Lecture Hall B2', 2, 90, 45.00, 'available', 'Lecture hall that can accommodate 90 people.'),
+('MSMX2003', 'Lecture Hall B3', 2, 100, 40.00, 'available', 'A lecture hall with 100 person of capacity.');
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `venue_category`
+-- Table structure for table `vpic`
 --
 
-CREATE TABLE `venue_category` (
-  `category_name` varchar(50) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `venue_category`
---
-
-INSERT INTO `venue_category` (`category_name`, `created_at`) VALUES
-('Classroom', '2026-04-29 02:21:31'),
-('Hall', '2026-04-29 02:21:31'),
-('Lab', '2026-04-29 02:21:31'),
-('Meeting Room', '2026-04-29 02:21:31');
+CREATE TABLE `vpic` (
+  `pic_id` int(11) NOT NULL,
+  `pic` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `vid` varchar(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Indexes for dumped tables
@@ -234,6 +297,12 @@ ALTER TABLE `inspection`
   ADD KEY `fk_ins_staff` (`sid`);
 
 --
+-- Indexes for table `inspic`
+--
+ALTER TABLE `inspic`
+  ADD PRIMARY KEY (`pic_id`);
+
+--
 -- Indexes for table `report`
 --
 ALTER TABLE `report`
@@ -253,21 +322,27 @@ ALTER TABLE `staff`
 --
 ALTER TABLE `user`
   ADD PRIMARY KEY (`uid`),
-  ADD UNIQUE KEY `email` (`email`),
-  ADD UNIQUE KEY `username` (`username`);
+  ADD UNIQUE KEY `email` (`email`);
+
+--
+-- Indexes for table `vcategory`
+--
+ALTER TABLE `vcategory`
+  ADD PRIMARY KEY (`vcid`);
 
 --
 -- Indexes for table `venue`
 --
 ALTER TABLE `venue`
   ADD PRIMARY KEY (`vid`),
-  ADD UNIQUE KEY `vname` (`vname`);
+  ADD UNIQUE KEY `vname` (`vname`),
+  ADD KEY `vcategory_id` (`vcid`);
 
 --
--- Indexes for table `venue_category`
+-- Indexes for table `vpic`
 --
-ALTER TABLE `venue_category`
-  ADD PRIMARY KEY (`category_name`);
+ALTER TABLE `vpic`
+  ADD PRIMARY KEY (`pic_id`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -283,19 +358,25 @@ ALTER TABLE `admin`
 -- AUTO_INCREMENT for table `booking`
 --
 ALTER TABLE `booking`
-  MODIFY `bid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20000015;
+  MODIFY `bid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20000021;
 
 --
 -- AUTO_INCREMENT for table `inspection`
 --
 ALTER TABLE `inspection`
-  MODIFY `ins_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30000010;
+  MODIFY `ins_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30000011;
+
+--
+-- AUTO_INCREMENT for table `inspic`
+--
+ALTER TABLE `inspic`
+  MODIFY `pic_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `report`
 --
 ALTER TABLE `report`
-  MODIFY `rid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40000004;
+  MODIFY `rid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40000005;
 
 --
 -- AUTO_INCREMENT for table `staff`
@@ -304,10 +385,16 @@ ALTER TABLE `staff`
   MODIFY `sid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9001;
 
 --
--- AUTO_INCREMENT for table `venue`
+-- AUTO_INCREMENT for table `vcategory`
 --
-ALTER TABLE `venue`
-  MODIFY `vid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1001;
+ALTER TABLE `vcategory`
+  MODIFY `vcid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `vpic`
+--
+ALTER TABLE `vpic`
+  MODIFY `pic_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- Constraints for dumped tables
@@ -318,8 +405,7 @@ ALTER TABLE `venue`
 --
 ALTER TABLE `booking`
   ADD CONSTRAINT `fk_booking_admin` FOREIGN KEY (`aid`) REFERENCES `admin` (`aid`) ON DELETE SET NULL,
-  ADD CONSTRAINT `fk_booking_user` FOREIGN KEY (`uid`) REFERENCES `user` (`uid`) ON DELETE CASCADE,
-  ADD CONSTRAINT `fk_booking_venue` FOREIGN KEY (`vid`) REFERENCES `venue` (`vid`) ON DELETE CASCADE;
+  ADD CONSTRAINT `fk_booking_user` FOREIGN KEY (`uid`) REFERENCES `user` (`uid`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `inspection`
@@ -333,6 +419,12 @@ ALTER TABLE `inspection`
 --
 ALTER TABLE `report`
   ADD CONSTRAINT `fk_report_ins` FOREIGN KEY (`ins_id`) REFERENCES `inspection` (`ins_id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `venue`
+--
+ALTER TABLE `venue`
+  ADD CONSTRAINT `vcategory_id` FOREIGN KEY (`vcid`) REFERENCES `vcategory` (`vcid`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
