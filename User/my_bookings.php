@@ -89,7 +89,7 @@ $result = $stmt->get_result();
                         <!-- Footer -->
                         <div class="p-4 border-t border-slate-100 bg-slate-50">
 
-                            <a href="booking_details.php?id=<?php echo urlencode($row["bid"]); ?>"
+                            <a href="booking_details.php?bid=<?= $row['bid'] ?>"
                                class="block w-full py-2.5 text-center text-sm font-bold rounded-lg transition-colors bg-indigo-600 hover:bg-indigo-700 text-white shadow">
                                 View Details
                             </a>
