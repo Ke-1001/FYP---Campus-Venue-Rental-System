@@ -4,12 +4,9 @@ session_start();
 require_once '../config/db.php';
 require_once '../includes/admin_auth.php';
 
-// 💡 1. 提取多維度過濾參數
 $filter_query = trim($_GET['f_query'] ?? '');
 $filter_role = trim($_GET['f_role'] ?? '');
 
-// 💡 2. 建構多型態聚合查詢 (Polymorphic Union Query)
-// ⚠️ 修正：已在 SELECT 中加入 status 欄位
 $base_sql = "
     SELECT * FROM (
         SELECT 
@@ -39,7 +36,6 @@ $base_sql = "
     WHERE 1=1
 ";
 
-// 💡 3. 動態注入過濾條件 (應用於子查詢外層)
 if (!empty($filter_query)) {
     $safe_query = $conn->real_escape_string($filter_query);
     $base_sql .= " AND (name LIKE '%$safe_query%' OR entity_id LIKE '%$safe_query%' OR email LIKE '%$safe_query%')";
@@ -62,14 +58,15 @@ $result = $conn->query($base_sql);
         tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b' } } } } }
     </script>
     <link rel="stylesheet" href="layout.css?v=1.2">
+    <link rel="stylesheet" href="../assets/css/fiori_forms.css">
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
+<body class="bg-[#f4f4f4] text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
 
     <?php include('../includes/admin_sidebar.php'); ?>
 
-    <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-50">
+    <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
         
-        <header class="h-16 glass-panel border-b border-slate-200 flex items-center justify-between px-6 z-10 shrink-0">
+        <header class="h-16 glass-panel border-b border-slate-200 flex items-center justify-between px-6 z-10 shrink-0 bg-white">
             <?php 
             $topbar_content = '
             <div class="flex items-center">
@@ -89,39 +86,39 @@ $result = $conn->query($base_sql);
                     <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Unified Personnel Index</h1>
                     <p class="text-xs text-slate-500 mt-1">Govern cross-departmental entities including Administrators and Field Inspectors.</p>
                 </div>
-                <a href="add_staff.php" class="px-5 py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-xl shadow-sm hover:bg-indigo-700 transition flex items-center transform active:scale-95">
-                    <i data-lucide="user-plus" class="w-4 h-4 mr-2"></i> Register New Staff
+                <a href="add_staff.php" class="px-5 py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-lg shadow-sm hover:bg-indigo-700 transition flex items-center">
+                    Register New Staff
                 </a>
             </div>
 
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 mb-6">
+            <div class="bg-white p-5 rounded-lg shadow-sm border border-slate-200 mb-6">
                 <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                     
                     <div class="md:col-span-2">
                         <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Identity Query</label>
-                        <div class="relative">
-                            <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
-                            <input type="text" name="f_query" value="<?php echo htmlspecialchars($filter_query); ?>" placeholder="Search ID, Name, or Email..." class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:border-indigo-500 outline-none transition-all">
-                        </div>
+                        <input type="text" name="f_query" value="<?php echo htmlspecialchars($filter_query); ?>" placeholder="Search ID, Name, or Email..." class="fiori-input w-full">
                     </div>
                     
                     <div>
                         <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Access Privilege</label>
-                        <select name="f_role" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:border-indigo-500 outline-none bg-white font-medium text-slate-700 transition-all">
-                            <option value="">All Roles</option>
-                            <optgroup label="System Core">
-                                <option value="super_admin" <?php if($filter_role==='super_admin') echo 'selected'; ?>>Super Admin</option>
-                                <option value="admin" <?php if($filter_role==='admin') echo 'selected'; ?>>Standard Admin</option>
-                            </optgroup>
-                            <optgroup label="Operations">
-                                <option value="inspector" <?php if($filter_role==='inspector') echo 'selected'; ?>>Inspector</option>
-                            </optgroup>
-                        </select>
+                        <div class="relative">
+                            <select name="f_role" class="fiori-input w-full appearance-none pr-8 bg-white cursor-pointer font-bold text-slate-700">
+                                <option value="">All Roles</option>
+                                <optgroup label="System Core">
+                                    <option value="super_admin" <?php if($filter_role==='super_admin') echo 'selected'; ?>>Super Admin</option>
+                                    <option value="admin" <?php if($filter_role==='admin') echo 'selected'; ?>>Standard Admin</option>
+                                </optgroup>
+                                <optgroup label="Operations">
+                                    <option value="inspector" <?php if($filter_role==='inspector') echo 'selected'; ?>>Inspector</option>
+                                </optgroup>
+                            </select>
+                            <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 absolute right-3 top-2.5 pointer-events-none"></i>
+                        </div>
                     </div>
 
                     <div class="flex space-x-2">
                         <button type="submit" class="w-full px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-700 transition flex items-center justify-center shadow-sm">
-                            <i data-lucide="filter" class="w-4 h-4 mr-1"></i> Apply
+                            Apply
                         </button>
                         <a href="staff_directory.php" class="px-4 py-2 bg-slate-100 text-slate-600 text-sm font-bold rounded-lg hover:bg-slate-200 transition flex items-center justify-center" title="Reset Filters">
                             <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
@@ -130,7 +127,7 @@ $result = $conn->query($base_sql);
                 </form>
             </div>
 
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
                 <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
                     <h3 class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Global Personnel Index (<?php echo $result->num_rows; ?>)</h3>
                 </div>
@@ -151,7 +148,7 @@ $result = $conn->query($base_sql);
                                 $id_prefix = $is_admin ? 'aid=' : 'sid=';
                                 $edit_target = $is_admin ? 'edit_admin.php' : 'edit_staff.php';
                             ?>
-                            <tr class="hover:bg-slate-50 transition-colors <?php echo ($row['status'] === 'inactive') ? 'opacity-60' : ''; ?>">
+                            <tr class="hover:bg-slate-50 transition-colors <?php echo ($row['status'] === 'inactive') ? 'bg-slate-50/50 opacity-60' : ''; ?>">
                                 <td class="px-6 py-4 font-mono font-bold text-slate-500"><?php echo htmlspecialchars($row['entity_id']); ?></td>
                                 <td class="px-6 py-4">
                                     <span class="font-bold text-slate-800 block"><?php echo htmlspecialchars($row['name']); ?></span>
@@ -159,29 +156,29 @@ $result = $conn->query($base_sql);
                                 </td>
                                 <td class="px-6 py-4">
                                     <a href="mailto:<?php echo htmlspecialchars($row['email']); ?>" class="text-xs text-indigo-600 hover:underline block font-medium">
-                                        <i data-lucide="mail" class="w-3 h-3 inline pb-0.5"></i> <?php echo htmlspecialchars($row['email']); ?>
+                                        <?php echo htmlspecialchars($row['email']); ?>
                                     </a>
                                     <span class="text-xs text-slate-500 font-mono mt-1 block">
-                                        <i data-lucide="phone" class="w-3 h-3 inline pb-0.5"></i> <?php echo htmlspecialchars($row['phone_num']); ?>
+                                        <?php echo htmlspecialchars($row['phone_num']); ?>
                                     </span>
                                 </td>
                                 <td class="px-6 py-4">
                                     <?php 
                                     $role_ui = match($row['access_level']) {
-                                        'super_admin' => ['bg-purple-50 text-purple-700 border-purple-200', 'key', 'Super Admin'],
-                                        'admin'       => ['bg-indigo-50 text-indigo-700 border-indigo-200', 'shield', 'Admin'],
-                                        'inspector'   => ['bg-amber-50 text-amber-700 border-amber-200', 'hard-hat', 'Inspector'],
-                                        default       => ['bg-slate-100 text-slate-600 border-slate-200', 'user', 'Unknown']
+                                        'super_admin' => ['bg-purple-50 text-purple-700 border-purple-200', 'Super Admin'],
+                                        'admin'       => ['bg-indigo-50 text-indigo-700 border-indigo-200', 'Admin'],
+                                        'inspector'   => ['bg-amber-50 text-amber-700 border-amber-200', 'Inspector'],
+                                        default       => ['bg-slate-100 text-slate-600 border-slate-200', 'Unknown']
                                     };
                                     ?>
                                     <div class="flex items-center space-x-2">
-                                        <span class="px-2.5 py-1 border <?php echo $role_ui[0]; ?> rounded-full text-[10px] font-black uppercase tracking-widest inline-flex items-center">
-                                            <i data-lucide="<?php echo $role_ui[1]; ?>" class="w-3 h-3 mr-1.5"></i> <?php echo $role_ui[2]; ?>
+                                        <span class="px-2.5 py-1 border <?php echo $role_ui[0]; ?> rounded text-[10px] font-black uppercase tracking-widest">
+                                            <?php echo $role_ui[1]; ?>
                                         </span>
                                         
                                         <?php if ($row['status'] === 'inactive') :?>
-                                            <span class="px-2 py-1 bg-slate-200 text-slate-500 border border-slate-300 rounded text-[9px] font-black uppercase tracking-widest flex items-center">
-                                                <i data-lucide="user-x" class="w-3 h-3 mr-1"></i> Inactive
+                                            <span class="px-2 py-1 bg-slate-200 text-slate-500 border border-slate-300 rounded text-[9px] font-black uppercase tracking-widest">
+                                                Inactive
                                             </span>
                                         <?php endif;?>
                                     </div>
@@ -196,11 +193,11 @@ $result = $conn->query($base_sql);
                                             <a href="../actions/process_personnel_deletion.php?type=<?php echo strtolower($row['entity_type']); ?>&id=<?php echo $row['entity_id']; ?>" 
                                                 class="p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded transition" 
                                                 onclick="return confirm('CRITICAL WARNING: Executing conditional deletion. If traces exist, entity will be deactivated. Proceed?');" title="Deactivate / Purge">
-                                                <i data-lucide="user-minus" class="w-4 h-4"></i>
+                                                <i data-lucide="trash-2" class="w-4 h-4"></i>
                                             </a>
                                         <?php else: ?>
                                             <button disabled class="p-2 text-slate-300 cursor-not-allowed" title="Account already inactive">
-                                                <i data-lucide="user-minus" class="w-4 h-4"></i>
+                                                <i data-lucide="trash-2" class="w-4 h-4"></i>
                                             </button>
                                         <?php endif; ?>
                                     </div>
@@ -208,7 +205,7 @@ $result = $conn->query($base_sql);
                             </tr>
                             <?php endwhile; ?>
                         <?php else: ?>
-                            <tr><td colspan="5" class="px-6 py-12 text-center text-slate-400 font-medium"><i data-lucide="search-x" class="w-8 h-8 mx-auto text-slate-300 mb-3 opacity-50"></i>No personnel match the selected criteria.</td></tr>
+                            <tr><td colspan="5" class="px-6 py-12 text-center text-slate-400 font-medium"><i data-lucide="users" class="w-8 h-8 mx-auto text-slate-300 mb-3 opacity-50"></i>No personnel match the selected criteria.</td></tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
@@ -216,6 +213,8 @@ $result = $conn->query($base_sql);
 
         </div>
     </main>
+
+    <?php include('../includes/ui_components.php'); ?>
 
     <script>
         lucide.createIcons();

@@ -6,76 +6,84 @@ require_once '../config/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
-    // 💡 1. 接收 Payload
-    $staff_name = htmlspecialchars(trim($_POST['staff_name']));
-    $email = trim($_POST['email']);
-    $phone_num = htmlspecialchars(trim($_POST['phone_num']));
-    $position = $_POST['position']; // 'inspector'
-    $password = $_POST['password'];
+    // 💡 1. 嚴格擷取 Payload (對齊前端 name 屬性)
+    $full_name = htmlspecialchars(trim($_POST['full_name'] ?? ''));
+    $email = trim($_POST['email'] ?? '');
+    $phone_num = htmlspecialchars(trim($_POST['phone_num'] ?? ''));
+    $access_level = $_POST['access_level'] ?? '';
+    $password = $_POST['password'] ?? '';
+
+    // 基礎防呆
+    if (empty($full_name) || empty($email) || empty($access_level) || empty($password)) {
+        $_SESSION['toast'] = ['type' => 'error', 'msg' => 'Validation Fault: Essential data vectors cannot be null.'];
+        header("Location: ../admin/add_staff.php");
+        exit;
+    }
 
     // 2. 密碼複雜度安全檢測
     $pattern = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/';
     if (!preg_match($pattern, $password)) {
-        $_SESSION['toast'] = [
-            'type' => 'error', 
-            'msg' => 'Security Fault: Password does not meet complexity standards.'
-        ];
+        $_SESSION['toast'] = ['type' => 'error', 'msg' => 'Security Fault: Password does not meet complexity standards.'];
         header("Location: ../admin/add_staff.php");
         exit;
     }
 
-    // 💡 3. 碰撞檢測 (Collision Detection)
-    // 確保該 Email 尚未被其他工作人員註冊
-    $sql_check = "SELECT sid FROM staff WHERE email = ?";
-    $stmt_check = $conn->prepare($sql_check);
-    $stmt_check->bind_param("s", $email);
-    $stmt_check->execute();
-    if ($stmt_check->get_result()->num_rows > 0) {
-        $_SESSION['toast'] = [
-            'type' => 'error', 
-            'msg' => 'Conflict: Email address is already assigned to an existing staff member.'
-        ];
-        $stmt_check->close();
-        header("Location: ../admin/add_staff.php");
-        exit;
-    }
-    $stmt_check->close();
+    $conn->begin_transaction();
 
-    // 4. 密碼雜湊
-    $password_hash = password_hash($password, PASSWORD_DEFAULT);
+    try {
+        // 💡 3. 全域碰撞檢測 (Global Collision Detection: 掃描 admin 與 staff 表)
+        $sql_check_admin = "SELECT aid FROM admin WHERE email = ?";
+        $stmt_chk_a = $conn->prepare($sql_check_admin);
+        $stmt_chk_a->bind_param("s", $email);
+        $stmt_chk_a->execute();
+        if ($stmt_chk_a->get_result()->num_rows > 0) throw new Exception("Conflict: Email is already registered as an Admin.");
+        $stmt_chk_a->close();
 
-    // 💡 5. 寫入資料庫 (交由 DB AUTO_INCREMENT 處理 sid)
-    $sql = "INSERT INTO staff (staff_name, email, password, phone_num, position) VALUES (?, ?, ?, ?, ?)";
-    $stmt = $conn->prepare($sql);
-    
-    if ($stmt) {
-        // "sssss" 代表 5 個 String 變數
-        $stmt->bind_param("sssss", $staff_name, $email, $password_hash, $phone_num, $position);
-        if ($stmt->execute()) {
+        $sql_check_staff = "SELECT sid FROM staff WHERE email = ?";
+        $stmt_chk_s = $conn->prepare($sql_check_staff);
+        $stmt_chk_s->bind_param("s", $email);
+        $stmt_chk_s->execute();
+        if ($stmt_chk_s->get_result()->num_rows > 0) throw new Exception("Conflict: Email is already assigned to a Staff member.");
+        $stmt_chk_s->close();
+
+        // 4. 密碼雜湊
+        $password_hash = password_hash($password, PASSWORD_DEFAULT);
+        $new_id = 0;
+
+        // 💡 5. 智慧雙軌路由寫入 (Dual-Track Routing)
+        if (in_array($access_level, ['super_admin', 'admin'])) {
+            $sql = "INSERT INTO admin (admin_name, email, password, phone_num, role) VALUES (?, ?, ?, ?, ?)";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("sssss", $full_name, $email, $password_hash, $phone_num, $access_level);
+            $stmt->execute();
+            $new_id = $conn->insert_id;
+            $stmt->close();
+            $msg = "Success: Management personnel [AID: {$new_id}] initialized as {$access_level}.";
+
+        } elseif ($access_level === 'inspector') {
+            $sql = "INSERT INTO staff (staff_name, email, password, phone_num, position) VALUES (?, ?, ?, ?, ?)";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("sssss", $full_name, $email, $password_hash, $phone_num, $access_level);
+            $stmt->execute();
+            $new_id = $conn->insert_id;
+            $stmt->close();
+            $msg = "Success: Field personnel [SID: {$new_id}] initialized as inspector.";
             
-            // 提取 DB 原生生成的 9000+ 整數 ID
-            $new_sid = $conn->insert_id; 
-            
-            $_SESSION['toast'] = [
-                'type' => 'success', 
-                'msg' => "Success: Staff member [ID: {$new_sid}] has been registered successfully."
-            ];
-            
-            // 返回人事管理儀表板
-            header("Location: ../admin/manage_admins.php");
         } else {
-            $_SESSION['toast'] = ['type' => 'error', 'msg' => 'Database Error: ' . $stmt->error];
-            header("Location: ../admin/add_staff.php");
+            throw new Exception("Security Exception: Unknown authorization level parameter.");
         }
-        $stmt->close();
-    } else {
-        $_SESSION['toast'] = ['type' => 'error', 'msg' => 'SQL Prepare Error: ' . $conn->error];
+
+        $conn->commit();
+        $_SESSION['toast'] = ['type' => 'success', 'msg' => $msg];
+        header("Location: ../admin/staff_directory.php"); // 導向全域通訊錄
+
+    } catch (Exception $e) {
+        $conn->rollback();
+        $_SESSION['toast'] = ['type' => 'error', 'msg' => $e->getMessage()];
         header("Location: ../admin/add_staff.php");
     }
     exit;
 } else {
-    $_SESSION['toast'] = ['type' => 'error', 'msg' => 'Invalid Request Method.'];
-    header("Location: ../admin/manage_admins.php");
+    header("Location: ../admin/staff_directory.php");
     exit;
 }
-?>

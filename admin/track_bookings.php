@@ -11,7 +11,7 @@ $filter_venue = trim($_GET['f_venue'] ?? '');
 $filter_date = trim($_GET['f_date'] ?? '');
 $filter_status = trim($_GET['f_status'] ?? '');
 
-// 💡 2. 構建聚合查詢 (嚴格對齊 rental_venue (4).sql: 引入 vcategory)
+// 💡 2. 構建聚合查詢 (∴ Augmenting query to extract v.vid)
 $sql = "SELECT 
             b.bid, 
             b.date_booked, 
@@ -23,6 +23,7 @@ $sql = "SELECT
             u.uid AS student_id,
             u.username, 
             u.email,
+            v.vid AS venue_id, 
             v.vname, 
             vc.category AS venue_category,
             v.deposit
@@ -65,24 +66,26 @@ $result = $conn->query($sql);
     </script>
     <link rel="stylesheet" href="layout.css?v=1.2">
     <link rel="stylesheet" href="../assets/css/fiori_forms.css">
+    <link rel="stylesheet" href="../assets/css/table.css">
 </head>
-<body class="bg-[#f4f4f4] text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
+<body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
 
     <?php include('../includes/admin_sidebar.php'); ?>
 
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
         
+        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-10 shrink-0">
             <?php 
             $topbar_content = '
             <div class="flex items-center">
-                <a href="manage_bookings.php" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 flex items-center mr-4 transition-colors">
+                <a href="manage_bookings.php" class="text-sm font-bold text-[#004aad] hover:text-[#003882] flex items-center mr-4 transition-colors">
                     <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i> Back
                 </a>
                 <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Bookings / Track Bookings</h2>
             </div>';
             include('../includes/admin_topbar.php'); 
             ?>
-
+        </header>
 
         <div class="flex-1 overflow-y-auto p-8 scroll-smooth">
             
@@ -91,7 +94,7 @@ $result = $conn->query($sql);
                 <p class="text-sm text-slate-600 mt-1">Trace historical booking records and current operational status.</p>
             </div>
 
-            <div class="bg-white p-5 rounded-lg shadow-sm border border-slate-200 mb-6">
+            <div class="bg-white p-5 rounded-md border border-slate-200 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] hover:border-slate-400 transition-colors mb-6">
                 <form method="GET" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
                     
                     <div>
@@ -126,81 +129,99 @@ $result = $conn->query($sql);
                     </div>
 
                     <div class="flex space-x-2">
-                        <button type="submit" class="w-full py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-700 transition shadow-sm">
+                        <button type="submit" class="w-full py-2 bg-[#004aad] text-white text-sm font-semibold rounded-md hover:bg-[#003882] transition shadow-sm border border-[#004aad]">
                             Apply
                         </button>
-                        <a href="track_bookings.php" class="px-4 py-2 bg-slate-100 text-slate-600 text-sm font-bold rounded-lg hover:bg-slate-200 transition flex items-center justify-center" title="Reset">
-                            <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
+                        <a href="track_bookings.php" class="px-4 py-2 bg-transparent text-slate-600 text-sm font-semibold rounded-md hover:bg-slate-100 border border-transparent transition flex items-center justify-center" title="Reset Filters">
+                            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
                         </a>
                     </div>
                 </form>
             </div>
 
-            <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-slate-200">
-                <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
-                    <h3 class="text-xs font-black text-slate-600 uppercase tracking-widest">Global Record Log (<?php echo $result->num_rows; ?>)</h3>
+            <div class="custom-table-container">
+                <div class="px-4 py-3 border-b border-slate-200 bg-[#f8fafc] flex justify-between items-center">
+                    <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-widest">Global Record Log (<?php echo $result->num_rows; ?>)</h3>
                 </div>
-                <table class="w-full text-left border-collapse">
-                    <thead class="bg-white text-xs text-slate-500 font-black uppercase tracking-widest border-b border-slate-200">
+                
+                <table class="custom-table">
+                    <thead>
                         <tr>
-                            <th class="px-6 py-4 w-40">Reference ID</th>
-                            <th class="px-6 py-4 w-56">Student Profile</th>
-                            <th class="px-6 py-4 w-72">Venue & Reserved Slot</th>
-                            <th class="px-6 py-4 w-48 text-right">Status</th>
+                            <th class="w-28 text-center">Reference</th>
+                            <th class="w-28">Student ID</th>
+                            <th class="w-36">Student Name</th>
+                            <th class="w-28">Venue ID</th>
+                            <th class="w-40">Venue</th>
+                            <th class="w-32">Category</th>
+                            <th class="w-36 text-center">Reserved Slot</th>
+                            <th class="w-32 text-right">Status Matrix</th>
+                            <th class="text-center w-16">Action</th>
                         </tr>
                     </thead>
-                    <tbody class="text-sm divide-y divide-slate-100">
+                    <tbody>
                         <?php if ($result && $result->num_rows > 0): ?>
                             <?php while($row = $result->fetch_assoc()): 
+                                $formatted_date = date('Y/m/d', strtotime($row['date_booked']));
                                 $time_range = date('H:i', strtotime($row['time_start'])) . ' - ' . date('H:i', strtotime($row['time_end']));
                             ?>
-                            <tr class="hover:bg-slate-50 transition-colors align-top">
-                                <td class="px-6 py-5">
-                                    <a href="process_flow.php?bid=<?php echo urlencode($row['bid']); ?>" class="font-mono text-sm font-extrabold text-[#0a6ed1] hover:text-[#085caf] hover:underline block mb-2 transition-colors">
+                            <tr ondblclick="window.location.href='process_flow.php?bid=<?php echo urlencode($row['bid']); ?>'">
+                                <td class="text-center">
+                                    <a href="process_flow.php?bid=<?php echo urlencode($row['bid']); ?>" class="td-text-mono">
                                         <?php echo htmlspecialchars($row['bid']); ?>
                                     </a>
-                                    <span class="text-[10px] text-slate-500 font-mono uppercase font-bold block">Log: <?php echo date('M d, Y', strtotime($row['created_at'])); ?></span>
                                 </td>
-                                <td class="px-6 py-5">
-                                    <span class="font-extrabold text-slate-800 text-base block mb-1"><?php echo htmlspecialchars($row['username']); ?></span>
-                                    <span class="text-xs font-mono font-bold text-slate-600 block"><?php echo htmlspecialchars($row['student_id']); ?></span>
+                                <td>
+                                    <span class="td-text-mono"><?php echo htmlspecialchars($row['student_id']); ?></span>
                                 </td>
-                                <td class="px-6 py-5">
-                                    <span class="font-extrabold text-slate-800 text-base block mb-1"><?php echo htmlspecialchars($row['vname']); ?></span>
-                                    <span class="px-2 py-1 bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-wider rounded border border-slate-200 inline-block mb-3"><?php echo htmlspecialchars($row['venue_category']); ?></span>
-                                    
-                                    <div class="bg-blue-50/50 border border-blue-100 p-2 rounded text-xs font-mono font-bold text-blue-800 w-fit">
-                                        <span class="block mb-1 text-slate-500 font-sans text-[10px] uppercase">Event Schedule:</span>
-                                        <?php echo htmlspecialchars($row['date_booked']); ?> | <?php echo $time_range; ?>
+                                <td>
+                                    <span class="font-semibold text-slate-800 text-sm block"><?php echo htmlspecialchars($row['username']); ?></span>
+                                </td>
+                                <td>
+                                    <span class="td-text-mono"><?php echo htmlspecialchars($row['venue_id']); ?></span>
+                                </td>
+                                <td>
+                                    <span class="font-semibold text-slate-800 text-sm block"><?php echo htmlspecialchars($row['vname']); ?></span>
+                                </td>
+                                <td>
+                                    <span class="px-2 py-0.5 bg-[#f1f5f9] text-slate-600 text-[10px] font-bold uppercase tracking-wider rounded-sm border border-[#e2e8f0] inline-block"><?php echo htmlspecialchars($row['venue_category']); ?></span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="td-text-mono">
+                                        <span class="block mb-0.5"><?php echo $formatted_date; ?></span>
+                                        <span class="block text-slate-500 font-bold"><?php echo $time_range; ?></span>
                                     </div>
                                 </td>
-                                <td class="px-6 py-5 text-right">
-                                    <div class="space-y-2 flex flex-col items-end">
+                                <td class="text-right">
+                                    <div class="space-y-1.5 flex flex-col items-end">
                                         <?php 
                                         $c = match($row['status']) {
-                                            'pending' => 'bg-amber-50 text-amber-700 border-amber-200',
-                                            'approved' => 'bg-blue-50 text-blue-700 border-blue-200',
-                                            'completed' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
-                                            'rejected' => 'bg-red-50 text-red-700 border-red-200',
-                                            default => 'bg-slate-100 text-slate-600 border-slate-200'
+                                            'pending' => 'bg-[#fffbeb] text-[#b45309] border-[#fde68a]',
+                                            'approved' => 'bg-[#eff6ff] text-[#1d4ed8] border-[#bfdbfe]',
+                                            'completed' => 'bg-[#ecfdf5] text-[#059669] border-[#a7f3d0]',
+                                            'rejected' => 'bg-[#fef2f2] text-[#dc2626] border-[#fecaca]',
+                                            default => 'bg-[#f1f5f9] text-slate-600 border-[#e2e8f0]'
                                         };
                                         ?>
-                                        <span class="inline-block px-3 py-1.5 border <?php echo $c; ?> rounded text-[10px] font-black uppercase tracking-widest text-center min-w-[90px]">
+                                        <span class="inline-block px-2 py-0.5 border <?php echo $c; ?> rounded-sm text-[10px] font-bold uppercase tracking-widest text-center min-w-[85px]">
                                             <?php echo htmlspecialchars($row['status']); ?>
                                         </span>
                                         
-                                        <span class="inline-block text-[10px] font-bold uppercase tracking-widest <?php echo ($row['payment_status'] === 'paid') ? 'text-emerald-600' : 'text-slate-400'; ?>">
+                                        <span class="inline-block text-[10px] font-bold uppercase tracking-widest <?php echo ($row['payment_status'] === 'paid') ? 'text-[#059669]' : 'text-slate-400'; ?>">
                                             Pay: <?php echo htmlspecialchars($row['payment_status']); ?>
                                         </span>
                                     </div>
+                                </td>
+                                <td class="text-center align-middle">
+                                    <a href="process_flow.php?bid=<?php echo urlencode($row['bid']); ?>" class="td-action-btn flex justify-center w-full">
+                                        &gt;
+                                    </a>
                                 </td>
                             </tr>
                             <?php endwhile; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="4" class="px-6 py-16 text-center text-slate-500 font-medium">
-                                    <span class="block text-4xl mb-3">🔍</span>
-                                    No records found matching criteria.
+                                <td colspan="9" class="py-16 text-center text-slate-500 border-none hover:bg-transparent cursor-default">
+                                    <span class="text-sm font-medium tracking-wide">No historical records match the current filter criteria.</span>
                                 </td>
                             </tr>
                         <?php endif; ?>

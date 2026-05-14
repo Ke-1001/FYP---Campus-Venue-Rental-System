@@ -15,11 +15,13 @@ $cat_res = $conn->query("SELECT * FROM vcategory ORDER BY category ASC");
     <title>MMU Admin | Register Asset</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script>tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b' } } } } }</script>
+    <script>
+        tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b' }, fiori: { bg: '#f4f4f4', text: '#1d2d3e', blue: '#0a6ed1', label: '#6b7280' } } } } }
+    </script>
     <link rel="stylesheet" href="layout.css?v=1.2">
     <link rel="stylesheet" href="../assets/css/fiori_forms.css">
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
+<body class="bg-[#f4f4f4] text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
     
     <?php include('../includes/admin_sidebar.php'); ?>
     
@@ -38,20 +40,20 @@ $cat_res = $conn->query("SELECT * FROM vcategory ORDER BY category ASC");
             ?>
         </header>
 
-        <form action="../actions/process_venue.php" method="POST" enctype="multipart/form-data" class="flex-1 flex flex-col overflow-hidden">
+        <form action="../actions/process_venue.php" method="POST" enctype="multipart/form-data" id="registerVenueForm" class="flex-1 flex flex-col overflow-hidden">
             <input type="hidden" name="action" value="create">
 
             <div class="flex-1 overflow-y-auto p-4 md:p-8 space-y-6">
                 
-                <div class="bg-white border border-slate-200 rounded-lg shadow-sm">
-                    <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
-                        <h2 class="text-base font-bold text-slate-800">Basic Data</h2>
+                <div class="fiori-form-container">
+                    <div class="fiori-section-header">
+                        <h2 class="text-base font-bold text-fiori-text">Basic Data</h2>
                     </div>
 
                     <div class="p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
                         
                         <div class="lg:col-span-6 space-y-4">
-                            <h3 class="text-sm font-bold text-slate-800 mb-4">Identification Data</h3>
+                            <h3 class="text-sm font-bold text-fiori-text mb-4">Identification Data</h3>
                             
                             <div class="grid grid-cols-3 gap-4 items-center">
                                 <label class="col-span-1 text-sm text-fiori-label">Venue ID:</label>
@@ -81,7 +83,7 @@ $cat_res = $conn->query("SELECT * FROM vcategory ORDER BY category ASC");
                         </div>
 
                         <div class="lg:col-span-6 space-y-4">
-                            <h3 class="text-sm font-bold text-slate-800 mb-4">Operational Parameters</h3>
+                            <h3 class="text-sm font-bold text-fiori-text mb-4">Operational Parameters</h3>
                             
                             <div class="grid grid-cols-3 gap-4 items-center">
                                 <label class="col-span-1 text-sm text-fiori-label">Max Capacity:</label>
@@ -114,19 +116,19 @@ $cat_res = $conn->query("SELECT * FROM vcategory ORDER BY category ASC");
                     </div>
                 </div>
 
-                <div class="bg-white border border-slate-200 rounded-lg shadow-sm">
-                    <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
-                        <h2 class="text-base font-bold text-slate-800">Physical Assets</h2>
+                <div class="fiori-form-container">
+                    <div class="fiori-section-header">
+                        <h2 class="text-base font-bold text-fiori-text">Physical Assets</h2>
                     </div>
                     <div class="p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
                         
                         <div class="lg:col-span-6 space-y-4">
-                            <h3 class="text-sm font-bold text-slate-800 mb-2">Venue Description</h3>
+                            <h3 class="text-sm font-bold text-fiori-text mb-2">Venue Description</h3>
                             <textarea name="description" rows="5" required placeholder="Provide physical details and available equipment..." class="fiori-input w-full resize-none p-3"></textarea>
                         </div>
 
                         <div class="lg:col-span-6 space-y-4">
-                            <h3 class="text-sm font-bold text-slate-800 mb-2">Image Gallery</h3>
+                            <h3 class="text-sm font-bold text-fiori-text mb-2">Image Gallery</h3>
                             <div class="w-full border-2 border-dashed border-slate-300 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors p-6 flex flex-col items-center justify-center relative cursor-pointer" onclick="document.getElementById('venue_pics').click()">
                                 <i data-lucide="image-plus" class="w-8 h-8 text-slate-400 mb-2"></i>
                                 <span class="text-sm font-bold text-slate-600">Click to Browse Images</span>
@@ -141,11 +143,11 @@ $cat_res = $conn->query("SELECT * FROM vcategory ORDER BY category ASC");
 
             </div>
 
-            <div class="border-t border-slate-200 bg-white px-6 py-3 flex justify-end space-x-2 shrink-0 z-20 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
-                <button type="button" onclick="window.location.href='venue_directory.php'" class="px-5 py-2 text-sm font-bold text-indigo-600 hover:bg-indigo-50 rounded transition-colors">
+            <div class="fiori-footer-toolbar">
+                <button type="button" onclick="window.location.href='venue_directory.php'" class="fiori-btn-cancel">
                     Cancel
                 </button>
-                <button type="submit" class="px-5 py-2 text-sm font-bold text-white bg-[#0a6ed1] hover:bg-[#085caf] rounded transition-colors shadow-sm">
+                <button type="submit" id="submitBtn" class="fiori-btn-primary">
                     Save Venue Record
                 </button>
             </div>
@@ -153,11 +155,13 @@ $cat_res = $conn->query("SELECT * FROM vcategory ORDER BY category ASC");
         </form>
     </main>
 
+    <?php include('../includes/ui_components.php'); ?>
+
     <script>
         lucide.createIcons();
         function toggleSidebar() { document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed'); }
 
-        // 簡單的前端選取檔案回饋
+        // 前端選取檔案反饋
         document.getElementById('venue_pics').addEventListener('change', function(e) {
             const fileList = document.getElementById('file-list');
             if(this.files.length > 0) {
@@ -166,6 +170,15 @@ $cat_res = $conn->query("SELECT * FROM vcategory ORDER BY category ASC");
             } else {
                 fileList.innerHTML = '';
             }
+        });
+
+        // 💡 防止重複提交與視覺反饋
+        document.getElementById('registerVenueForm').addEventListener('submit', function() {
+            const btn = document.getElementById('submitBtn');
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin mr-2 inline"></i> Processing...';
+            btn.classList.add('opacity-70', 'cursor-not-allowed');
+            btn.style.pointerEvents = 'none'; // 徹底阻斷二次點擊
+            lucide.createIcons();
         });
     </script>
 </body>
