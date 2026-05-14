@@ -8,9 +8,10 @@ $user_id = $_SESSION['uid'];
 
 $stmt = $conn->prepare("
     SELECT b.bid, b.date_booked, b.status,
-           v.vname, v.category, v.max_cap
+           v.vname, v.vcid, v.max_cap, vc.category
     FROM booking b
     JOIN venue v ON b.vid = v.vid
+    JOIN vcategory vc ON v.vcid = vc.vcid
     WHERE b.uid = ?
     ORDER BY b.date_booked DESC
 ");
@@ -112,6 +113,8 @@ $result = $stmt->get_result();
         </div>
     </div>
 </div>
+
+<?php include("../includes/user_footer.php"); ?>
 
 <script>
 lucide.createIcons();

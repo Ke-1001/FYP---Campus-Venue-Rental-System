@@ -3,7 +3,7 @@ session_start();
 require_once '../config/db.php';
 
 // 提取核心数据
-$sql = "SELECT vid, vname, category, description, pic FROM venue LIMIT 3";
+$sql = "SELECT vid, vname, vcid, description FROM venue LIMIT 3";
 $result = $conn->query($sql);
 ?>
 
@@ -107,29 +107,25 @@ $result = $conn->query($sql);
             </div>
 
             <div class="flex items-center gap-4">
-                <?php if (isset($_SESSION['uid'])): ?>
-                    <div id="userBtn" class="flex items-center gap-2 bg-white/10 py-1.5 px-4 rounded-full border border-white/10 backdrop-blur-md cursor-pointer">
-                        <i data-lucide="user" class="w-4 h-4 text-mmu-glow"></i>
-                            <span class="text-sm font-semibold text-white max-w-[100px] truncate">
-                                <?php echo htmlspecialchars($_SESSION['username'], ENT_QUOTES, 'UTF-8'); ?>
-                            </span>
-                        </div>
+    <?php if (isset($_SESSION['uid'])): ?>
+        <a href="user_dashboard.php" class="flex items-center gap-2 bg-white/10 py-1.5 px-4 rounded-full border border-white/10 backdrop-blur-md hover:bg-white/20 transition-all">
+            <i data-lucide="user" class="w-4 h-4 text-mmu-glow"></i>
+            <span class="text-sm font-semibold text-white max-w-[100px] truncate">
+                <?php echo htmlspecialchars($_SESSION['username'], ENT_QUOTES, 'UTF-8'); ?>
+            </span>
+        </a>
 
-                        <!-- 下拉资料卡 -->
-                        <div id="userDropdown" class="hidden absolute top-10 right-30 mt-2 w-72 bg-white rounded-xl shadow-lg p-5 text-black z-50">
-                            <p class="font-medium mb-2">
-                                Username: <?php echo htmlspecialchars($_SESSION['username'], ENT_QUOTES, 'UTF-8'); ?><br>
-                                Student ID: <?php echo htmlspecialchars($_SESSION['uid'], ENT_QUOTES, 'UTF-8'); ?><br>
-                                Email: <?php echo htmlspecialchars($_SESSION['email'], ENT_QUOTES, 'UTF-8'); ?><br>
-                                Phone: <?php echo htmlspecialchars($_SESSION['phone_num'], ENT_QUOTES, 'UTF-8'); ?>
-                            </p>
-                    </div>
-                    <a href="profile.php" class="text-slate-400 hover:text-white transition-colors"><i data-lucide="settings" class="w-5 h-5"></i></a>
-                    <a href="../User/user_logout.php" class="text-red-400 hover:text-red-300 transition-colors"><i data-lucide="log-out" class="w-5 h-5"></i></a>
-                <?php else: ?>
-                    <a href="../user/user_login.php" class="text-slate-300 hover:text-white font-semibold text-sm transition-colors">Login</a>
-                    <a href="../user/user_register.php" class="bg-mmu-core hover:bg-blue-800 text-white px-5 py-2 rounded-xl text-sm font-bold shadow-[0_4px_14px_0_rgba(0,74,173,0.39)] transition-all">Sign Up</a>
-                <?php endif; ?>
+        <a href="profile.php" class="text-slate-400 hover:text-white transition-colors">
+            <i data-lucide="settings" class="w-5 h-5"></i>
+        </a>
+
+        <a href="../User/user_logout.php" class="text-red-400 hover:text-red-300 transition-colors">
+            <i data-lucide="log-out" class="w-5 h-5"></i>
+        </a>
+        <?php else: ?>
+        <a href="../user/user_login.php" class="text-slate-300 hover:text-white font-semibold text-sm transition-colors">Login</a>
+        <a href="../user/user_register.php" class="bg-mmu-core hover:bg-blue-800 text-white px-5 py-2 rounded-xl text-sm font-bold shadow-[0_4px_14px_0_rgba(0,74,173,0.39)] transition-all">Sign Up</a>
+            <?php endif; ?>
             </div>
         </div>
     </div>
@@ -240,20 +236,6 @@ $result = $conn->query($sql);
 
 <script>
     lucide.createIcons();
-
-    const btn = document.getElementById("userBtn");
-    const dropdown = document.getElementById("userDropdown");
-
-    // 点击头像 → toggle
-    btn.addEventListener("click", function (e) {
-        e.stopPropagation();
-        dropdown.classList.toggle("hidden");
-    });
-
-    // 点击页面其他地方 → 关闭
-    document.addEventListener("click", function () {
-        dropdown.classList.add("hidden");
-    });
 </script>
 
 </body>

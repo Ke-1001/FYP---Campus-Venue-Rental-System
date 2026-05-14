@@ -4,7 +4,7 @@ include("../includes/user_header.php");
 include("../includes/user_navbar.php");
 include("../config/db.php");
 
-$result = $conn->query("SELECT * FROM venue WHERE status='Available'");
+$result = $conn->query("SELECT v.*, vc.category FROM venue v JOIN vcategory vc ON v.vcid = vc.vcid WHERE v.status='Available'");
 ?>
 
 <script src="https://cdn.tailwindcss.com"></script>

@@ -1,85 +1,58 @@
 <?php
-include("../includes/auth.php");
-include("../includes/header.php");
-include("../config/db.php");
+session_start();
+require_once '../config/db.php';
 
+if (!isset($_SESSION['uid'])) { header("Location: user_login.php"); exit(); }
 $uid = $_SESSION['uid'];
-$message = "";
 
-// 处理更新
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-
-    $username = trim($_POST['username']);
-    $email = trim($_POST['email']);
-    $phone = trim($_POST['phone_num']);
-
-    if (empty($username) || empty($email)) {
-        $message = "<p class='text-red-500 mb-3'>Username and Email are required</p>";
-    } else {
-
-        $stmt = $conn->prepare("
-            UPDATE users 
-            SET username = ?, email = ?, phone_num = ?
-            WHERE uid = ?
-        ");
-        $stmt->bind_param("sssi", $username, $email, $phone, $uid);
-        $stmt->execute();
-
-        // 更新 session
-        $_SESSION['username'] = $username;
-        $_SESSION['email'] = $email;
-        $_SESSION['phone_num'] = $phone;
-
-        $message = "<p class='text-green-500 mb-3'>Profile updated successfully</p>";
-    }
-}
-
-// 读取当前数据
-$stmt = $conn->prepare("SELECT username, email, phone_num FROM users WHERE uid = ?");
-$stmt->bind_param("i", $uid);
+$stmt = $conn->prepare("SELECT * FROM user WHERE uid = ?");
+$stmt->bind_param("s", $uid);
 $stmt->execute();
-$result = $stmt->get_result();
-$user = $result->fetch_assoc();
+$user = $stmt->get_result()->fetch_assoc();
 ?>
 
-<h2 class="text-2xl font-bold mb-6">Edit Profile</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .glass-panel { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.15); }
+        .input-glass { background: rgba(255, 255, 255, 0.95); border: 2px solid transparent; transition: 0.3s; color: #1e293b; }
+        .input-glass:focus { border-color: #3b82f6; outline: none; box-shadow: 0 0 15px rgba(59, 130, 246, 0.3); }
+    </style>
+</head>
+<body class="bg-slate-950 min-h-screen flex items-center justify-center px-4">
 
-<div class="bg-white rounded-xl shadow p-6 max-w-lg">
-
-    <?php echo $message; ?>
-
-    <form method="POST" class="space-y-4">
-
-        <div>
-            <label class="block text-sm text-gray-600 mb-1">Username</label>
-            <input type="text" name="username"
-                value="<?php echo htmlspecialchars($user['username'] ?? ''); ?>"
-                class="w-full border rounded-lg p-2 focus:outline-none focus:ring focus:ring-blue-200"
-                required>
-        </div>
-
-        <div>
-            <label class="block text-sm text-gray-600 mb-1">Email</label>
-            <input type="email" name="email"
-                value="<?php echo htmlspecialchars($user['email'] ?? ''); ?>"
-                class="w-full border rounded-lg p-2 focus:outline-none focus:ring focus:ring-blue-200"
-                required>
-        </div>
-
-        <div>
-            <label class="block text-sm text-gray-600 mb-1">Phone</label>
-            <input type="text" name="phone_num"
-                value="<?php echo htmlspecialchars($user['phone_num'] ?? ''); ?>"
-                class="w-full border rounded-lg p-2 focus:outline-none focus:ring focus:ring-blue-200">
-        </div>
-
-        <button type="submit"
-            class="w-full py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
-            Update Profile
-        </button>
-
-    </form>
-
+<div class="fixed inset-0 z-0">
+    <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80" class="w-full h-full object-cover opacity-20">
 </div>
 
-</div></body></html>
+<div class="relative z-10 w-full max-w-md">
+    <div class="glass-panel rounded-3xl p-8 shadow-2xl">
+        <h2 class="text-2xl font-black text-white mb-6 flex items-center gap-2">
+            <i data-lucide="user-cog" class="text-blue-400"></i> Update Profile
+        </h2>
+
+        <form action="update_profile_process.php" method="POST" class="space-y-5">
+            <div>
+                <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Full Name</label>
+                <input type="text" name="username" value="<?php echo $user['username']; ?>" class="input-glass w-full px-4 py-3 rounded-xl font-bold">
+            </div>
+            <div>
+                <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Phone Number</label>
+                <input type="text" name="phone_num" value="<?php echo $user['phone_num']; ?>" class="input-glass w-full px-4 py-3 rounded-xl font-bold">
+            </div>
+
+            <div class="pt-4 flex gap-3">
+                <a href="profile.php" class="flex-1 text-center py-4 text-slate-400 font-bold hover:text-white transition">Cancel</a>
+                <button type="submit" class="flex-[2] bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-2xl shadow-xl transition">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>lucide.createIcons();</script>
+</body>
+</html>

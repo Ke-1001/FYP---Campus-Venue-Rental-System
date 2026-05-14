@@ -4,14 +4,14 @@ include("../includes/user_header.php");
 include("../includes/user_navbar.php");
 include("../config/db.php");
 
-if (!isset($_GET['vid']) || !is_numeric($_GET['vid'])) {
+if (!isset($_GET['vid']) || !preg_match('/^[A-Za-z0-9]+$/', $_GET['vid'])) {
     die("Invalid venue");
 }
 
 $venue_id = $_GET['vid'];
 
-$stmt = $conn->prepare("SELECT * FROM venue WHERE vid=?");
-$stmt->bind_param("i", $venue_id);
+$stmt = $conn->prepare("SELECT v.*, vc.category FROM venue v JOIN vcategory vc ON v.vcid = vc.vcid WHERE v.vid=?");
+$stmt->bind_param("s", $venue_id);
 $stmt->execute();
 $result = $stmt->get_result();
 

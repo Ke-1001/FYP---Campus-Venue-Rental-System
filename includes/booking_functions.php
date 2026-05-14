@@ -14,7 +14,7 @@ function checkTimeSlotConflict($conn, $vid, $date_booked, $new_start_time, $new_
               
     $stmt = $conn->prepare($sql);
     // 💡 對應順序：$new_end_time (E2) 比較 time_start (S1)；$new_start_time (S2) 比較 time_end (E1)
-    $stmt->bind_param("isss", $vid, $date_booked, $new_end_time, $new_start_time);
+    $stmt->bind_param("ssss", $vid, $date_booked, $new_end_time, $new_start_time);
     $stmt->execute();
     $result = $stmt->get_result();
     $row = $result->fetch_assoc();

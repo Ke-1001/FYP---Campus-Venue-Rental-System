@@ -11,19 +11,24 @@ if (!isset($_SESSION['uid'])) {
     exit();
 }
 
-$vid = intval($_GET["vid"] ?? 0);
+$vid = $_GET['vid'] ?? '';
 
-if ($vid === 0) {
-    die("<div class='min-h-screen flex items-center justify-center bg-slate-50 text-xl font-bold text-slate-800'>Anomaly Detected: Invalid Venue Identifier.</div>");
+if (!preg_match('/^[A-Za-z0-9_-]+$/', $vid)) {
+    die("
+        <div class='min-h-screen flex items-center justify-center bg-slate-50 text-xl font-bold text-red-600'>
+            Invalid Venue ID: Cannot proceed with the booking.
+        </div>
+    ");
 }
 
-$sql = "SELECT vid, vname, category, max_cap, deposit, status
-        FROM venue
-        WHERE vid = ? AND status = 'available'
+$sql = "SELECT v.vid, v.vname, vc.category, v.max_cap, v.deposit, v.status
+        FROM venue v
+        JOIN vcategory vc ON v.vcid = vc.vcid
+        WHERE v.vid = ? AND v.status = 'available'
         LIMIT 1";
 
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $vid);
+$stmt->bind_param("s", $vid);
 $stmt->execute();
 $result = $stmt->get_result();
 $venue = $result->fetch_assoc();
@@ -114,7 +119,7 @@ if (!$venue) {
                         <input type="hidden" name="end_time" id="payload_end" value="">
 
                         <div class="bg-indigo-50 p-4 rounded-lg flex justify-between items-center border border-indigo-100">
-                            <span class="text-sm font-bold text-indigo-800 uppercase tracking-wider">Temporal Vector</span>
+                            <span class="text-sm font-bold text-indigo-800 uppercase tracking-wider">Selected Time</span>
                             <span id="vector-display" class="font-mono font-black text-indigo-600 text-lg">--:-- to --:--</span>
                         </div>
 
@@ -140,7 +145,7 @@ if (!$venue) {
 <script>
     lucide.createIcons();
 
-    const venueId = document.getElementById('payload_venue_id').value;
+    const venueID = document.getElementById('payload_venue_id').value;
     const today = new Date();
     let currentMonth = today.getMonth();
     let currentYear = today.getFullYear();
@@ -207,11 +212,11 @@ if (!$venue) {
         selectionState = { start: null, end: null };
         document.getElementById('asyncBookingForm').classList.add('hidden');
 
-        fetch(`../api/api_fetch_slots.php?venue_id=${venueId}&date=${dateStr}`)
+        fetch(`../api/api_fetch_slots.php?venue_id=${venueID}&date=${dateStr}`)
             .then(res => res.json())
             .then(data => {
                 if(data.status === 'success') {
-                    blockedVectors = data.blocked_vectors;
+                    blockedVectors = data.blocked_vectors || [];
                     renderTimeGrid();
                 } else {
                     alert("System Fault: Unable to synchronize schedule matrices.");

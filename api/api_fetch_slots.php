@@ -5,10 +5,10 @@ require_once '../config/db.php';
 
 header('Content-Type: application/json');
 
-$venue_id = isset($_GET['venue_id']) ? intval($_GET['venue_id']) : 0;
+$venue_id = isset($_GET['vid']) ? intval($_GET['vid']) : 0;
 $date = isset($_GET['date']) ? trim($_GET['date']) : '';
 
-if ($venue_id === 0 || empty($date)) {
+if ($venue_id === NULL || empty($date)) {
     echo json_encode(['status' => 'error', 'message' => 'Parameter Validation Fault.']);
     exit;
 }
