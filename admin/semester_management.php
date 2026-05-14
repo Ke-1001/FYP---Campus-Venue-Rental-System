@@ -43,18 +43,15 @@ $result = $conn->query($sql);
 
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
         
-        <header class="h-16 glass-panel border-b border-slate-200 flex items-center justify-between px-6 z-10 shrink-0 bg-white">
             <?php 
-            $topbar_content = '
-            <div class="flex items-center">
-                <a href="academic.php" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 flex items-center mr-4 transition-colors">
-                    <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i> Back
-                </a>
-                <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">System Core / Semester Management</h2>
-            </div>';
-            include('../includes/admin_topbar.php'); 
+                $topbar_content = '<div class="flex items-center">
+                    <a href="academic.php" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 flex items-center mr-4 transition-colors">
+                        <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i> Back
+                    </a>
+                    <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Academic / Semester</h2>
+                </div>';
+                include('../includes/admin_topbar.php'); 
             ?>
-        </header>
 
         <div class="flex-1 overflow-y-auto p-8 scroll-smooth flex flex-col xl:flex-row gap-8">
             
