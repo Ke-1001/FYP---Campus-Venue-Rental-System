@@ -68,9 +68,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $file = $_FILES['csv_file']['tmp_name'];
             $handle = fopen($file, "r");
             $csv_data = [];
-            $header = fgetcsv($handle); // 跳過標題列
+            fgetcsv($handle); // 跳過標題列
 
-            // 1. 原始數據提取
             while (($row = fgetcsv($handle)) !== FALSE) {
                 if (count($row) < 5) continue; 
                 $csv_data[] = [
@@ -86,45 +85,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $valid_pool = [];
             $conflict_log = [];
 
-            // 2. 衝突仲裁矩陣 (Conflict Arbitration)
-            foreach ($csv_data as $index => $current) {
+            // 💡 修正後的衝突仲裁演算法 (Dynamic Validation Pool)
+            foreach ($csv_data as $current) {
                 $has_conflict = false;
                 $reason = "";
 
-                // A. 內部衝突檢查 (Self-Consistency Check within CSV)
-                foreach ($csv_data as $sub_index => $compare) {
-                    if ($index === $sub_index) continue;
-                    if ($current['vid'] === $compare['vid'] && $current['day'] === $compare['day']) {
-                        if ($current['start'] < $compare['end'] && $current['end'] > $compare['start']) {
-                            $has_conflict = true;
-                            $reason = "Internal Overlap with CSV Row " . ($sub_index + 2);
-                            break;
+                // A. 優先檢查外部衝突 (Database Collision)
+                $stmt_check = $conn->prepare("SELECT subject_name FROM academic_schedule WHERE vid = ? AND day_of_week = ? AND start_time < ? AND end_time > ? LIMIT 1");
+                $stmt_check->bind_param("ssss", $current['vid'], $current['day'], $current['end'], $current['start']);
+                $stmt_check->execute();
+                $db_conflict = $stmt_check->get_result()->fetch_assoc();
+                if ($db_conflict) {
+                    $has_conflict = true;
+                    $reason = "Database Collision: Overlaps with [{$db_conflict['subject_name']}]";
+                }
+                $stmt_check->close();
+
+                // B. 若外部無衝突，則檢查內部 CSV 是否與「已接受」的紀錄衝突 (Internal Valid Pool Check)
+                if (!$has_conflict) {
+                    foreach ($valid_pool as $accepted) {
+                        if ($current['vid'] === $accepted['vid'] && $current['day'] === $accepted['day']) {
+                            if ($current['start'] < $accepted['end'] && $current['end'] > $accepted['start']) {
+                                $has_conflict = true;
+                                $reason = "Internal CSV Collision: Overlaps with [{$accepted['subject']}] earlier in the file";
+                                break;
+                            }
                         }
                     }
                 }
 
-                // B. 外部衝突檢查 (Database Integrity Check)
-                if (!$has_conflict) {
-                    $stmt_check = $conn->prepare("SELECT subject_name FROM academic_schedule WHERE vid = ? AND day_of_week = ? AND start_time < ? AND end_time > ? LIMIT 1");
-                    $stmt_check->bind_param("ssss", $current['vid'], $current['day'], $current['end'], $current['start']);
-                    $stmt_check->execute();
-                    $db_conflict = $stmt_check->get_result()->fetch_assoc();
-                    if ($db_conflict) {
-                        $has_conflict = true;
-                        $reason = "Database Collision with existing slot: [{$db_conflict['subject_name']}]";
-                    }
-                    $stmt_check->close();
-                }
-
-                // 3. 分流處理
+                // C. 仲裁分流 (Routing)
                 if ($has_conflict) {
                     $conflict_log[] = array_merge($current, ['reason' => $reason]);
                 } else {
-                    $valid_pool[] = $current;
+                    $valid_pool[] = $current; // 💡 只有完全合法的紀錄才會進入白名單池
                 }
             }
 
-            // 4. 原子級入庫 (Atomic Insertion)
+            // 執行原子級入庫 (Atomic Insertion)
             $success_count = 0;
             foreach ($valid_pool as $entry) {
                 $ins = $conn->prepare("INSERT INTO academic_schedule (vid, day_of_week, start_time, end_time, subject_name) VALUES (?, ?, ?, ?, ?)");
@@ -133,12 +131,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $ins->close();
             }
 
-            // 5. 反饋封裝
-            $_SESSION['batch_results'] = [
-                'success' => $success_count,
-                'conflicts' => $conflict_log
-            ];
-            $_SESSION['toast'] = ['type' => 'info', 'msg' => "Batch process finished. $success_count items synced."];
+            $_SESSION['batch_results'] = ['success' => $success_count, 'conflicts' => $conflict_log];
+            $_SESSION['toast'] = ['type' => 'success', 'msg' => "Batch sync completed. $success_count records injected."];
         }
 
         $conn->commit();

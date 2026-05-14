@@ -10,7 +10,7 @@ $filter_student = trim($_GET['f_student'] ?? '');
 $filter_venue = trim($_GET['f_venue'] ?? '');
 $filter_date = trim($_GET['f_date'] ?? '');
 
-// 💡 2. 構建聚合查詢，提取更豐富的實體屬性
+// 💡 2. 構建聚合查詢 (適配最新的 Schema: 引入 vcategory)
 $sql = "SELECT 
             b.bid, 
             b.date_booked, 
@@ -21,17 +21,19 @@ $sql = "SELECT
             u.username AS student_name,
             u.phone_num,
             u.email,
+            v.vid AS venue_id,
             v.vname AS venue_name,
-            v.category AS venue_category
+            vc.category AS venue_category
         FROM booking b
         JOIN user u ON b.uid = u.uid
         JOIN venue v ON b.vid = v.vid
+        JOIN vcategory vc ON v.vcid = vc.vcid
         LEFT JOIN inspection i ON b.bid = i.bid
         WHERE b.status IN ('approved', 'completed') 
           AND b.payment_status = 'paid'
           AND i.ins_id IS NULL";
 
-// 💡 3. 動態注入過濾條件 (Dynamic WHERE Clauses)
+// 💡 3. 動態注入過濾條件
 if (!empty($filter_bid)) {
     $sql .= " AND b.bid LIKE '%" . $conn->real_escape_string($filter_bid) . "%'";
 }
@@ -39,7 +41,8 @@ if (!empty($filter_student)) {
     $sql .= " AND (u.username LIKE '%" . $conn->real_escape_string($filter_student) . "%' OR u.uid LIKE '%" . $conn->real_escape_string($filter_student) . "%')";
 }
 if (!empty($filter_venue)) {
-    $sql .= " AND (v.vname LIKE '%" . $conn->real_escape_string($filter_venue) . "%' OR v.category LIKE '%" . $conn->real_escape_string($filter_venue) . "%')";
+    // 修正對 vc.category 的檢索
+    $sql .= " AND (v.vname LIKE '%" . $conn->real_escape_string($filter_venue) . "%' OR vc.category LIKE '%" . $conn->real_escape_string($filter_venue) . "%')";
 }
 if (!empty($filter_date)) {
     $sql .= " AND b.date_booked = '" . $conn->real_escape_string($filter_date) . "'";
@@ -61,13 +64,15 @@ $result = $conn->query($sql);
         tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b', accent: '#38bdf8' } } } } }
     </script>
     <link rel="stylesheet" href="layout.css?v=1.2">
+    <link rel="stylesheet" href="../assets/css/fiori_forms.css">
+    <link rel="stylesheet" href="../assets/css/table.css">
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
+<body class="bg-[#f4f4f4] text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
 
     <?php include('../includes/admin_sidebar.php'); ?>
 
-    <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-50">
-        
+    <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
+
             <?php 
             $topbar_content = '
             <div class="flex items-center">
@@ -83,98 +88,105 @@ $result = $conn->query($sql);
             
             <div class="mb-6">
                 <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Assign Inspector</h1>
-                <p class="text-xs text-slate-500 mt-1">Delegate post-event venue inspections to inspectors.</p>
+                <p class="text-sm text-slate-600 mt-1">Delegate post-event venue inspections to designated personnel.</p>
             </div>
 
-            <!-- 💡 多維度過濾矩陣 (Multi-dimensional Filter Matrix) -->
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 mb-6">
+            <div class="bg-white p-5 rounded-lg shadow-sm border border-slate-200 mb-6">
                 <form method="GET" class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
-                    
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Booking ID</label>
-                        <input type="text" name="f_bid" value="<?php echo htmlspecialchars($filter_bid); ?>" placeholder="Search ID..." class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:border-indigo-500 outline-none">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Booking ID</label>
+                        <input type="text" name="f_bid" value="<?php echo htmlspecialchars($filter_bid); ?>" placeholder="Search ID..." class="fiori-input w-full">
                     </div>
-                    
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Student Entity</label>
-                        <input type="text" name="f_student" value="<?php echo htmlspecialchars($filter_student); ?>" placeholder="Name or Student ID..." class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:border-indigo-500 outline-none">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Student Entity</label>
+                        <input type="text" name="f_student" value="<?php echo htmlspecialchars($filter_student); ?>" placeholder="Name or ID..." class="fiori-input w-full">
                     </div>
-
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Asset</label>
-                        <input type="text" name="f_venue" value="<?php echo htmlspecialchars($filter_venue); ?>" placeholder="Venue Name or Category..." class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:border-indigo-500 outline-none">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Asset</label>
+                        <input type="text" name="f_venue" value="<?php echo htmlspecialchars($filter_venue); ?>" placeholder="Name or Category..." class="fiori-input w-full">
                     </div>
-
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Date</label>
-                        <input type="date" name="f_date" value="<?php echo htmlspecialchars($filter_date); ?>" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:border-indigo-500 outline-none text-slate-600">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Date</label>
+                        <input type="date" name="f_date" value="<?php echo htmlspecialchars($filter_date); ?>" class="fiori-input w-full">
                     </div>
-
                     <div class="flex space-x-2">
-                        <button type="submit" class="w-full px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-700 transition shadow-sm flex items-center justify-center">
-                            <i data-lucide="filter" class="w-4 h-4 mr-1"></i> Apply
+                        <button type="submit" class="w-full py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-700 transition shadow-sm">
+                            Apply Filter
                         </button>
                         <a href="assign_inspector.php" class="px-4 py-2 bg-slate-100 text-slate-600 text-sm font-bold rounded-lg hover:bg-slate-200 transition flex items-center justify-center" title="Reset Filters">
-                            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                            <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
                         </a>
                     </div>
-
                 </form>
             </div>
 
-            <!-- 💡 擴展資料表格 -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-                    <h3 class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Pending Assignment (<?php echo $result->num_rows; ?>)</h3>
+            <div class="custom-table-container">
+                <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+                    <h3 class="text-xs font-black text-slate-600 uppercase tracking-widest">Pending Assignment (<?php echo $result->num_rows; ?>)</h3>
                 </div>
-                <table class="w-full text-left border-collapse">
-                    <thead class="bg-white text-[10px] text-slate-400 font-black uppercase tracking-widest border-b border-slate-100">
+                
+                <table class="custom-table">
+                    <thead>
                         <tr>
-                            <th class="px-6 py-3">Reference</th>
-                            <th class="px-6 py-3">Student Context</th>
-                            <th class="px-6 py-3">Asset & Time</th>
-                            <th class="px-6 py-3">Status</th>
-                            <th class="px-6 py-3 text-right">Execution</th>
+                            <th class="w-28 text-center">Reference</th>
+                            <th class="w-28">Student ID</th>
+                            <th class="w-36">Student Name</th>
+                            <th class="w-28">Venue ID</th>
+                            <th class="w-40">Venue</th>
+                            <th class="w-32">Category</th>
+                            <th class="w-32 text-center">Reserved Slot</th>
+                            <th class="text-center w-24">Action</th>
                         </tr>
                     </thead>
-                    <tbody class="text-sm divide-y divide-slate-50">
+                    <tbody>
                         <?php if ($result && $result->num_rows > 0): ?>
                             <?php while($row = $result->fetch_assoc()): 
+                                $formatted_date = date('Y/m/d', strtotime($row['date_booked']));
                                 $time_range = date('H:i', strtotime($row['time_start'])) . ' - ' . date('H:i', strtotime($row['time_end']));
                             ?>
-                            <tr class="hover:bg-slate-50 transition-colors">
-                                <td class="px-6 py-4">
-                                    <span class="font-mono text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded border border-indigo-100"><?php echo htmlspecialchars($row['bid']); ?></span>
+                            <tr ondblclick="window.location.href='assign_inspector_detail.php?bid=<?php echo urlencode($row['bid']); ?>'">
+                                <td class="text-center">
+                                    <a href="process_flow.php?bid=<?php echo urlencode($row['bid']); ?>" class="td-text-mono">
+                                        <?php echo htmlspecialchars($row['bid']); ?>
+                                    </a>
                                 </td>
-                                <td class="px-6 py-4">
-                                    <span class="font-bold text-slate-800 block"><?php echo htmlspecialchars($row['student_name']); ?></span>
-                                    <span class="text-[10px] font-mono text-slate-500 block"><?php echo htmlspecialchars($row['student_id']); ?></span>
+                                <td>
+                                    <a href="edit_student.php?uid=<?php echo urlencode($row['student_id']); ?>" class="td-text-mono">
+                                        <?php echo htmlspecialchars($row['student_id']); ?>
+                                    </a>
                                 </td>
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center mb-1">
-                                        <span class="font-bold text-slate-700 mr-2"><?php echo htmlspecialchars($row['venue_name']); ?></span>
-                                        <span class="px-1.5 py-0.5 bg-slate-100 text-slate-500 text-[9px] font-bold uppercase tracking-wider rounded border border-slate-200"><?php echo htmlspecialchars(strtoupper($row['venue_category'])); ?></span>
+                                <td>
+                                    <span class="td-text-mono"><?php echo htmlspecialchars($row['student_name']); ?></span>
+                                </td>
+                                <td>
+                                    <a href="edit_venue.php?vid=<?php echo urlencode($row['venue_id']); ?>" class="td-text-mono">
+                                        <?php echo htmlspecialchars($row['venue_id']); ?>
+                                    </a>
+                                </td>
+                                <td>
+                                    <span class="td-text-mono"><?php echo htmlspecialchars($row['venue_name']); ?></span>
+                                </td>
+                                <td>
+                                    <span class="td-text-mono" style="text-transform: uppercase;"><?php echo htmlspecialchars($row['venue_category']); ?></span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="td-text-mono" style="text-transform: uppercase;">
+                                        <span><?php echo $formatted_date; ?></span>
+                                        <span><?php echo $time_range; ?></span>
                                     </div>
-                                    <span class="text-xs text-slate-500 font-mono"><i data-lucide="calendar" class="w-3 h-3 inline pb-0.5"></i> <?php echo htmlspecialchars($row['date_booked']); ?> | <?php echo $time_range; ?></span>
                                 </td>
-                                <td class="px-6 py-4">
-                                    <span class="inline-flex items-center px-2.5 py-1 bg-amber-50 text-amber-600 border border-amber-200 rounded-full text-[10px] font-black uppercase tracking-widest">
-                                        <i data-lucide="alert-circle" class="w-3 h-3 mr-1"></i> Unassigned
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 text-right">
-                                    <!-- 💡 取消全行點擊，改用精準的執行按鈕，符合操作防呆原則 -->
-                                    <a href="assign_inspector_detail.php?bid=<?php echo urlencode($row['bid']); ?>" class="inline-flex items-center justify-center px-4 py-2 text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-600 hover:text-white border border-indigo-200 rounded-lg transition-all shadow-sm">
-                                        Delegate Task <i data-lucide="arrow-right" class="w-3 h-3 ml-1.5"></i>
+                                <td class="text-center">
+                                    <a href="assign_inspector_detail.php?bid=<?php echo urlencode($row['bid']); ?>" class="td-action-btn">
+                                        &gt;
                                     </a>
                                 </td>
                             </tr>
                             <?php endwhile; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="5" class="px-6 py-12 text-center text-slate-500 font-medium">
-                                    <i data-lucide="search-x" class="w-12 h-12 mx-auto text-slate-300 mb-3"></i>
-                                    No pending assignments match criteria.
+                                <td colspan="8" class="px-6 py-16 text-center text-slate-500 font-medium border-none hover:bg-transparent cursor-default">
+                                    <span class="block text-4xl mb-3">📋</span>
+                                    No pending assignments match the criteria.
                                 </td>
                             </tr>
                         <?php endif; ?>

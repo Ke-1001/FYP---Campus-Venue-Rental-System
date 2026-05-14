@@ -1,47 +1,53 @@
 <?php
-// File: actions/api_fetch_slots.php
-session_start();
+// File: api/api_fetch_slots.php
 require_once '../config/db.php';
-
 header('Content-Type: application/json');
 
-$venue_id = isset($_GET['vid']) ? intval($_GET['vid']) : 0;
-$date = isset($_GET['date']) ? trim($_GET['date']) : '';
+$vid = $_GET['venue_id'] ?? '';
+$date = $_GET['date'] ?? '';
 
-if ($venue_id === NULL || empty($date)) {
-    echo json_encode(['status' => 'error', 'message' => 'Parameter Validation Fault.']);
+if (empty($vid) || empty($date)) {
+    echo json_encode(['status' => 'error', 'message' => 'Validation Fault: Missing parameter vectors.']);
     exit;
 }
 
-// 💡 提取當日有效訂單的時間端點
-$sql = "SELECT time_start, time_end 
-        FROM booking 
-        WHERE vid = ? 
-          AND date_booked = ? 
-          AND status IN ('pending', 'approved', 'completed')";
-
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("is", $venue_id, $date);
-$stmt->execute();
-$result = $stmt->get_result();
-
 $blocked_vectors = [];
 
-while ($row = $result->fetch_assoc()) {
-    $start = date('H:i', strtotime($row['time_start']));
-    
-    // 💡 企業級邏輯：為每個結束時間加上 30 分鐘的清潔緩衝 (Buffer)
-    // 這確保了下一組人無法緊接著上一組的結束時間預約
-    $end_with_buffer = date('H:i', strtotime($row['time_end'] . ' + 30 minutes'));
-    
-    $blocked_vectors[] = [
-        'start' => $start,
-        'end' => $end_with_buffer
-    ];
+try {
+    // 💡 向量提取 1：一般學生預約集 (Dynamic Bookings)
+    $stmt1 = $conn->prepare("SELECT time_start, time_end FROM booking WHERE vid = ? AND date_booked = ? AND status IN ('pending', 'approved')");
+    $stmt1->bind_param("ss", $vid, $date);
+    $stmt1->execute();
+    $res1 = $stmt1->get_result();
+    while ($row = $res1->fetch_assoc()) {
+        $blocked_vectors[] = [
+            'start' => substr($row['time_start'], 0, 5),
+            'end' => substr($row['time_end'], 0, 5)
+        ];
+    }
+    $stmt1->close();
+
+    // 💡 向量提取 2：學術排他矩陣 (Academic Exclusion Matrix)
+    // 再次利用 DAYNAME() 提取該日期對應的固定課表
+    $stmt2 = $conn->prepare("SELECT start_time, end_time FROM academic_schedule WHERE vid = ? AND day_of_week = DAYNAME(?)");
+    $stmt2->bind_param("ss", $vid, $date);
+    $stmt2->execute();
+    $res2 = $stmt2->get_result();
+    while ($row = $res2->fetch_assoc()) {
+        $blocked_vectors[] = [
+            'start' => substr($row['start_time'], 0, 5),
+            'end' => substr($row['end_time'], 0, 5)
+        ];
+    }
+    $stmt2->close();
+
+    // 將聯集結果回傳給 booking_form.php 的 JavaScript 渲染引擎
+    echo json_encode([
+        'status' => 'success',
+        'blocked_vectors' => $blocked_vectors
+    ]);
+
+} catch (Exception $e) {
+    echo json_encode(['status' => 'error', 'message' => 'Database Query Anomaly: ' . $e->getMessage()]);
 }
-
-$stmt->close();
-$conn->close();
-
-echo json_encode(['status' => 'success', 'blocked_vectors' => $blocked_vectors]);
 ?>

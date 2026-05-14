@@ -1,0 +1,21 @@
+vid,day,start,end,subject
+MSMX0001,Monday,08:00,10:00,Data Structures
+MSMX0001,Monday,10:00,12:00,Algorithms
+MSMR2016,Tuesday,14:00,16:00,Database Systems
+MSMR2012,Wednesday,09:00,11:00,Software Engineering
+MSMX0002,Thursday,10:00,13:00,Operating Systems
+MSMX0003,Friday,08:00,10:00,Computer Networks
+MSMR3012,Monday,14:00,16:00,AI Fundamentals
+MSMR3013,Tuesday,10:00,12:00,Machine Learning
+MSMR3014,Wednesday,14:00,17:00,Deep Learning
+MSMR3015,Thursday,08:00,10:00,Cloud Computing
+MSMX2001,Friday,14:00,16:00,Cyber Security
+MSMX2002,Monday,16:00,18:00,Web Development
+MSMX0001,Monday,09:00,11:00,Advanced Data Structures
+MSMR2016,Tuesday,13:30,15:30,Database Lab
+MSMX0002,Thursday,10:00,13:00,Operating Systems Tutorial
+MSMX0003,Saturday,09:00,12:00,Weekend Workshop
+MSMR2016,Monday,08:00,10:00,Calculus I
+MSMR2016,Monday,07:30,08:30,Physics I
+MSMX2003,Wednesday,12:00,14:00,Ethics in IT
+MSMX2003,Wednesday,11:00,12:30,Law in IT

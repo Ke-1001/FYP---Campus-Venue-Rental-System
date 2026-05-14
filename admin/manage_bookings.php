@@ -60,11 +60,10 @@ $kpi_assign = $conn->query($sql_kpi_assign)->fetch_row()[0] ?? 0;
                 <a href="assign_inspector.php" class="fiori-tile">
                     <div class="fiori-tile-header">
                         <h3 class="fiori-tile-title">Assign Inspector</h3>
-                        <i data-lucide="users" class="w-5 h-5 fiori-tile-icon"></i>
                     </div>
                     <p class="fiori-tile-desc">Assign staff to inspect venues after they are used.</p>
                     <div class="fiori-tile-kpi">
-                        <?php echo $kpi_assign; ?>
+                        <i data-lucide="users" class="w-5 h-5 fiori-tile-icon"></i><?php echo $kpi_assign; ?>
                     </div>
                     <div class="fiori-tile-footer">
                         Assign Staff <i data-lucide="arrow-right" class="w-3 h-3 ml-2"></i>

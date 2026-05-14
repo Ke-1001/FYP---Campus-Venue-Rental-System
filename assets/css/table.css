@@ -1,0 +1,93 @@
+/* =========================================
+   Table Layout & Container
+========================================= */
+.custom-table-container {
+    background-color: #ffffff;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    border: 1px solid #e2e8f0; /* border-slate-200 */
+    overflow: hidden;
+}
+
+.custom-table {
+    width: 100%;
+    text-align: left;
+    border-collapse: collapse;
+}
+
+/* =========================================
+   Table Header (Thead & Th)
+========================================= */
+.custom-table thead {
+    background-color: #ffffff;
+    font-size: 14px; /* Chrome 标准表格表头大小 */
+    color: #64748b; /* text-slate-500 */
+    font-weight: 600; /* Chrome 原生风格一般不用纯黑体 (900)，改用 600 或 bold 视觉更舒适 */
+    text-transform: uppercase;
+    letter-spacing: 0.05em; 
+    border-bottom: 1px solid #e2e8f0; /* border-slate-200 */
+}
+
+.custom-table th {
+    padding: 1rem; /* px-4 py-4 */
+}
+
+/* =========================================
+   Table Body (Tbody, Tr, Td)
+========================================= */
+.custom-table tbody {
+    font-size: 14px; /* Chrome 标准正文大小 */
+}
+
+.custom-table tr {
+    transition: background-color 150ms ease-in-out;
+    vertical-align: middle;
+    cursor: pointer;
+    border-bottom: 1px solid #f1f5f9; /* divide-y divide-slate-100 */
+}
+
+.custom-table tr:last-child {
+    border-bottom: none;
+}
+
+.custom-table tr:hover {
+    background-color: #f8fafc; /* hover:bg-slate-50 */
+}
+
+.custom-table td {
+    padding: 1.25rem 1rem; /* px-4 py-5 */
+}
+
+/* =========================================
+   Table Content Design (Fonts, Colors)
+========================================= */
+/* 替换为 Chrome 常见的无衬线系统字体栈，大小设为标准 14px */
+.td-text-mono {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 14px; 
+    color: #1e293b; /* text-slate-800 */
+    display: block;
+    transition: color 150ms ease-in-out;
+    font-weight: 500;
+}
+
+/* 链接的悬浮样式 */
+a.td-text-mono:hover {
+    color: #94a3b8; /* hover:text-slate-400 */
+    text-decoration: underline;
+}
+
+/* Action 按钮样式 (仅 > 符号) */
+.td-action-btn {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 18px; /* 略大一点，保持点击区域和视觉平衡 */
+    color: #1e293b;
+    display: block;
+    transition: color 150ms ease-in-out;
+    text-decoration: none;
+}
+
+.td-action-btn:hover {
+    color: #94a3b8; /* hover:text-slate-400 */
+    text-decoration: none;
+}
