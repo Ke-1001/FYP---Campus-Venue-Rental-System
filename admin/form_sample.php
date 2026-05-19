@@ -15,7 +15,7 @@ require_once '../config/db.php';
     <script>
         tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b', accent: '#38bdf8' } } } } }
     </script>
-    <link rel="stylesheet" href="layout.css?v=1.2">
+    <link rel="stylesheet" href="../assets/css/layout.css?v=1.2">
     <link rel="stylesheet" href="../assets/css/fiori_forms.css">
     <style>
         /* 隱藏 WebKit 原生日曆圖示，以維持 Fiori UI 視覺純粹度 */

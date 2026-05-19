@@ -37,7 +37,7 @@ $semesters = $conn->query("SELECT sem_id, sem_name, is_active FROM semester_conf
             } 
         }
     </script>
-    <link rel="stylesheet" href="layout.css?v=1.2">
+    <link rel="stylesheet" href="../assets/css/layout.css?v=1.2">
     <link rel="stylesheet" href="../assets/css/fiori_forms.css">
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
@@ -66,7 +66,12 @@ $semesters = $conn->query("SELECT sem_id, sem_name, is_active FROM semester_conf
             <div class="w-full max-w-4xl space-y-8">
 
                 <form action="../actions/process_schedule.php" method="POST" id="exclusionForm" class="fiori-form-container shadow-sm border border-slate-200">
-                    <input type="hidden" name="action" value="<?php echo strtolower($mode); ?>">
+                    
+                    <?php 
+                        $action_val = ($mode === 'Add') ? 'create' : 'update';
+                    ?>
+                    <input type="hidden" name="action" value="<?php echo $action_val; ?>">
+
                     <?php if ($mode === 'Update'): ?><input type="hidden" name="sch_id" value="<?php echo $sch_id; ?>"><?php endif; ?>
 
                     <div class="fiori-section-header">
@@ -133,6 +138,12 @@ $semesters = $conn->query("SELECT sem_id, sem_name, is_active FROM semester_conf
                             </div>
                         </div>
                     </div>
+                    <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end">
+                        <button type="button" onclick="window.location.href='academic_schedule.php'" class="px-5 py-2 text-sm font-bold text-indigo-600 hover:bg-indigo-50 rounded transition-colors mr-2">Cancel</button>
+                        <button type="submit" id="submitBtn" class="px-6 py-2 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm">
+                            <i data-lucide="save" class="w-4 h-4 mr-2 inline"></i> <?php echo ($mode === 'Update') ? 'Save Changes' : 'Add Single Entry'; ?>
+                        </button>
+                    </div>
                 </form>
 
                 <?php if ($mode === 'Add'): ?>
@@ -184,13 +195,6 @@ $semesters = $conn->query("SELECT sem_id, sem_name, is_active FROM semester_conf
 
             </div>
         </div>
-
-        <div class="fiori-footer-toolbar shrink-0 z-20 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
-            <button type="button" onclick="window.location.href='academic_schedule.php'" class="fiori-btn-cancel">Discard</button>
-            <button type="submit" form="exclusionForm" id="submitBtn" class="fiori-btn-primary">
-                <i data-lucide="save" class="w-4 h-4 mr-2 inline"></i> <?php echo ($mode === 'Update') ? 'Save Changes' : 'Add Single Entry'; ?>
-            </button>
-        </div>
         
     </main>
 
@@ -198,6 +202,7 @@ $semesters = $conn->query("SELECT sem_id, sem_name, is_active FROM semester_conf
 
     <script>
         lucide.createIcons();
+
         
         // 單筆表單提交防護
         document.getElementById('exclusionForm').addEventListener('submit', function() {
@@ -207,6 +212,8 @@ $semesters = $conn->query("SELECT sem_id, sem_name, is_active FROM semester_conf
             btn.style.pointerEvents = 'none';
             lucide.createIcons();
         });
+
+        
 
         // 批量匯入表單提交防護
         const csvForm = document.getElementById('csvSubmitForm');

@@ -43,7 +43,7 @@ $result = $conn->query($sql);
             } 
         }
     </script>
-    <link rel="stylesheet" href="layout.css?v=1.2">
+    <link rel="stylesheet" href="../assets/css/layout.css?v=1.2">
     <link rel="stylesheet" href="../assets/css/table.css">
     <link rel="stylesheet" href="../assets/css/fiori_forms.css">
 </head>

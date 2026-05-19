@@ -15,7 +15,7 @@ require_once '../includes/admin_auth.php';
     <script>
         tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b' }, fiori: { bg: '#f4f4f4', text: '#1d2d3e', blue: '#0a6ed1', label: '#6b7280' } } } } }
     </script>
-    <link rel="stylesheet" href="layout.css?v=1.2">
+    <link rel="stylesheet" href="../assets/css/layout.css?v=1.2">
     <link rel="stylesheet" href="../assets/css/fiori_forms.css">
     <style>
         /* 隱藏原生日期選擇器圖示，改用 Lucide 圖示 */
