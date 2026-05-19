@@ -4,20 +4,24 @@ session_start();
 require_once '../config/db.php';
 require_once '../includes/admin_auth.php';
 
-// 💡 提取要編輯的特定學期資料 (Update Mode)
-$edit_id = isset($_GET['edit']) ? intval($_GET['edit']) : 0;
-$edit_data = null;
+// 💡 1. 提取多维度过滤参数
+$f_status = isset($_GET['filter_status']) ? trim($_GET['filter_status']) : 'all';
+$f_search = isset($_GET['filter_search']) ? trim($_GET['filter_search']) : '';
 
-if ($edit_id > 0) {
-    $stmt = $conn->prepare("SELECT * FROM semester_config WHERE sem_id = ?");
-    $stmt->bind_param("i", $edit_id);
-    $stmt->execute();
-    $edit_data = $stmt->get_result()->fetch_assoc();
-    $stmt->close();
+// 💡 2. 构建动态过滤查询
+$sql = "SELECT * FROM semester_config WHERE 1=1";
+
+if ($f_status === 'active') {
+    $sql .= " AND is_active = 1";
+} elseif ($f_status === 'inactive') {
+    $sql .= " AND is_active = 0";
 }
 
-// 💡 提取所有學期配置，按時間降冪排列
-$sql = "SELECT * FROM semester_config ORDER BY start_date DESC";
+if (!empty($f_search)) {
+    $sql .= " AND sem_name LIKE '%" . $conn->real_escape_string($f_search) . "%'";
+}
+
+$sql .= " ORDER BY start_date DESC";
 $result = $conn->query($sql);
 ?>
 <!DOCTYPE html>
@@ -25,216 +29,148 @@ $result = $conn->query($sql);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MMU Admin | Semester Configuration</title>
+    <title>MMU Admin | Semester Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
-        tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b' } } } } }
+        tailwind.config = { 
+            theme: { 
+                extend: { 
+                    colors: { 
+                        cstyle: { blue: '#004aad', dark: '#1e293b' }
+                    } 
+                } 
+            } 
+        }
     </script>
     <link rel="stylesheet" href="layout.css?v=1.2">
+    <link rel="stylesheet" href="../assets/css/table.css">
     <link rel="stylesheet" href="../assets/css/fiori_forms.css">
-    <style>
-        input[type="date"]::-webkit-calendar-picker-indicator { display: none; -webkit-appearance: none; }
-    </style>
 </head>
-<body class="bg-[#f4f4f4] text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
+<body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
 
     <?php include('../includes/admin_sidebar.php'); ?>
 
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
         
-            <?php 
-                $topbar_content = '<div class="flex items-center">
-                    <a href="academic.php" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 flex items-center mr-4 transition-colors">
-                        <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i> Back
-                    </a>
-                    <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Academic / Semester</h2>
-                </div>';
-                include('../includes/admin_topbar.php'); 
-            ?>
+        <?php 
+        $topbar_content = '<div class="flex items-center">
+            <a href="academic.php" class="text-sm font-bold text-[#004aad] hover:text-[#003882] flex items-center mr-4 transition-colors">
+                <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i> Back
+            </a>
+            <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Academic / Semester Management</h2>
+        </div>';
+        include('../includes/admin_topbar.php'); 
+        ?>
 
-        <div class="flex-1 overflow-y-auto p-8 scroll-smooth flex flex-col xl:flex-row gap-8">
+        <div class="px-8 pt-6 pb-2 bg-slate-50 shrink-0">
+            <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Semester Management</h1>
+            <p class="text-xs text-slate-500 mt-1">Manage academic terms, dates, and status settings.</p>
+        </div>
+
+        <div class="px-8 py-3 bg-slate-50 shrink-0">
+            <form method="GET" action="semester_management.php" id="filterForm" class="bg-white border border-slate-200 rounded-md p-3 shadow-sm flex flex-wrap items-center gap-4">
+                <div class="flex items-center space-x-2">
+                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Search:</label>
+                    <input type="text" name="filter_search" value="<?php echo htmlspecialchars($f_search); ?>" placeholder="e.g., Term 1" class="border border-slate-200 rounded px-3 py-1.5 text-xs font-semibold focus:outline-none focus:border-[#004aad] w-48 bg-white">
+                </div>
+
+                <div class="flex items-center space-x-2">
+                    <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Status:</label>
+                    <select name="filter_status" onchange="this.form.submit()" class="border border-slate-200 rounded px-3 py-1.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#004aad] cursor-pointer bg-white">
+                        <option value="all" <?php echo $f_status === 'all' ? 'selected' : ''; ?>>All Status</option>
+                        <option value="active" <?php echo $f_status === 'active' ? 'selected' : ''; ?>>Active Only</option>
+                        <option value="inactive" <?php echo $f_status === 'inactive' ? 'selected' : ''; ?>>Inactive Only</option>
+                    </select>
+                </div>
+
+                <a href="semester_management.php" class="px-4 py-2 bg-transparent text-slate-600 text-sm font-semibold rounded-md hover:bg-slate-100 border border-transparent transition flex items-center justify-center ml-auto">
+                    Reset
+                </a>
+            </form>
+        </div>
+
+        <div class="mx-8 mb-4 bg-white p-3 rounded-md border border-slate-200 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] shrink-0 flex justify-between items-center">
+            <div class="text-xs font-bold text-slate-500 pl-2">
+                <span id="cb-counter">0</span> selected
+            </div>
             
-            <div class="w-full xl:w-1/3 shrink-0">
-                <div class="mb-6">
-                    <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Boundary Config</h1>
-                    <p class="text-xs text-slate-500 mt-1">Define academic temporal limits.</p>
-                </div>
-
-                <form action="../actions/process_semester.php" method="POST" class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden flex flex-col">
-                    <input type="hidden" name="action" value="<?php echo $edit_data ? 'update' : 'create'; ?>">
-                    <?php if ($edit_data): ?>
-                        <input type="hidden" name="sem_id" value="<?php echo $edit_id; ?>">
-                    <?php endif; ?>
-
-                    <div class="px-6 py-4 border-b border-slate-200 bg-white">
-                        <h2 class="text-sm font-bold text-slate-800 flex items-center">
-                            <?php if ($edit_data): ?>
-                                <i data-lucide="edit" class="w-4 h-4 mr-2 text-amber-500"></i> Modify Semester Node
-                            <?php else: ?>
-                                <i data-lucide="calendar-plus" class="w-4 h-4 mr-2 text-indigo-600"></i> Initialize Semester
-                            <?php endif; ?>
-                        </h2>
-                    </div>
-                    <div class="p-6 space-y-5 flex-1">
-                        
-                        <div>
-                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Semester Nomenclature</label>
-                            <input type="text" name="sem_name" value="<?php echo $edit_data ? htmlspecialchars($edit_data['sem_name']) : ''; ?>" required placeholder="e.g., Trimester 1, 2026/2027" class="fiori-input w-full">
-                        </div>
-
-                        <div>
-                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Temporal Start ($S_{start}$)</label>
-                            <div class="relative">
-                                <input type="date" name="start_date" id="start_date" value="<?php echo $edit_data ? $edit_data['start_date'] : ''; ?>" required class="fiori-input w-full uppercase font-mono pr-8">
-                                <i data-lucide="calendar" onclick="document.getElementById('start_date').showPicker()" class="w-4 h-4 text-slate-400 absolute right-3 top-2.5 cursor-pointer hover:text-indigo-600"></i>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Temporal End ($S_{end}$)</label>
-                            <div class="relative">
-                                <input type="date" name="end_date" id="end_date" value="<?php echo $edit_data ? $edit_data['end_date'] : ''; ?>" required class="fiori-input w-full uppercase font-mono pr-8">
-                                <i data-lucide="calendar" onclick="document.getElementById('end_date').showPicker()" class="w-4 h-4 text-slate-400 absolute right-3 top-2.5 cursor-pointer hover:text-indigo-600"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="border-t border-slate-200 bg-white px-6 py-3 flex justify-end space-x-2 shrink-0 z-20 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
-                        <?php if ($edit_data): ?>
-                            <button type="button" onclick="window.location.href='semester_management.php'" class="px-5 py-2 text-sm font-bold text-indigo-600 hover:bg-indigo-50 rounded transition-colors">
-                                Discard
-                            </button>
-                            <button type="submit" class="px-5 py-2 text-sm font-bold text-white bg-amber-500 hover:bg-amber-600 rounded transition-colors shadow-sm">
-                                Save Changes
-                            </button>
-                        <?php else: ?>
-                            <button type="submit" class="px-5 py-2 text-sm font-bold text-white bg-[#0a6ed1] hover:bg-[#085caf] rounded transition-colors shadow-sm">
-                                Initialize
-                            </button>
-                        <?php endif; ?>
-                    </div>
-                </form>
+            <div class="flex space-x-2">
+                <button onclick="window.location.href='add_semester.php'" class="px-4 py-2 text-xs font-semibold text-white bg-[#004aad] hover:bg-[#003882] rounded-md shadow-sm transition border border-[#004aad]">
+                    <i data-lucide="plus" class="w-3.5 h-3.5 inline mr-1"></i> Create Semester
+                </button>
+                <button id="btn-edit" disabled onclick="executeAction('edit')" class="px-4 py-2 text-xs font-semibold text-slate-400 bg-slate-100 rounded-md transition cursor-not-allowed border border-slate-200">
+                    <i data-lucide="edit-3" class="w-3.5 h-3.5 inline mr-1"></i> Edit
+                </button>
+                <button id="btn-delete" disabled onclick="executeAction('delete')" class="px-4 py-2 text-xs font-semibold text-slate-400 bg-slate-100 rounded-md transition cursor-not-allowed border border-slate-200">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5 inline mr-1"></i> Delete
+                </button>
             </div>
+        </div>
 
-            <div class="w-full xl:w-2/3 flex flex-col">
-                <div class="mb-6">
-                    <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Trimester List</h1>
-                    <p class="text-xs text-slate-500 mt-1">Control active status and student booking permissions.</p>
-                </div>
-
-                <div class="bg-white rounded-lg shadow-sm border border-slate-200 flex-1 overflow-hidden flex flex-col">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse min-w-[700px]">
-                            <thead class="bg-slate-50 text-[10px] text-slate-400 font-black uppercase tracking-widest border-b border-slate-200">
-                                <tr>
-                                    <th class="px-6 py-4">Semester Node</th>
-                                    <th class="px-6 py-4">Temporal Boundary</th>
-                                    <th class="px-6 py-4 text-center">Global State</th>
-                                    <th class="px-6 py-4 text-center">Booking Gateway</th>
-                                    <th class="px-6 py-4 text-right">Execution</th>
+        <div class="flex-1 overflow-y-auto px-8 pb-8">
+            <form id="bulkActionForm" action="../actions/process_semester.php" method="POST" class="w-full">
+                <input type="hidden" name="action" id="bulk_action_type" value="">
+                
+                <div class="custom-table-container">
+                    <table class="custom-table w-full">
+                        <thead>
+                            <tr>
+                                <th class="w-12 text-center">
+                                    <input type="checkbox" id="selectAll" onclick="toggleAll(this)" class="w-4 h-4 rounded border-slate-300 text-[#004aad] focus:ring-[#004aad] cursor-pointer">
+                                </th>
+                                <th class="w-32">Semester ID</th>
+                                <th>Semester Name</th>
+                                <th class="w-48">Start Date</th>
+                                <th class="w-48">End Date</th>
+                                <th class="w-32 text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if ($result && $result->num_rows > 0): ?>
+                                <?php while($row = $result->fetch_assoc()): ?>
+                                <tr ondblclick="window.location.href='add_semester.php?id=<?php echo $row['sem_id']; ?>'">
+                                    <td class="text-center" onclick="event.stopPropagation();">
+                                        <input type="checkbox" name="selected_ids[]" value="<?php echo $row['sem_id']; ?>" onclick="updateButtonStates()" class="row-cb w-4 h-4 rounded border-slate-300 text-[#004aad] focus:ring-[#004aad] cursor-pointer">
+                                    </td>
+                                    <td><span class="td-text-mono text-slate-400">#<?php echo $row['sem_id']; ?></span></td>
+                                    <td>
+                                        <a href="add_semester.php?id=<?php echo $row['sem_id']; ?>" class="td-text-mono text-slate-900">
+                                            <?php echo htmlspecialchars($row['sem_name']); ?>
+                                        </a>
+                                    </td>
+                                    <td><span class="td-text-mono font-mono text-slate-600"><?php echo $row['start_date']; ?></span></td>
+                                    <td><span class="td-text-mono font-mono text-slate-600"><?php echo $row['end_date']; ?></span></td>
+                                    <td class="text-center">
+                                        <?php if ($row['is_active'] == 1): ?>
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-sm text-[10px] font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200">Active</span>
+                                        <?php else: ?>
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-sm text-[10px] font-bold uppercase bg-slate-100 text-slate-600 border border-slate-200">Inactive</span>
+                                        <?php endif; ?>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody class="text-sm divide-y divide-slate-100">
-                                <?php if ($result && $result->num_rows > 0): ?>
-                                    <?php while($row = $result->fetch_assoc()): 
-                                        $is_active = (int)$row['is_active'] === 1;
-                                        $is_open = (int)$row['is_booking_open'] === 1;
-                                    ?>
-                                    <tr class="hover:bg-slate-50 transition-colors <?php echo $is_active ? 'bg-indigo-50/20' : ''; ?>">
-                                        <td class="px-6 py-4">
-                                            <span class="font-bold text-slate-800 block"><?php echo htmlspecialchars($row['sem_name']); ?></span>
-                                            <span class="text-[9px] text-slate-400 font-mono uppercase tracking-wider mt-1 block">ID: SEM-<?php echo $row['sem_id']; ?></span>
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <span class="font-mono text-xs text-slate-600 block"><span class="mr-1 font-sans font-bold text-[10px] text-slate-400">START</span> <?php echo date('M d, Y', strtotime($row['start_date'])); ?></span>
-                                            <span class="font-mono text-xs text-slate-600 block mt-1"><span class="mr-3 font-sans font-bold text-[10px] text-slate-400">END</span> <?php echo date('M d, Y', strtotime($row['end_date'])); ?></span>
-                                        </td>
-                                        
-                                        <td class="px-6 py-4 text-center">
-                                            <form action="../actions/process_semester.php" method="POST" class="inline-block">
-                                                <input type="hidden" name="action" value="toggle_active">
-                                                <input type="hidden" name="sem_id" value="<?php echo $row['sem_id']; ?>">
-                                                <?php if ($is_active): ?>
-                                                    <button type="button" disabled class="px-3 py-1.5 bg-emerald-100 text-emerald-700 border border-emerald-200 rounded text-[10px] font-black uppercase tracking-widest cursor-default flex items-center mx-auto">
-                                                        <i data-lucide="check-circle-2" class="w-3 h-3 mr-1.5"></i> Current
-                                                    </button>
-                                                <?php else: ?>
-                                                    <button type="button" onclick="triggerCustomModal(this.closest('form'), 'Promote this semester to Current Active State? All others will be deactivated.')" class="px-3 py-1.5 bg-white text-slate-500 border border-slate-300 hover:border-emerald-400 hover:text-emerald-600 hover:bg-emerald-50 rounded text-[10px] font-black uppercase tracking-widest transition-colors flex items-center mx-auto shadow-sm">
-                                                        Set Active
-                                                    </button>
-                                                <?php endif; ?>
-                                            </form>
-                                        </td>
-                                        
-                                        <td class="px-6 py-4 text-center">
-                                            <form action="../actions/process_semester.php" method="POST" class="inline-block">
-                                                <input type="hidden" name="action" value="toggle_booking">
-                                                <input type="hidden" name="sem_id" value="<?php echo $row['sem_id']; ?>">
-                                                <?php if ($is_open): ?>
-                                                    <button type="button" onclick="triggerCustomModal(this.closest('form'), 'Lock the booking gateway? Students will immediately be blocked from reserving venues.')" class="px-3 py-1.5 bg-blue-50 text-blue-600 border border-blue-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200 rounded text-[10px] font-black uppercase tracking-widest transition-colors flex items-center mx-auto shadow-sm group">
-                                                        <i data-lucide="unlock" class="w-3 h-3 mr-1.5 group-hover:hidden"></i>
-                                                        <i data-lucide="lock" class="w-3 h-3 mr-1.5 hidden group-hover:inline"></i>
-                                                        Open
-                                                    </button>
-                                                <?php else: ?>
-                                                    <button type="button" onclick="triggerCustomModal(this.closest('form'), 'Unlock the booking gateway? Students will be able to submit reservations.')" class="px-3 py-1.5 bg-slate-100 text-slate-500 border border-slate-300 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 rounded text-[10px] font-black uppercase tracking-widest transition-colors flex items-center mx-auto shadow-sm group">
-                                                        <i data-lucide="lock" class="w-3 h-3 mr-1.5 group-hover:hidden"></i>
-                                                        <i data-lucide="unlock" class="w-3 h-3 mr-1.5 hidden group-hover:inline"></i>
-                                                        Locked
-                                                    </button>
-                                                <?php endif; ?>
-                                            </form>
-                                        </td>
-                                        
-                                        <td class="px-6 py-4 text-right">
-                                            <div class="flex items-center justify-end space-x-1">
-                                                <a href="?edit=<?php echo $row['sem_id']; ?>" class="p-2 text-indigo-500 hover:bg-indigo-50 rounded transition" title="Modify Record">
-                                                    <i data-lucide="edit-3" class="w-4 h-4"></i>
-                                                </a>
-                                                <form action="../actions/process_semester.php" method="POST" class="inline">
-                                                    <input type="hidden" name="action" value="delete">
-                                                    <input type="hidden" name="sem_id" value="<?php echo $row['sem_id']; ?>">
-                                                    <button type="button" onclick="triggerCustomModal(this.closest('form'), 'CRITICAL WARNING: Purge this semester boundary? This action is irreversible.')" class="p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded transition" title="Purge Boundary">
-                                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <?php endwhile; ?>
-                                <?php else: ?>
-                                    <tr>
-                                        <td colspan="5" class="px-6 py-12 text-center text-slate-400 font-medium">
-                                            <i data-lucide="layers" class="w-10 h-10 mx-auto text-slate-300 mb-3 opacity-50"></i>
-                                            Zero bounds detected. Initialize a semester to begin.
-                                        </td>
-                                    </tr>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
-                    </div>
+                                <?php endwhile; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="6" class="py-16 text-center text-slate-500 border-none hover:bg-transparent cursor-default">
+                                        <span class="text-sm font-medium tracking-wide">No semesters found.</span>
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
                 </div>
-            </div>
-
+            </form>
         </div>
     </main>
 
-    <div id="custom-action-modal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center transition-opacity opacity-0">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform" id="custom-modal-panel">
-            <div class="p-6">
-                <div class="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center mb-4">
-                    <i data-lucide="alert-triangle" class="w-6 h-6 text-amber-600"></i>
-                </div>
-                <h3 class="text-lg font-extrabold text-slate-800 mb-2">Execution Confirmation</h3>
-                <p id="custom-modal-msg" class="text-sm text-slate-500 font-medium leading-relaxed"></p>
-            </div>
-            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end space-x-3">
-                <button type="button" onclick="closeCustomModal()" class="px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-200 rounded-lg transition-colors">
-                    Cancel
-                </button>
-                <button type="button" id="custom-modal-confirm-btn" class="px-4 py-2 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-sm">
-                    Proceed
-                </button>
+    <div id="custom-delete-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 backdrop-blur-sm opacity-0 transition-opacity duration-200">
+        <div id="custom-modal-panel" class="bg-white rounded-md shadow-lg w-full max-w-sm p-6 transform scale-95 transition-transform duration-200 border border-slate-200">
+            <h3 class="text-base font-bold text-slate-900 mb-2">Delete Semester</h3>
+            <p class="text-sm text-slate-600 mb-6" id="custom-modal-msg">Are you sure you want to delete the selected semester(s)?</p>
+            <div class="flex justify-end space-x-3">
+                <button type="button" onclick="closeCustomModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 bg-transparent hover:bg-slate-100 rounded-md transition-colors">Cancel</button>
+                <button type="button" id="custom-modal-confirm-btn" class="px-4 py-2 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-md shadow-sm transition-colors border border-red-600">Delete</button>
             </div>
         </div>
     </div>
@@ -245,45 +181,81 @@ $result = $conn->query($sql);
         lucide.createIcons();
         function toggleSidebar() { document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed'); }
 
-        // Custom Modal Logic Engine
-        let pendingFormToSubmit = null;
+        // ∴ Checkbox 状态机核心交互逻辑
+        function toggleAll(source) {
+            const checkboxes = document.querySelectorAll('.row-cb');
+            for(let i = 0; i < checkboxes.length; i++) {
+                checkboxes[i].checked = source.checked;
+            }
+            updateButtonStates();
+        }
 
-        function triggerCustomModal(formElement, message) {
-            pendingFormToSubmit = formElement;
-            document.getElementById('custom-modal-msg').innerText = message;
+        function updateButtonStates() {
+            const selected = document.querySelectorAll('.row-cb:checked');
+            const btnEdit = document.getElementById('btn-edit');
+            const btnDelete = document.getElementById('btn-delete');
+            const counter = document.getElementById('cb-counter');
             
-            const modal = document.getElementById('custom-action-modal');
+            counter.innerText = selected.length;
+
+            if (selected.length === 1) {
+                btnEdit.disabled = false; 
+                btnEdit.className = "px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-md shadow-sm transition cursor-pointer";
+                btnDelete.disabled = false; 
+                btnDelete.className = "px-4 py-2 text-xs font-semibold text-[#dc2626] bg-white hover:bg-red-50 border border-red-200 rounded-md shadow-sm transition cursor-pointer";
+            } else if (selected.length > 1) {
+                btnEdit.disabled = true; 
+                btnEdit.className = "px-4 py-2 text-xs font-semibold text-slate-400 bg-slate-100 rounded-md transition cursor-not-allowed border border-slate-200";
+                btnDelete.disabled = false; 
+                btnDelete.className = "px-4 py-2 text-xs font-semibold text-[#dc2626] bg-white hover:bg-red-50 border border-red-200 rounded-md shadow-sm transition cursor-pointer";
+            } else {
+                btnEdit.disabled = true; 
+                btnEdit.className = "px-4 py-2 text-xs font-semibold text-slate-400 bg-slate-100 rounded-md transition cursor-not-allowed border border-slate-200";
+                btnDelete.disabled = true; 
+                btnDelete.className = "px-4 py-2 text-xs font-semibold text-slate-400 bg-slate-100 rounded-md transition cursor-not-allowed border border-slate-200";
+            }
+        }
+
+        // ∴ 路由路由控制逻辑与 P_6 自定义弹窗激活
+        function executeAction(type) {
+            const form = document.getElementById('bulkActionForm');
+            const selected = document.querySelectorAll('.row-cb:checked');
+            if (selected.length === 0) return;
+
+            if (type === 'edit') {
+                if (selected.length !== 1) return;
+                window.location.href = `add_semester.php?id=${selected[0].value}`;
+            } else if (type === 'delete') {
+                // 触发自修定 Fiori 模态框，彻底阻断 window.confirm() 的 localhost 提示
+                document.getElementById('custom-modal-msg').innerText = `Are you sure you want to permanently delete the ${selected.length} selected semester(s)?`;
+                openCustomModal();
+            }
+        }
+
+        function openCustomModal() {
+            const modal = document.getElementById('custom-delete-modal');
             const panel = document.getElementById('custom-modal-panel');
-            
             modal.classList.remove('hidden');
-            // Trigger reflow
-            void modal.offsetWidth;
-            
+            void modal.offsetWidth; // 强制 Reflow 保证动画顺畅
             modal.classList.remove('opacity-0');
             panel.classList.remove('scale-95');
         }
 
         function closeCustomModal() {
-            const modal = document.getElementById('custom-action-modal');
+            const modal = document.getElementById('custom-delete-modal');
             const panel = document.getElementById('custom-modal-panel');
-            
             modal.classList.add('opacity-0');
             panel.classList.add('scale-95');
-            
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                pendingFormToSubmit = null;
-            }, 200);
+            setTimeout(() => { modal.classList.add('hidden'); }, 200);
         }
 
+        // 绑定自修定模态框的确认提交事件
         document.getElementById('custom-modal-confirm-btn').addEventListener('click', function() {
-            if (pendingFormToSubmit) {
-                // To display spinner or loading state
-                this.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>';
-                lucide.createIcons();
-                this.classList.add('opacity-70', 'cursor-not-allowed');
-                pendingFormToSubmit.submit();
-            }
+            const form = document.getElementById('bulkActionForm');
+            document.getElementById('bulk_action_type').value = 'delete';
+            this.innerHTML = 'Deleting...';
+            this.disabled = true;
+            form.submit();
         });
     </script>
 </body>

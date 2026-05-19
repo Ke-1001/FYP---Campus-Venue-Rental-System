@@ -67,8 +67,7 @@ $result = $conn->query($sql);
     <?php include('../includes/admin_sidebar.php'); ?>
 
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
-        
-        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-10 shrink-0">
+
             <?php 
             $topbar_content = '<div class="flex items-center">
                 <a href="manage_bookings.php" class="text-sm font-bold text-[#004aad] hover:text-[#003882] flex items-center mr-4 transition-colors">
@@ -78,7 +77,6 @@ $result = $conn->query($sql);
             </div>';
             include('../includes/admin_topbar.php'); 
             ?>
-        </header>
 
         <div class="flex-1 overflow-y-auto p-8 scroll-smooth">
             

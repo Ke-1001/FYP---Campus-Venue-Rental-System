@@ -7,10 +7,13 @@ require_once '../includes/admin_auth.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
     
+    // 啟動資料庫原子交易
     $conn->begin_transaction();
 
     try {
         if ($action === 'create' || $action === 'update') {
+            // 💡 1. 嚴格提取包含 sem_id 的時空向量
+            $sem_id = intval($_POST['sem_id'] ?? 0);
             $vid = trim($_POST['vid'] ?? '');
             $day = $_POST['day_of_week'] ?? '';
             $start = $_POST['start_time'] ?? '';
@@ -18,51 +21,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $subject = trim($_POST['subject'] ?? '');
             $sch_id = intval($_POST['sch_id'] ?? 0);
 
-            if (empty($vid) || empty($start) || empty($end)) {
-                throw new Exception("Validation Error: Missing time-space vectors.");
+            if ($sem_id === 0 || empty($vid) || empty($start) || empty($end)) {
+                throw new Exception("Validation Fault: Missing spatiotemporal or semester vectors.");
             }
             if (strtotime($end) <= strtotime($start)) {
-                throw new Exception("Logical Error: End time must strictly succeed start time.");
+                throw new Exception("Logical Fault: End time must strictly succeed start time.");
             }
 
-            // 💡 排除矩陣碰撞檢查 (Exclusion Collision Check)
-            // 檢查該場地在同一天是否有重疊的課
+            // 💡 2. 3D 空間碰撞檢查 (包含 sem_id 約束)
             $sql_check = "SELECT subject_name FROM academic_schedule 
-                          WHERE vid = ? AND day_of_week = ? 
+                          WHERE vid = ? AND sem_id = ? AND day_of_week = ? 
                           AND start_time < ? AND end_time > ?";
             
-            if ($action === 'update') $sql_check .= " AND sch_id != $sch_id";
+            if ($action === 'update') {
+                $sql_check .= " AND sch_id != ?";
+            }
 
             $stmt_check = $conn->prepare($sql_check);
-            $stmt_check->bind_param("ssss", $vid, $day, $end, $start);
+            if ($action === 'update') {
+                $stmt_check->bind_param("sisssi", $vid, $sem_id, $day, $end, $start, $sch_id);
+            } else {
+                $stmt_check->bind_param("sisss", $vid, $sem_id, $day, $end, $start);
+            }
             $stmt_check->execute();
             $overlap = $stmt_check->get_result()->fetch_assoc();
+            $stmt_check->close();
 
             if ($overlap) {
-                throw new Exception("Schedule Conflict: This slot overlaps with [{$overlap['subject_name']}].");
+                throw new Exception("Schedule Conflict: This vector overlaps with [{$overlap['subject_name']}] in the designated semester.");
             }
 
+            // 💡 3. 執行資料寫入
             if ($action === 'create') {
-                $stmt = $conn->prepare("INSERT INTO academic_schedule (vid, day_of_week, start_time, end_time, subject_name) VALUES (?, ?, ?, ?, ?)");
-                $stmt->bind_param("sssss", $vid, $day, $start, $end, $subject);
+                $stmt = $conn->prepare("INSERT INTO academic_schedule (vid, sem_id, day_of_week, start_time, end_time, subject_name) VALUES (?, ?, ?, ?, ?, ?)");
+                $stmt->bind_param("sissss", $vid, $sem_id, $day, $start, $end, $subject);
             } else {
-                $stmt = $conn->prepare("UPDATE academic_schedule SET vid = ?, day_of_week = ?, start_time = ?, end_time = ?, subject_name = ? WHERE sch_id = ?");
-                $stmt->bind_param("sssssi", $vid, $day, $start, $end, $subject, $sch_id);
+                $stmt = $conn->prepare("UPDATE academic_schedule SET vid = ?, sem_id = ?, day_of_week = ?, start_time = ?, end_time = ?, subject_name = ? WHERE sch_id = ?");
+                $stmt->bind_param("sissssi", $vid, $sem_id, $day, $start, $end, $subject, $sch_id);
             }
             $stmt->execute();
+            if ($stmt->error) throw new Exception("Database Execution Fault: " . $stmt->error);
+            $stmt->close();
+            
             $_SESSION['toast'] = ['type' => 'success', 'msg' => "Academic slot successfully " . ($action === 'create' ? "locked." : "modified.")];
 
-        } elseif ($action === 'delete') {
-            $sch_id = intval($_POST['sch_id'] ?? 0);
-            $stmt = $conn->prepare("DELETE FROM academic_schedule WHERE sch_id = ?");
-            $stmt->bind_param("i", $sch_id);
-            $stmt->execute();
-            $_SESSION['toast'] = ['type' => 'success', 'msg' => "Academic exclusion removed."];
-        }
-
-        elseif ($action === 'batch_import') {
+        } elseif ($action === 'batch_import') {
+            
+            $sem_id = intval($_POST['sem_id'] ?? 0);
+            if ($sem_id === 0) {
+                throw new Exception("Batch Fault: No Target Semester Vector Selected.");
+            }
             if (!isset($_FILES['csv_file']) || $_FILES['csv_file']['error'] !== UPLOAD_ERR_OK) {
-                throw new Exception("File Transfer Fault: No valid CSV detected.");
+                throw new Exception("File Transfer Fault: Invalid CSV binary payload.");
             }
 
             $file = $_FILES['csv_file']['tmp_name'];
@@ -85,23 +95,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $valid_pool = [];
             $conflict_log = [];
 
-            // 💡 修正後的衝突仲裁演算法 (Dynamic Validation Pool)
+            // 💡 動態白名單碰撞演算法
             foreach ($csv_data as $current) {
                 $has_conflict = false;
                 $reason = "";
 
-                // A. 優先檢查外部衝突 (Database Collision)
-                $stmt_check = $conn->prepare("SELECT subject_name FROM academic_schedule WHERE vid = ? AND day_of_week = ? AND start_time < ? AND end_time > ? LIMIT 1");
-                $stmt_check->bind_param("ssss", $current['vid'], $current['day'], $current['end'], $current['start']);
+                // A. 外部檢查 (Database 碰撞，嚴格綁定 sem_id)
+                $stmt_check = $conn->prepare("SELECT subject_name FROM academic_schedule WHERE vid = ? AND sem_id = ? AND day_of_week = ? AND start_time < ? AND end_time > ? LIMIT 1");
+                $stmt_check->bind_param("sisss", $current['vid'], $sem_id, $current['day'], $current['end'], $current['start']);
                 $stmt_check->execute();
                 $db_conflict = $stmt_check->get_result()->fetch_assoc();
+                $stmt_check->close();
+
                 if ($db_conflict) {
                     $has_conflict = true;
                     $reason = "Database Collision: Overlaps with [{$db_conflict['subject_name']}]";
                 }
-                $stmt_check->close();
 
-                // B. 若外部無衝突，則檢查內部 CSV 是否與「已接受」的紀錄衝突 (Internal Valid Pool Check)
+                // B. 內部檢查 (CSV 自衝突，白名單池)
                 if (!$has_conflict) {
                     foreach ($valid_pool as $accepted) {
                         if ($current['vid'] === $accepted['vid'] && $current['day'] === $accepted['day']) {
@@ -114,25 +125,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
 
-                // C. 仲裁分流 (Routing)
                 if ($has_conflict) {
                     $conflict_log[] = array_merge($current, ['reason' => $reason]);
                 } else {
-                    $valid_pool[] = $current; // 💡 只有完全合法的紀錄才會進入白名單池
+                    $valid_pool[] = $current; 
                 }
             }
 
-            // 執行原子級入庫 (Atomic Insertion)
+            // 💡 執行原子化批次寫入
             $success_count = 0;
             foreach ($valid_pool as $entry) {
-                $ins = $conn->prepare("INSERT INTO academic_schedule (vid, day_of_week, start_time, end_time, subject_name) VALUES (?, ?, ?, ?, ?)");
-                $ins->bind_param("sssss", $entry['vid'], $entry['day'], $entry['start'], $entry['end'], $entry['subject']);
+                $ins = $conn->prepare("INSERT INTO academic_schedule (vid, sem_id, day_of_week, start_time, end_time, subject_name) VALUES (?, ?, ?, ?, ?, ?)");
+                $ins->bind_param("sissss", $entry['vid'], $sem_id, $entry['day'], $entry['start'], $entry['end'], $entry['subject']);
                 if ($ins->execute()) $success_count++;
                 $ins->close();
             }
 
             $_SESSION['batch_results'] = ['success' => $success_count, 'conflicts' => $conflict_log];
-            $_SESSION['toast'] = ['type' => 'success', 'msg' => "Batch sync completed. $success_count records injected."];
+            $_SESSION['toast'] = ['type' => 'success', 'msg' => "Batch sync completed. $success_count vectors injected into Semester ID $sem_id."];
+
+        } elseif ($action === 'bulk_delete') {
+            $ids = $_POST['sch_ids'] ?? [];
+            if (!is_array($ids) || empty($ids)) throw new Exception("Execution Fault: Null vector array provided for deletion.");
+            
+            $success = 0;
+            $stmt = $conn->prepare("DELETE FROM academic_schedule WHERE sch_id = ?");
+            foreach ($ids as $id) {
+                $clean_id = intval($id);
+                if ($clean_id > 0) {
+                    $stmt->bind_param("i", $clean_id);
+                    if ($stmt->execute()) $success++;
+                }
+            }
+            $stmt->close();
+            $_SESSION['toast'] = ['type' => 'success', 'msg' => "Eradication Protocol Complete: $success exclusions purged."];
         }
 
         $conn->commit();
@@ -141,6 +167,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['toast'] = ['type' => 'error', 'msg' => $e->getMessage()];
     }
 
+    header("Location: ../admin/academic_schedule.php");
+    exit;
+} else {
     header("Location: ../admin/academic_schedule.php");
     exit;
 }

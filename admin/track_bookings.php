@@ -4,14 +4,12 @@ session_start();
 require_once '../config/db.php';
 require_once '../includes/admin_auth.php';
 
-// 💡 1. 提取多維度 Filter 參數
 $filter_bid = trim($_GET['f_bid'] ?? '');
 $filter_student = trim($_GET['f_student'] ?? '');
 $filter_venue = trim($_GET['f_venue'] ?? '');
 $filter_date = trim($_GET['f_date'] ?? '');
 $filter_status = trim($_GET['f_status'] ?? '');
 
-// 💡 2. 構建聚合查詢 (∴ Augmenting query to extract v.vid)
 $sql = "SELECT 
             b.bid, 
             b.date_booked, 
@@ -33,7 +31,6 @@ $sql = "SELECT
         JOIN vcategory vc ON v.vcid = vc.vcid
         WHERE 1=1";
 
-// 💡 3. 動態注入過濾條件
 if (!empty($filter_bid)) {
     $sql .= " AND b.bid LIKE '%" . $conn->real_escape_string($filter_bid) . "%'";
 }
@@ -74,42 +71,41 @@ $result = $conn->query($sql);
 
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
         
-        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-10 shrink-0">
             <?php 
+            // ∴ P_4: Simplified breadcrumb
             $topbar_content = '
             <div class="flex items-center">
                 <a href="manage_bookings.php" class="text-sm font-bold text-[#004aad] hover:text-[#003882] flex items-center mr-4 transition-colors">
                     <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i> Back
                 </a>
-                <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Bookings / Track Bookings</h2>
+                <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Bookings / History</h2>
             </div>';
             include('../includes/admin_topbar.php'); 
             ?>
-        </header>
 
         <div class="flex-1 overflow-y-auto p-8 scroll-smooth">
             
             <div class="mb-6">
-                <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Bookings Tracking</h1>
-                <p class="text-sm text-slate-600 mt-1">Trace historical booking records and current operational status.</p>
+                <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Booking History</h1>
+                <p class="text-sm text-slate-600 mt-1">View past and current venue bookings.</p>
             </div>
 
             <div class="bg-white p-5 rounded-md border border-slate-200 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] hover:border-slate-400 transition-colors mb-6">
                 <form method="GET" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
                     
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Ref ID</label>
-                        <input type="text" name="f_bid" value="<?php echo htmlspecialchars($filter_bid); ?>" placeholder="Search BID..." class="fiori-input w-full">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Booking ID</label>
+                        <input type="text" name="f_bid" value="<?php echo htmlspecialchars($filter_bid); ?>" placeholder="Search ID..." class="fiori-input w-full">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Student Entity</label>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Student</label>
                         <input type="text" name="f_student" value="<?php echo htmlspecialchars($filter_student); ?>" placeholder="Name or ID..." class="fiori-input w-full">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Asset</label>
-                        <input type="text" name="f_venue" value="<?php echo htmlspecialchars($filter_venue); ?>" placeholder="Venue or Category..." class="fiori-input w-full">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Venue</label>
+                        <input type="text" name="f_venue" value="<?php echo htmlspecialchars($filter_venue); ?>" placeholder="Venue Name..." class="fiori-input w-full">
                     </div>
 
                     <div>
@@ -118,9 +114,9 @@ $result = $conn->query($sql);
                     </div>
                     
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Execution Status</label>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Status</label>
                         <select name="f_status" class="fiori-input w-full bg-white font-bold text-slate-700 cursor-pointer">
-                            <option value="">All States</option>
+                            <option value="">All</option>
                             <option value="pending" <?php if($filter_status==='pending') echo 'selected'; ?>>Pending</option>
                             <option value="approved" <?php if($filter_status==='approved') echo 'selected'; ?>>Approved</option>
                             <option value="rejected" <?php if($filter_status==='rejected') echo 'selected'; ?>>Rejected</option>
@@ -141,21 +137,21 @@ $result = $conn->query($sql);
 
             <div class="custom-table-container">
                 <div class="px-4 py-3 border-b border-slate-200 bg-[#f8fafc] flex justify-between items-center">
-                    <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-widest">Global Record Log (<?php echo $result->num_rows; ?>)</h3>
+                    <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-widest">Records (<?php echo $result->num_rows; ?>)</h3>
                 </div>
                 
                 <table class="custom-table">
                     <thead>
                         <tr>
-                            <th class="w-28 text-center">Reference</th>
+                            <th class="w-28 text-center">ID</th>
                             <th class="w-28">Student ID</th>
                             <th class="w-36">Student Name</th>
                             <th class="w-28">Venue ID</th>
-                            <th class="w-40">Venue</th>
+                            <th class="w-40">Venue Name</th>
                             <th class="w-32">Category</th>
-                            <th class="w-36 text-center">Reserved Slot</th>
-                            <th class="w-32 text-right">Status Matrix</th>
-                            <th class="text-center w-16">Action</th>
+                            <th class="w-36 text-center">Booked Time</th>
+                            <th class="w-32 text-right">Status</th>
+                            <th class="text-center w-16">View</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -170,21 +166,11 @@ $result = $conn->query($sql);
                                         <?php echo htmlspecialchars($row['bid']); ?>
                                     </a>
                                 </td>
-                                <td>
-                                    <span class="td-text-mono"><?php echo htmlspecialchars($row['student_id']); ?></span>
-                                </td>
-                                <td>
-                                    <span class="font-semibold text-slate-800 text-sm block"><?php echo htmlspecialchars($row['username']); ?></span>
-                                </td>
-                                <td>
-                                    <span class="td-text-mono"><?php echo htmlspecialchars($row['venue_id']); ?></span>
-                                </td>
-                                <td>
-                                    <span class="font-semibold text-slate-800 text-sm block"><?php echo htmlspecialchars($row['vname']); ?></span>
-                                </td>
-                                <td>
-                                    <span class="px-2 py-0.5 bg-[#f1f5f9] text-slate-600 text-[10px] font-bold uppercase tracking-wider rounded-sm border border-[#e2e8f0] inline-block"><?php echo htmlspecialchars($row['venue_category']); ?></span>
-                                </td>
+                                <td><span class="td-text-mono"><?php echo htmlspecialchars($row['student_id']); ?></span></td>
+                                <td><span class="font-semibold text-slate-800 text-sm block"><?php echo htmlspecialchars($row['username']); ?></span></td>
+                                <td><span class="td-text-mono"><?php echo htmlspecialchars($row['venue_id']); ?></span></td>
+                                <td><span class="font-semibold text-slate-800 text-sm block"><?php echo htmlspecialchars($row['vname']); ?></span></td>
+                                <td><span class="px-2 py-0.5 bg-[#f1f5f9] text-slate-600 text-[10px] font-bold uppercase tracking-wider rounded-sm border border-[#e2e8f0] inline-block"><?php echo htmlspecialchars($row['venue_category']); ?></span></td>
                                 <td class="text-center">
                                     <div class="td-text-mono">
                                         <span class="block mb-0.5"><?php echo $formatted_date; ?></span>
@@ -212,16 +198,14 @@ $result = $conn->query($sql);
                                     </div>
                                 </td>
                                 <td class="text-center align-middle">
-                                    <a href="process_flow.php?bid=<?php echo urlencode($row['bid']); ?>" class="td-action-btn flex justify-center w-full">
-                                        &gt;
-                                    </a>
+                                    <a href="process_flow.php?bid=<?php echo urlencode($row['bid']); ?>" class="td-action-btn flex justify-center w-full">&gt;</a>
                                 </td>
                             </tr>
                             <?php endwhile; ?>
                         <?php else: ?>
                             <tr>
                                 <td colspan="9" class="py-16 text-center text-slate-500 border-none hover:bg-transparent cursor-default">
-                                    <span class="text-sm font-medium tracking-wide">No historical records match the current filter criteria.</span>
+                                    <span class="text-sm font-medium tracking-wide">No records found.</span>
                                 </td>
                             </tr>
                         <?php endif; ?>
@@ -236,9 +220,7 @@ $result = $conn->query($sql);
 
     <script>
         lucide.createIcons();
-        function toggleSidebar() {
-            document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed');
-        }
+        function toggleSidebar() { document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed'); }
     </script>
 </body>
 </html>
