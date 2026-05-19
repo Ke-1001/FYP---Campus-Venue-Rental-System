@@ -30,6 +30,7 @@ $result = $conn->query("SELECT v.*, vc.category FROM venue v JOIN vcategory vc O
                             <div class="flex justify-between items-start mb-4">
                                 <div>
                                     <h3 class="text-xl font-bold text-slate-800"><?php echo htmlspecialchars($venue["vname"]); ?></h3>
+                                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider"><?php echo htmlspecialchars($venue["vid"]); ?></span></br>
                                     <span class="text-xs font-bold text-slate-400 uppercase tracking-wider"><?php echo htmlspecialchars($venue["category"]); ?></span>
                                 </div>
                                 <?php if ($venue['status'] === 'maintenance'): ?>
