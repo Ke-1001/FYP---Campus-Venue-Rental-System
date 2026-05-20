@@ -18,7 +18,7 @@ if ($admin_identifier && in_array($admin_role, ['admin', 'super_admin'], true)) 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>System Authentication | MMU Admin</title>
+    <title>System Authentication | CVBMS Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
@@ -46,7 +46,7 @@ if ($admin_identifier && in_array($admin_role, ['admin', 'super_admin'], true)) 
             $err_msg = "Authentication Fault: Unknown Error.";
             
             if ($err_code == 'invalid') $err_msg = "Invalid credentials. Verification failed.";
-            elseif ($err_code == 'access_denied') $err_msg = "Access Denied. Elevated privileges required.";
+            elseif ($err_code == 'access_denied') $err_msg = "Access Denied. Authorized personnel only.";
             elseif ($err_code == 'timeout') $err_msg = "Session Expired. Secure connection terminated.";
 
             echo "
@@ -59,29 +59,23 @@ if ($admin_identifier && in_array($admin_role, ['admin', 'super_admin'], true)) 
 
         <form action="../actions/process_login.php" method="POST" class="space-y-5">
             <div>
-                <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Identification (Email)</label>
+                <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Email</label>
                 <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
-                        <i data-lucide="mail" class="w-5 h-5"></i>
-                    </div>
                     <input type="email" name="email" required placeholder="admin@mmu.edu.my" 
-                           class="w-full pl-10 pr-4 py-3 bg-slate-900/50 border border-slate-700 text-white rounded-lg focus:ring-2 focus:ring-mmu-accent focus:border-mmu-accent outline-none transition-all placeholder-slate-600">
+                           class="w-full pl-2 pr-4 py-3 bg-slate-900/50 border border-slate-700 text-white rounded-lg focus:ring-2 focus:ring-mmu-accent focus:border-mmu-accent outline-none transition-all placeholder-slate-600">
                 </div>
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Security Key (Password)</label>
+                <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Password</label>
                 <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
-                        <i data-lucide="lock" class="w-5 h-5"></i>
-                    </div>
-                    <input type="password" name="password" required placeholder="••••••••" 
-                           class="w-full pl-10 pr-4 py-3 bg-slate-900/50 border border-slate-700 text-white rounded-lg focus:ring-2 focus:ring-mmu-accent focus:border-mmu-accent outline-none transition-all placeholder-slate-600">
+                    <input type="password" name="password" required placeholder="Enter password" 
+                           class="w-full pl-2 pr-4 py-3 bg-slate-900/50 border border-slate-700 text-white rounded-lg focus:ring-2 focus:ring-mmu-accent focus:border-mmu-accent outline-none transition-all placeholder-slate-600">
                 </div>
             </div>
 
             <button type="submit" class="w-full mt-6 py-3.5 bg-mmu-blue hover:bg-blue-600 text-white font-bold rounded-lg transition-all shadow-lg hover:shadow-mmu-blue/30 flex justify-center items-center">
-                Initialize Secure Session <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
+                Log In <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
             </button>
         </form>
     </div>

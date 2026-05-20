@@ -1,101 +1,175 @@
 <?php
+
 session_start();
+
 require_once("../config/db.php");
-require_once('../includes/admin_auth.php'); 
+require_once('../includes/admin_auth.php');
 
-$kpi_pending = $conn->query("SELECT COUNT(*) FROM booking WHERE status = 'pending' AND payment_status = 'paid'")->fetch_row()[0] ?? 0;
-$kpi_ongoing = $conn->query("SELECT COUNT(*) FROM booking WHERE status = 'approved'")->fetch_row()[0] ?? 0;
-$kpi_returned = $conn->query("SELECT COUNT(*) FROM booking WHERE status = 'completed'")->fetch_row()[0] ?? 0;
-$sql_kpi_assign = "SELECT COUNT(*) FROM booking b LEFT JOIN inspection i ON b.bid = i.bid WHERE b.status IN ('approved', 'completed') AND b.payment_status = 'paid' AND i.ins_id IS NULL";
+/*
+|--------------------------------------------------------------------------
+| KPI Queries
+|--------------------------------------------------------------------------
+*/
+
+$kpi_pending = $conn->query("
+    SELECT COUNT(*)
+    FROM booking
+    WHERE status = 'pending'
+    AND payment_status = 'paid'
+")->fetch_row()[0] ?? 0;
+
+$kpi_ongoing = $conn->query("
+    SELECT COUNT(*)
+    FROM booking
+    WHERE status = 'approved'
+")->fetch_row()[0] ?? 0;
+
+$kpi_returned = $conn->query("
+    SELECT COUNT(*)
+    FROM booking
+    WHERE status = 'completed'
+")->fetch_row()[0] ?? 0;
+
+$sql_kpi_assign = "
+    SELECT COUNT(*)
+    FROM booking b
+    LEFT JOIN inspection i ON b.bid = i.bid
+    WHERE b.status IN ('approved', 'completed')
+    AND b.payment_status = 'paid'
+    AND i.ins_id IS NULL
+";
+
 $kpi_assign = $conn->query($sql_kpi_assign)->fetch_row()[0] ?? 0;
+
+/*
+|--------------------------------------------------------------------------
+| Page Config
+|--------------------------------------------------------------------------
+*/
+
+$page_title = "Manage Bookings";
+
+$page_description = "Select a module below to manage venue bookings, assign inspectors, and track records.";
+
+$topbar_content = '
+    <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider">
+        Bookings / Dashboard
+    </h2>
+';
+
+$extra_css = [
+    "../assets/css/fiori-tile.css"
+];
+
+/*
+|--------------------------------------------------------------------------
+| Page Content
+|--------------------------------------------------------------------------
+*/
+
+ob_start();
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MMU Admin | Manage Bookings</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script>
-        tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b', accent: '#38bdf8' } } } } }
-    </script>
-    <link rel="stylesheet" href="../assets/css/layout.css?v=1.2">
-    <link rel="stylesheet" href="../assets/css/fiori-tile.css">
-</head>
-<body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
 
-    <?php include('../includes/admin_sidebar.php'); ?>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
 
-    <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-50">
-        
-        <?php 
-        $topbar_content = '<h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Bookings / Dashboard</h2>';
-        include('../includes/admin_topbar.php'); 
-        ?>
+    <!-- Pending Requests -->
+    <a href="pending_requests.php" class="fiori-tile">
 
-        <div class="flex-1 overflow-y-auto p-8 scroll-smooth">
+        <div class="fiori-tile-header">
+            <h3 class="fiori-tile-title">
+                Pending Requests
+            </h3>
 
-            <div class="mb-8 border-b border-slate-200 pb-4">
-                <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Manage Bookings</h1>
-                <p class="text-sm text-slate-500 mt-1">Select a module below to manage venue bookings, assign inspectors, and track records.</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-
-                <a href="pending_requests.php" class="fiori-tile">
-                    <div class="fiori-tile-header">
-                        <h3 class="fiori-tile-title">Pending Requests</h3>
-                        <i data-lucide="shield-alert" class="w-5 h-5 fiori-tile-icon"></i>
-                    </div>
-                    <p class="fiori-tile-desc">Review and approve new venue booking requests.</p>
-                    <div class="fiori-tile-kpi">
-                        <?php echo $kpi_pending; ?>
-                    </div>
-                    <div class="fiori-tile-footer">
-                        View Requests <i data-lucide="arrow-right" class="w-3 h-3 ml-2"></i>
-                    </div>
-                </a>
-
-                <a href="assign_inspector.php" class="fiori-tile">
-                    <div class="fiori-tile-header">
-                        <h3 class="fiori-tile-title">Assign Inspector</h3>
-                    </div>
-                    <p class="fiori-tile-desc">Assign staff to inspect venues after they are used.</p>
-                    <div class="fiori-tile-kpi">
-                        <i data-lucide="users" class="w-5 h-5 fiori-tile-icon"></i><?php echo $kpi_assign; ?>
-                    </div>
-                    <div class="fiori-tile-footer">
-                        Assign Staff <i data-lucide="arrow-right" class="w-3 h-3 ml-2"></i>
-                    </div>
-                </a>
-
-                <a href="track_bookings.php" class="fiori-tile">
-                    <div class="fiori-tile-header">
-                        <h3 class="fiori-tile-title">Track Bookings</h3>
-                        <i data-lucide="activity" class="w-5 h-5 fiori-tile-icon"></i>
-                    </div>
-                    <p class="fiori-tile-desc">Monitor ongoing bookings and view past records.</p>
-                    <div class="fiori-tile-kpi">
-                        <?php echo ($kpi_ongoing + $kpi_returned); ?>
-                    </div>
-                    <div class="fiori-tile-footer">
-                        View Bookings <i data-lucide="arrow-right" class="w-3 h-3 ml-2"></i>
-                    </div>
-                </a>
-
-            </div>
-            
+            <i data-lucide="shield-alert"
+               class="w-5 h-5 fiori-tile-icon"></i>
         </div>
-    </main>
 
-    <?php include('../includes/ui_components.php'); ?>
+        <p class="fiori-tile-desc">
+            Review and approve new venue booking requests.
+        </p>
 
-    <script>
-        lucide.createIcons();
-        function toggleSidebar() {
-            document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed');
-        }
-    </script>
-</body>
-</html>
+        <div class="fiori-tile-kpi">
+            <?php echo $kpi_pending; ?>
+        </div>
+
+        <div class="fiori-tile-footer">
+            View Requests
+
+            <i data-lucide="arrow-right"
+               class="w-3 h-3 ml-2"></i>
+        </div>
+
+    </a>
+
+    <!-- Assign Inspector -->
+    <a href="assign_inspector.php" class="fiori-tile">
+
+        <div class="fiori-tile-header">
+            <h3 class="fiori-tile-title">
+                Assign Inspector
+            </h3>
+        </div>
+
+        <p class="fiori-tile-desc">
+            Assign staff to inspect venues after they are used.
+        </p>
+
+        <div class="fiori-tile-kpi">
+            <i data-lucide="users"
+               class="w-5 h-5 fiori-tile-icon"></i>
+
+            <?php echo $kpi_assign; ?>
+        </div>
+
+        <div class="fiori-tile-footer">
+            Assign Staff
+
+            <i data-lucide="arrow-right"
+               class="w-3 h-3 ml-2"></i>
+        </div>
+
+    </a>
+
+    <!-- Track Bookings -->
+    <a href="track_bookings.php" class="fiori-tile">
+
+        <div class="fiori-tile-header">
+            <h3 class="fiori-tile-title">
+                Track Bookings
+            </h3>
+
+            <i data-lucide="activity"
+               class="w-5 h-5 fiori-tile-icon"></i>
+        </div>
+
+        <p class="fiori-tile-desc">
+            Monitor ongoing bookings and view past records.
+        </p>
+
+        <div class="fiori-tile-kpi">
+            <?php echo ($kpi_ongoing + $kpi_returned); ?>
+        </div>
+
+        <div class="fiori-tile-footer">
+            View Bookings
+
+            <i data-lucide="arrow-right"
+               class="w-3 h-3 ml-2"></i>
+        </div>
+
+    </a>
+
+</div>
+
+<?php
+
+$page_content = ob_get_clean();
+
+/*
+|--------------------------------------------------------------------------
+| Render Layout
+|--------------------------------------------------------------------------
+*/
+
+include('../core/layout.php');
+?>

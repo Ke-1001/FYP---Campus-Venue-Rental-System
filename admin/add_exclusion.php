@@ -59,7 +59,7 @@ $semesters = $conn->query("SELECT sem_id, sem_name, is_active FROM semester_conf
 
         <div class="px-8 pt-6 pb-2 bg-slate-50 shrink-0">
             <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight"><?php echo $mode; ?> Class Schedule</h1>
-            <p class="text-xs text-slate-500 mt-1">Configure structural boundaries for spatial resource locking.</p>
+            <p class="text-xs text-slate-500 mt-1">Configure class schedule details</p>
         </div>
 
         <div class="flex-1 overflow-y-auto px-8 py-4 flex justify-start">

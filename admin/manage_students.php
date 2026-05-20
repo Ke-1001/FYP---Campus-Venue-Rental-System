@@ -61,11 +61,6 @@ $result = $conn->query($sql);
                     <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Student Directory</h1>
                     <p class="text-sm text-slate-500 mt-1">Manage registered student accounts and review their contacts.</p>
                 </div>
-                <div>
-                    <a href="add_student.php" class="px-5 py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-xl shadow-sm hover:bg-indigo-700 transition flex items-center transform active:scale-95">
-                        <i data-lucide="user-plus" class="w-4 h-4 mr-2"></i> Register Student
-                    </a>
-                </div>
             </div>
 
             <!-- 💡 多維度過濾矩陣 (Multi-dimensional Filter Matrix) -->

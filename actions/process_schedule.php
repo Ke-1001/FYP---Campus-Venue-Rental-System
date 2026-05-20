@@ -158,7 +158,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
             $stmt->close();
-            $_SESSION['toast'] = ['type' => 'success', 'msg' => "Eradication Protocol Complete: $success exclusions purged."];
+            $_SESSION['toast'] = ['type' => 'success', 'msg' => "Remove Process Complete: $success exclusions purged."];
         }
 
         $conn->commit();

@@ -40,7 +40,7 @@ $kpi_tracked = $conn->query($sql_kpi_tracked)->fetch_row()[0] ?? 0;
             
             <div class="mb-8 border-b border-slate-200 pb-4">
                 <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Venue Inspections</h1>
-                <p class="text-sm text-slate-500 mt-1">Select a discrete module to execute post-usage assessments and track inspection history.</p>
+                <p class="text-sm text-slate-500 mt-1">Select a module below to execute post-usage assessments and track inspection history.</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-10">

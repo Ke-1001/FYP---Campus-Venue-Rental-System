@@ -57,20 +57,14 @@ require_once '../includes/admin_auth.php';
                     <div class="p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
                         
                         <div class="lg:col-span-6 space-y-4">
-                            <h3 class="text-sm font-bold text-fiori-text mb-4">Identity Data</h3>
                             
                             <div class="grid grid-cols-3 gap-4 items-center">
                                 <label class="col-span-1 text-sm text-fiori-label">Authorization Level:</label>
                                 <div class="col-span-2 relative">
                                     <select name="access_level" required class="fiori-input appearance-none pr-8 bg-white cursor-pointer transition-colors font-bold text-indigo-700">
                                         <option value="" disabled selected>Select Role Assignment</option>
-                                        <optgroup label="System Core">
-                                            <option value="super_admin">Super Administrator</option>
                                             <option value="admin">Standard Administrator</option>
-                                        </optgroup>
-                                        <optgroup label="Operations">
                                             <option value="inspector">Venue Inspector</option>
-                                        </optgroup>
                                     </select>
                                     <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 absolute right-3 top-2.5 pointer-events-none"></i>
                                 </div>
@@ -93,7 +87,6 @@ require_once '../includes/admin_auth.php';
                         </div>
 
                         <div class="lg:col-span-6 space-y-4">
-                            <h3 class="text-sm font-bold text-fiori-text mb-4">System Credentials Data</h3>
                             
                             <div class="grid grid-cols-3 gap-4 items-start">
                                 <label class="col-span-1 text-sm text-fiori-label mt-1">Email Address:</label>
@@ -115,12 +108,14 @@ require_once '../includes/admin_auth.php';
                                 <label class="col-span-1 text-sm text-fiori-label mt-1">Initial Password:</label>
                                 <div class="col-span-2">
                                     <input type="password" name="password" id="password" required onkeyup="validateERPForm()" placeholder="Assign secure password" class="fiori-input bg-[#fffdf0] font-mono">
-                                    <div class="mt-2 flex flex-wrap gap-x-3 gap-y-1">
-                                        <span id="rule-length" class="validation-tag">Len $\ge$ 8</span>
-                                        <span id="rule-upper" class="validation-tag">Upper [A-Z]</span>
-                                        <span id="rule-lower" class="validation-tag">Lower [a-z]</span>
-                                        <span id="rule-number" class="validation-tag">Num [0-9]</span>
-                                        <span id="rule-special" class="validation-tag">Spec {@$!%*?&}</span>
+                                    <!-- 从父容器移除 text-slate-400 -->
+                                    <div class="mt-4 p-4 bg-slate-50 border border-slate-200 rounded-lg grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-xs font-bold">
+                                        <!-- 给每个子项显式添加默认颜色类 text-slate-400 -->
+                                        <div id="rule-length" class="text-slate-400 transition-colors">Minimum 8 Characters</div>
+                                        <div id="rule-upper" class="text-slate-400 transition-colors">1 Uppercase (A-Z)</div>
+                                        <div id="rule-lower" class="text-slate-400 transition-colors">1 Lowercase (a-z)</div>
+                                        <div id="rule-number" class="text-slate-400 transition-colors">1 Numeric (0-9)</div>
+                                        <div id="rule-special" class="text-slate-400 transition-colors col-span-1 md:col-span-2">1 Symbol (@$!%*?&)</div>
                                     </div>
                                 </div>
                             </div>
@@ -175,9 +170,12 @@ require_once '../includes/admin_auth.php';
 
             const toggleRule = (id, isValid) => {
                 const el = document.getElementById(id);
-                if (el) {
-                    if (isValid) el.classList.add('valid');
-                    else el.classList.remove('valid');
+                if (isValid) {
+                    el.classList.remove('text-slate-400');
+                    el.classList.add('text-green-600');
+                } else {
+                    el.classList.remove('text-green-600');
+                    el.classList.add('text-slate-400');
                 }
             };
 
