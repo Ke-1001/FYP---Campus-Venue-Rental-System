@@ -6,14 +6,15 @@ include("../config/db.php");
 
 $user_id = $_SESSION['uid'];
 
-// 🔒 validate bid
+// Validate booking id
 $bid = trim($_GET['bid'] ?? '');
 
 if ($bid === '' || !ctype_digit($bid)) {
     die("<div class='p-10 text-center text-red-600 font-bold'>Invalid Booking ID</div>");
 }
 
-// 🔐 fetch booking (must belong to user)
+// Fetch booking details together with admin review, inspection, report, and inspector info.
+// This makes the user page reflect what admin/staff already processed.
 $stmt = $conn->prepare("
     SELECT 
         b.bid,
@@ -25,26 +26,34 @@ $stmt = $conn->prepare("
         b.transaction_ref,
         b.purpose,
         b.approve_date,
+        b.created_at,
         v.vname,
         v.max_cap,
         v.deposit,
         vc.category,
-        a.admin_name
-
+        a.admin_name,
+        i.ins_id,
+        i.ins_status,
+        i.damage_desc,
+        i.damage_cost,
+        i.penalty,
+        i.inspected_at,
+        s.staff_name AS inspector_name,
+        r.rid,
+        r.final_deduct,
+        r.refund_status,
+        r.penalty_status,
+        r.created_at AS report_created_at
     FROM booking b
-
-    JOIN venue v
-        ON b.vid = v.vid 
-
-    JOIN vcategory vc
-        ON v.vcid = vc.vcid 
-
-    LEFT JOIN admin a
-        ON b.aid = a.aid 
-
+    JOIN venue v ON b.vid = v.vid 
+    JOIN vcategory vc ON v.vcid = vc.vcid 
+    LEFT JOIN admin a ON b.aid = a.aid 
+    LEFT JOIN inspection i ON b.bid = i.bid
+    LEFT JOIN staff s ON i.sid = s.sid
+    LEFT JOIN report r ON i.ins_id = r.ins_id
     WHERE b.bid = ?
-    AND b.uid = ?
-
+      AND b.uid = ?
+    ORDER BY i.ins_id DESC, r.rid DESC
     LIMIT 1
 ");
 
@@ -56,140 +65,469 @@ $booking = $result->fetch_assoc();
 if (!$booking) {
     die("<div class='p-10 text-center text-slate-600 font-bold'>Booking not found or access denied.</div>");
 }
+
+$status = strtolower((string)$booking['status']);
+$paymentStatus = strtolower((string)$booking['payment_status']);
+$inspectionStatus = strtolower((string)($booking['ins_status'] ?? ''));
+$refundStatus = strtolower((string)($booking['refund_status'] ?? ''));
+$penaltyStatus = strtolower((string)($booking['penalty_status'] ?? ''));
+$hasInspection = !empty($booking['ins_id']);
+$hasReport = !empty($booking['rid']);
+
+function formatDateTimeSafe($value, $format = 'd M Y, h:i A') {
+    if (empty($value) || $value === '0000-00-00' || $value === '0000-00-00 00:00:00') {
+        return '-';
+    }
+
+    $timestamp = strtotime($value);
+    return $timestamp ? date($format, $timestamp) : htmlspecialchars($value);
+}
+
+function formatTimeSafe($value) {
+    if (empty($value)) {
+        return '-';
+    }
+
+    $timestamp = strtotime($value);
+    return $timestamp ? date('h:i A', $timestamp) : htmlspecialchars($value);
+}
+
+function statusBadgeClass($status) {
+    switch ($status) {
+        case 'approved':
+            return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+        case 'rejected':
+            return 'bg-red-100 text-red-700 border-red-200';
+        case 'completed':
+            return 'bg-blue-100 text-blue-700 border-blue-200';
+        default:
+            return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+    }
+}
+
+function paymentBadgeClass($status) {
+    switch ($status) {
+        case 'paid':
+            return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+        case 'refunded':
+            return 'bg-blue-100 text-blue-700 border-blue-200';
+        default:
+            return 'bg-orange-100 text-orange-700 border-orange-200';
+    }
+}
+
+function flowStepClass($state) {
+    if ($state === 'done') {
+        return [
+            'circle' => 'bg-emerald-600 text-white border-emerald-600',
+            'line' => 'bg-emerald-200',
+            'card' => 'border-emerald-200 bg-emerald-50',
+            'title' => 'text-emerald-800'
+        ];
+    }
+
+    if ($state === 'current') {
+        return [
+            'circle' => 'bg-indigo-600 text-white border-indigo-600',
+            'line' => 'bg-indigo-200',
+            'card' => 'border-indigo-200 bg-indigo-50',
+            'title' => 'text-indigo-800'
+        ];
+    }
+
+    if ($state === 'danger') {
+        return [
+            'circle' => 'bg-red-600 text-white border-red-600',
+            'line' => 'bg-red-200',
+            'card' => 'border-red-200 bg-red-50',
+            'title' => 'text-red-800'
+        ];
+    }
+
+    return [
+        'circle' => 'bg-white text-slate-400 border-slate-300',
+        'line' => 'bg-slate-200',
+        'card' => 'border-slate-200 bg-white',
+        'title' => 'text-slate-600'
+    ];
+}
+
+$bookingRejected = ($status === 'rejected');
+$bookingApprovedOrDone = in_array($status, ['approved', 'completed'], true);
+$bookingCompleted = ($status === 'completed');
+$paymentDone = in_array($paymentStatus, ['paid', 'refunded'], true);
+
+$flowSteps = [];
+
+$flowSteps[] = [
+    'title' => 'Request Submitted',
+    'desc' => 'Your booking request has been created.',
+    'meta' => formatDateTimeSafe($booking['created_at']),
+    'state' => 'done',
+    'icon' => 'file-check'
+];
+
+$flowSteps[] = [
+    'title' => $paymentDone ? 'Payment Completed' : 'Payment Required',
+    'desc' => $paymentDone ? 'Deposit payment has been recorded.' : 'Please complete payment before admin can review this booking.',
+    'meta' => !empty($booking['transaction_ref']) ? 'Ref: ' . $booking['transaction_ref'] : strtoupper($paymentStatus ?: 'unpaid'),
+    'state' => $paymentDone ? 'done' : 'current',
+    'icon' => 'credit-card'
+];
+
+if ($bookingRejected) {
+    $reviewState = 'danger';
+    $reviewTitle = 'Booking Rejected';
+    $reviewDesc = 'Admin has rejected this booking request.';
+} elseif ($bookingApprovedOrDone) {
+    $reviewState = 'done';
+    $reviewTitle = 'Booking Approved';
+    $reviewDesc = 'Admin has approved this booking request.';
+} elseif ($paymentDone) {
+    $reviewState = 'current';
+    $reviewTitle = 'Waiting Admin Approval';
+    $reviewDesc = 'Your paid request is waiting for admin review.';
+} else {
+    $reviewState = 'locked';
+    $reviewTitle = 'Admin Review';
+    $reviewDesc = 'Admin review will start after payment is completed.';
+}
+
+$flowSteps[] = [
+    'title' => $reviewTitle,
+    'desc' => $reviewDesc,
+    'meta' => !empty($booking['admin_name']) ? $booking['admin_name'] . ' • ' . formatDateTimeSafe($booking['approve_date']) : 'Not reviewed yet',
+    'state' => $reviewState,
+    'icon' => 'shield-check'
+];
+
+if ($bookingRejected) {
+    $usageState = 'locked';
+    $usageTitle = 'Venue Usage Cancelled';
+    $usageDesc = 'This booking cannot continue because it was rejected.';
+} elseif ($bookingCompleted) {
+    $usageState = 'done';
+    $usageTitle = 'Venue Usage Completed';
+    $usageDesc = 'The booking period is completed.';
+} elseif ($status === 'approved') {
+    $usageState = 'current';
+    $usageTitle = 'Venue Usage Upcoming';
+    $usageDesc = 'Your venue has been approved and reserved.';
+} else {
+    $usageState = 'locked';
+    $usageTitle = 'Venue Usage';
+    $usageDesc = 'This step starts after admin approval.';
+}
+
+$flowSteps[] = [
+    'title' => $usageTitle,
+    'desc' => $usageDesc,
+    'meta' => formatDateTimeSafe($booking['date_booked'], 'd M Y') . ' • ' . formatTimeSafe($booking['time_start']) . ' - ' . formatTimeSafe($booking['time_end']),
+    'state' => $usageState,
+    'icon' => 'calendar-check'
+];
+
+if ($bookingRejected) {
+    $inspectionState = 'locked';
+    $inspectionTitle = 'Inspection Not Required';
+    $inspectionDesc = 'Rejected bookings do not require inspection.';
+} elseif ($hasInspection && in_array($inspectionStatus, ['passed', 'failed'], true)) {
+    $inspectionState = $inspectionStatus === 'passed' ? 'done' : 'danger';
+    $inspectionTitle = $inspectionStatus === 'passed' ? 'Inspection Passed' : 'Inspection Failed';
+    $inspectionDesc = $inspectionStatus === 'passed' ? 'No issue was found during inspection.' : 'Damage or penalty may be recorded.';
+} elseif ($hasInspection) {
+    $inspectionState = 'current';
+    $inspectionTitle = 'Inspection Pending';
+    $inspectionDesc = 'Inspector has been assigned and inspection is waiting to be completed.';
+} elseif ($bookingCompleted) {
+    $inspectionState = 'current';
+    $inspectionTitle = 'Waiting Inspection Assignment';
+    $inspectionDesc = 'Admin needs to assign an inspector for this completed booking.';
+} else {
+    $inspectionState = 'locked';
+    $inspectionTitle = 'Inspection';
+    $inspectionDesc = 'Inspection will happen after venue usage is completed.';
+}
+
+$flowSteps[] = [
+    'title' => $inspectionTitle,
+    'desc' => $inspectionDesc,
+    'meta' => !empty($booking['inspector_name']) ? $booking['inspector_name'] . ' • ' . formatDateTimeSafe($booking['inspected_at']) : 'No inspector assigned yet',
+    'state' => $inspectionState,
+    'icon' => 'clipboard-check'
+];
+
+if ($bookingRejected) {
+    $settlementState = $paymentStatus === 'refunded' ? 'done' : ($paymentDone ? 'current' : 'locked');
+    $settlementTitle = $paymentStatus === 'refunded' ? 'Refund Completed' : 'Refund Pending';
+    $settlementDesc = $paymentDone ? 'Rejected paid booking should be handled for refund by admin.' : 'No payment was completed, so no refund is required.';
+    $settlementMeta = strtoupper($paymentStatus ?: 'unpaid');
+} elseif ($hasReport) {
+    $hasPendingSettlement = in_array($refundStatus, ['pending'], true) || in_array($penaltyStatus, ['pending'], true);
+    $settlementState = $hasPendingSettlement ? 'current' : 'done';
+    $settlementTitle = 'Refund / Penalty Result';
+    $settlementDesc = 'Final inspection report has been generated.';
+    $settlementMeta = 'Deduct: RM ' . number_format((float)$booking['final_deduct'], 2);
+} elseif ($hasInspection && in_array($inspectionStatus, ['passed', 'failed'], true)) {
+    $settlementState = 'current';
+    $settlementTitle = 'Waiting Final Report';
+    $settlementDesc = 'Inspection is completed and final refund/penalty report is waiting.';
+    $settlementMeta = strtoupper($inspectionStatus);
+} else {
+    $settlementState = 'locked';
+    $settlementTitle = 'Refund / Penalty Result';
+    $settlementDesc = 'This step appears after inspection report is generated.';
+    $settlementMeta = 'Not available yet';
+}
+
+$flowSteps[] = [
+    'title' => $settlementTitle,
+    'desc' => $settlementDesc,
+    'meta' => $settlementMeta,
+    'state' => $settlementState,
+    'icon' => 'receipt'
+];
 ?>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
 
-<div class="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-3xl mx-auto">
+<div class="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
+    <div class="max-w-5xl mx-auto">
 
-        <!-- Header -->
         <div class="mb-8">
-            <a href="my_bookings.php" class="text-sm text-indigo-600 font-bold hover:underline">
-                ← Back to My Bookings
+            <a href="my_bookings.php" class="inline-flex items-center text-sm text-indigo-600 font-bold hover:underline">
+                <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i>
+                Back to My Bookings
             </a>
 
-            <h1 class="text-3xl font-extrabold text-slate-800 mt-3">
-                Booking Details
-            </h1>
-            <p class="text-sm text-slate-500">
-                View full information of your booking record
-            </p>
+            <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mt-4">
+                <div>
+                    <p class="text-xs text-slate-400 uppercase font-black tracking-widest">
+                        Booking #<?php echo htmlspecialchars($booking['bid']); ?>
+                    </p>
+                    <h1 class="text-3xl font-extrabold text-slate-800 mt-1">
+                        Booking Details & Progress
+                    </h1>
+                    <p class="text-sm text-slate-500 mt-1">
+                        Track your booking status from request submission until final settlement.
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap gap-2">
+                    <span class="px-3 py-1.5 text-xs font-black uppercase rounded-full border <?php echo statusBadgeClass($status); ?>">
+                        <?php echo htmlspecialchars($status); ?>
+                    </span>
+                    <span class="px-3 py-1.5 text-xs font-black uppercase rounded-full border <?php echo paymentBadgeClass($paymentStatus); ?>">
+                        <?php echo htmlspecialchars($paymentStatus ?: 'unpaid'); ?>
+                    </span>
+                </div>
+            </div>
         </div>
 
-        <!-- Card -->
-        <div class="bg-white rounded-2xl shadow border border-slate-200 overflow-hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            <!-- Header -->
-            <div class="p-6 border-b border-slate-100 flex justify-between items-start">
-                <div>
-                    <h2 class="text-xl font-bold text-slate-800">
-                        <?php echo htmlspecialchars($booking["vname"]); ?>
-                    </h2>
-                    <p class="text-xs text-slate-400 uppercase font-bold tracking-wider">
-                        <?php echo htmlspecialchars($booking["category"]); ?>
-                    </p>
+            <div class="lg:col-span-2 space-y-6">
+
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="p-6 border-b border-slate-100">
+                        <h2 class="text-xl font-bold text-slate-800">
+                            Booking Process Flow
+                        </h2>
+                        <p class="text-sm text-slate-500 mt-1">
+                            This progress is updated based on payment, admin approval, usage, inspection and report records.
+                        </p>
+                    </div>
+
+                    <div class="p-6">
+                        <div class="space-y-4">
+                            <?php foreach ($flowSteps as $index => $step): ?>
+                                <?php $classes = flowStepClass($step['state']); ?>
+
+                                <div class="relative flex gap-4">
+                                    <?php if ($index < count($flowSteps) - 1): ?>
+                                        <div class="absolute left-5 top-11 bottom-[-18px] w-0.5 <?php echo $classes['line']; ?>"></div>
+                                    <?php endif; ?>
+
+                                    <div class="relative z-10 shrink-0 w-10 h-10 rounded-full border-2 flex items-center justify-center <?php echo $classes['circle']; ?>">
+                                        <i data-lucide="<?php echo htmlspecialchars($step['icon']); ?>" class="w-5 h-5"></i>
+                                    </div>
+
+                                    <div class="flex-1 rounded-xl border p-4 <?php echo $classes['card']; ?>">
+                                        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                                            <div>
+                                                <h3 class="font-extrabold <?php echo $classes['title']; ?>">
+                                                    <?php echo htmlspecialchars($step['title']); ?>
+                                                </h3>
+                                                <p class="text-sm text-slate-600 mt-1">
+                                                    <?php echo htmlspecialchars($step['desc']); ?>
+                                                </p>
+                                            </div>
+
+                                            <span class="text-xs font-bold text-slate-500 sm:text-right">
+                                                <?php echo htmlspecialchars($step['meta']); ?>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
                 </div>
 
-                <?php
-                    $status = $booking['status'];
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="p-6 border-b border-slate-100">
+                        <h2 class="text-xl font-bold text-slate-800">
+                            Venue Information
+                        </h2>
+                    </div>
 
-                    $badge = "bg-yellow-100 text-yellow-700";
-                    if ($status === "approved") {
-                        $badge = "bg-emerald-100 text-emerald-700";
-                    } elseif ($status === "rejected") {
-                        $badge = "bg-red-100 text-red-700";
-                    }
-                ?>
+                    <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                            <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Venue</p>
+                            <p class="text-slate-800 font-extrabold mt-1">
+                                <?php echo htmlspecialchars($booking['vname']); ?>
+                            </p>
+                            <p class="text-xs text-slate-400 font-bold uppercase mt-1">
+                                <?php echo htmlspecialchars($booking['category']); ?>
+                            </p>
+                        </div>
 
-                <span class="px-3 py-1 text-xs font-black uppercase rounded <?php echo $badge; ?>">
-                    <?php echo htmlspecialchars($status); ?>
-                </span>
+                        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                            <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Booking Date</p>
+                            <p class="text-slate-800 font-extrabold mt-1">
+                                <?php echo formatDateTimeSafe($booking['date_booked'], 'd M Y'); ?>
+                            </p>
+                            <p class="text-xs text-slate-500 mt-1">
+                                <?php echo formatTimeSafe($booking['time_start']); ?> - <?php echo formatTimeSafe($booking['time_end']); ?>
+                            </p>
+                        </div>
+
+                        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                            <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Capacity</p>
+                            <p class="text-slate-800 font-extrabold mt-1">
+                                <?php echo (int)$booking['max_cap']; ?> Pax
+                            </p>
+                        </div>
+
+                        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                            <p class="text-xs text-slate-500 font-bold uppercase tracking-wider">Deposit</p>
+                            <p class="text-emerald-600 font-extrabold mt-1">
+                                RM <?php echo number_format((float)$booking['deposit'], 2); ?>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
-            <!-- Body -->
-            <div class="p-6 space-y-6">
+            <div class="space-y-6">
 
-                <!-- Grid Info -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-                    <div class="p-4 bg-slate-50 rounded-lg border">
-                        <p class="text-xs text-slate-500 font-bold uppercase">Date</p>
-                        <p class="text-slate-800 font-semibold">
-                            <?php echo htmlspecialchars($booking["date_booked"]); ?>
-                        </p>
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="p-6 border-b border-slate-100">
+                        <h2 class="text-lg font-extrabold text-slate-800">
+                            Summary
+                        </h2>
                     </div>
 
-                    <div class="p-4 bg-slate-50 rounded-lg border">
-                        <p class="text-xs text-slate-500 font-bold uppercase">Time</p>
-                        <p class="text-slate-800 font-semibold">
-                            <?php echo htmlspecialchars($booking["time_start"]); ?>
-                            →
-                            <?php echo htmlspecialchars($booking["time_end"]); ?>
-                        </p>
-                    </div>
+                    <div class="p-6 space-y-4">
+                        <div>
+                            <p class="text-xs text-slate-400 font-black uppercase tracking-widest">Purpose</p>
+                            <p class="text-sm text-slate-700 font-semibold mt-1">
+                                <?php echo htmlspecialchars($booking['purpose'] ?? '-'); ?>
+                            </p>
+                        </div>
 
-                    <div class="p-4 bg-slate-50 rounded-lg border">
-                        <p class="text-xs text-slate-500 font-bold uppercase">Capacity</p>
-                        <p class="text-slate-800 font-semibold">
-                            <?php echo (int)$booking["max_cap"]; ?> Pax
-                        </p>
-                    </div>
-
-                    <div class="p-4 bg-slate-50 rounded-lg border">
-                        <p class="text-xs text-slate-500 font-bold uppercase">Deposit</p>
-                        <p class="text-emerald-600 font-extrabold">
-                            RM <?php echo number_format((float)$booking["deposit"], 2); ?>
-                        </p>
-                    </div>
-
-                </div>
-
-                <!-- Purpose -->
-                <div class="p-4 bg-indigo-50 border border-indigo-100 rounded-lg">
-                    <p class="text-xs font-bold text-indigo-600 uppercase">Purpose</p>
-                    <p class="text-slate-800 font-medium mt-1">
-                        <?php echo htmlspecialchars($booking["purpose"] ?? '-'); ?>
-                    </p>
-                </div>
-
-                <!-- Payment -->
-                <div class="p-4 border rounded-lg bg-white">
-                    <p class="text-xs text-slate-500 font-bold uppercase">Payment Status</p>
-                    <p class="font-bold text-slate-800">
-                        <?php echo htmlspecialchars($booking["payment_status"]); ?>
-                    </p>
-                </div>
-
-                <?php if (!empty($booking['admin_name'])): ?>
-
-                    <div class="p-5 rounded-xl border border-slate-200 bg-slate-50">
-
-                        <p class="text-xs uppercase font-bold text-slate-400 tracking-wider">
-                            Reviewed By
-                        </p>
-
-                        <p class="text-slate-800 font-bold mt-2">
-                            <?php echo htmlspecialchars($booking['admin_name']); ?>
-                        </p>
-
-                        <?php if (!empty($booking['approve_date'])): ?>
-
-                            <p class="text-xs text-slate-400 mt-2">
-                                <?php echo htmlspecialchars($booking['approve_date']); ?>
+                        <div class="border-t pt-4">
+                            <p class="text-xs text-slate-400 font-black uppercase tracking-widest">Payment</p>
+                            <p class="text-sm text-slate-700 font-semibold mt-1">
+                                <?php echo htmlspecialchars(strtoupper($paymentStatus ?: 'unpaid')); ?>
                             </p>
 
+                            <?php if (!empty($booking['transaction_ref'])): ?>
+                                <p class="text-xs text-slate-500 mt-1">
+                                    Transaction: <?php echo htmlspecialchars($booking['transaction_ref']); ?>
+                                </p>
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="border-t pt-4">
+                            <p class="text-xs text-slate-400 font-black uppercase tracking-widest">Admin Review</p>
+                            <p class="text-sm text-slate-700 font-semibold mt-1">
+                                <?php echo !empty($booking['admin_name']) ? htmlspecialchars($booking['admin_name']) : 'Not reviewed yet'; ?>
+                            </p>
+                            <p class="text-xs text-slate-500 mt-1">
+                                <?php echo formatDateTimeSafe($booking['approve_date']); ?>
+                            </p>
+                        </div>
+
+                        <div class="border-t pt-4">
+                            <p class="text-xs text-slate-400 font-black uppercase tracking-widest">Inspection</p>
+                            <p class="text-sm text-slate-700 font-semibold mt-1">
+                                <?php echo $hasInspection ? htmlspecialchars(strtoupper($inspectionStatus)) : 'Not assigned yet'; ?>
+                            </p>
+
+                            <?php if (!empty($booking['inspector_name'])): ?>
+                                <p class="text-xs text-slate-500 mt-1">
+                                    Inspector: <?php echo htmlspecialchars($booking['inspector_name']); ?>
+                                </p>
+                            <?php endif; ?>
+                        </div>
+
+                        <?php if ($hasInspection): ?>
+                            <div class="border-t pt-4">
+                                <p class="text-xs text-slate-400 font-black uppercase tracking-widest">Damage / Penalty</p>
+
+                                <p class="text-sm text-slate-700 font-semibold mt-1">
+                                    Damage Cost: RM <?php echo number_format((float)$booking['damage_cost'], 2); ?>
+                                </p>
+
+                                <p class="text-sm text-slate-700 font-semibold mt-1">
+                                    Penalty: RM <?php echo number_format((float)$booking['penalty'], 2); ?>
+                                </p>
+
+                                <?php if (!empty($booking['damage_desc'])): ?>
+                                    <p class="text-xs text-slate-500 mt-2">
+                                        <?php echo nl2br(htmlspecialchars($booking['damage_desc'])); ?>
+                                    </p>
+                                <?php endif; ?>
+                            </div>
                         <?php endif; ?>
 
-                    </div>
+                        <?php if ($hasReport): ?>
+                            <div class="border-t pt-4">
+                                <p class="text-xs text-slate-400 font-black uppercase tracking-widest">Final Report</p>
 
-                    <?php endif; ?>
+                                <p class="text-sm text-slate-700 font-semibold mt-1">
+                                    Final Deduct: RM <?php echo number_format((float)$booking['final_deduct'], 2); ?>
+                                </p>
+
+                                <p class="text-xs text-slate-500 mt-1">
+                                    Refund: <?php echo htmlspecialchars(strtoupper($refundStatus ?: 'none')); ?>
+                                </p>
+
+                                <p class="text-xs text-slate-500 mt-1">
+                                    Penalty: <?php echo htmlspecialchars(strtoupper($penaltyStatus ?: 'none')); ?>
+                                </p>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <div class="bg-indigo-50 rounded-2xl border border-indigo-100 p-5">
+                    <div class="flex gap-3">
+                        <i data-lucide="info" class="w-5 h-5 text-indigo-600 shrink-0 mt-0.5"></i>
+
+                        <p class="text-sm text-indigo-800 leading-relaxed">
+                            If the progress is not updated yet, it means the related admin or inspection action has not been completed in the system.
+                        </p>
+                    </div>
+                </div>
 
             </div>
 
         </div>
-
     </div>
 </div>
 

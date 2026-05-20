@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 11, 2026 at 01:16 PM
+-- Generation Time: May 19, 2026 at 12:35 PM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- PHP Version: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -24,6 +24,22 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `academic_schedule`
+--
+
+CREATE TABLE `academic_schedule` (
+  `sch_id` int(10) UNSIGNED NOT NULL,
+  `sem_id` int(4) UNSIGNED NOT NULL,
+  `vid` varchar(10) NOT NULL,
+  `day_of_week` enum('Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday') NOT NULL,
+  `start_time` time NOT NULL,
+  `end_time` time NOT NULL,
+  `subject_name` varchar(100) DEFAULT 'Academic Class'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `admin`
 --
 
@@ -33,8 +49,9 @@ CREATE TABLE `admin` (
   `email` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL,
   `phone_num` varchar(20) NOT NULL,
-  `profile_pic` varchar(255) NOT NULL,
+  `profile_pic` varchar(255) NOT NULL DEFAULT '',
   `role` enum('super_admin','admin') NOT NULL DEFAULT 'admin',
+  `status` enum('active','inactive') NOT NULL DEFAULT 'active',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -42,9 +59,9 @@ CREATE TABLE `admin` (
 -- Dumping data for table `admin`
 --
 
-INSERT INTO `admin` (`aid`, `admin_name`, `email`, `password`, `phone_num`, `profile_pic`, `role`, `created_at`) VALUES
-(8000, 'SuperAdmin', 'SA@mmu.edu.my', '$2y$10$0av5Zh5QYMrLJyALrb8O5u60U292chJEz7SdcwfkthLTmx0j1RCw2', '06123456789', '', 'super_admin', '2026-04-28 09:43:39'),
-(8002, 'Siti', 'Siti@mmu.edu.my', '$2y$10$Q3kh7pg/gGCiw.JnpGremOrH26gnUTq.y3LZohGD9qpaPt/k4YZyu', '0122233456', '', 'admin', '2026-04-28 15:55:39');
+INSERT INTO `admin` (`aid`, `admin_name`, `email`, `password`, `phone_num`, `profile_pic`, `role`, `status`, `created_at`) VALUES
+(8000, 'SuperAdmin', 'SA@mmu.edu.my', '$2y$10$0av5Zh5QYMrLJyALrb8O5u60U292chJEz7SdcwfkthLTmx0j1RCw2', '06123456789', '', 'super_admin', 'active', '2026-04-28 09:43:39'),
+(8002, 'Siti', 'Siti@mmu.edu.my', '$2y$10$Q3kh7pg/gGCiw.JnpGremOrH26gnUTq.y3LZohGD9qpaPt/k4YZyu', '0122233456', '', 'admin', 'active', '2026-04-28 15:55:39');
 
 -- --------------------------------------------------------
 
@@ -76,10 +93,10 @@ INSERT INTO `booking` (`bid`, `uid`, `vid`, `date_booked`, `time_start`, `time_e
 (20000014, '242DT2430C', 'MSMR2016', '2026-04-29', '13:30:00', '14:30:00', 'completed', 'paid', 'TXN-9203A980', 'test', 8002, '2026-04-29 12:44:41', '2026-04-28 17:31:13'),
 (20000015, '242DT2429C', 'MSMR2016', '2026-07-02', '11:00:00', '14:30:00', 'pending', '', NULL, 'test', NULL, NULL, '2026-05-06 02:33:41'),
 (20000016, '242DT2429C', 'MSMR2016', '2026-05-08', '09:30:00', '10:30:00', 'pending', '', NULL, 'test', NULL, NULL, '2026-05-06 02:33:52'),
-(20000017, '242DT2421C', 'MSMR2016', '2026-05-06', '16:30:00', '18:30:00', 'approved', 'paid', 'TXN-C80129AA', 'Discussion', 8000, '2026-05-06 14:47:59', '2026-05-06 06:33:38'),
+(20000017, '242DT2421C', 'MSMR2016', '2026-05-06', '16:30:00', '18:30:00', 'completed', 'paid', 'TXN-C80129AA', 'Discussion', 8000, '2026-05-06 14:47:59', '2026-05-06 06:33:38'),
 (20000018, '242DT2429C', 'MSMR2016', '2026-05-07', '16:30:00', '17:30:00', 'pending', 'paid', 'TXN-7538644A', 'teae', NULL, NULL, '2026-05-06 06:45:07'),
 (20000019, '242DT2429C', 'MSMX0003', '2026-05-13', '12:30:00', '18:30:00', 'pending', 'paid', 'TXN-WO89K1Z6', 'For large event\'s discussion', NULL, NULL, '2026-05-11 10:42:36'),
-(20000020, '242DT2429C', 'MSMX2001', '2026-05-16', '09:00:00', '10:30:00', 'approved', 'paid', 'TXN-D5TU789Q', 'For project video recording', 8002, '2026-05-12 08:37:40', '2026-05-11 10:44:26');
+(20000020, '242DT2429C', 'MSMX2001', '2026-05-16', '09:00:00', '10:30:00', 'completed', 'paid', 'TXN-D5TU789Q', 'For project video recording', 8002, '2026-05-12 08:37:40', '2026-05-11 10:44:26');
 
 -- --------------------------------------------------------
 
@@ -115,7 +132,7 @@ INSERT INTO `inspection` (`ins_id`, `bid`, `sid`, `ins_status`, `damage_desc`, `
 CREATE TABLE `inspic` (
   `pic_id` int(11) NOT NULL,
   `pic_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `ins_id` int(10) NOT NULL,
+  `ins_id` int(10) UNSIGNED NOT NULL,
   `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -144,6 +161,28 @@ INSERT INTO `report` (`rid`, `ins_id`, `final_deduct`, `refund_status`, `penalty
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `semester_config`
+--
+
+CREATE TABLE `semester_config` (
+  `sem_id` int(4) UNSIGNED NOT NULL,
+  `sem_name` varchar(50) NOT NULL,
+  `start_date` date NOT NULL,
+  `end_date` date NOT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT 0,
+  `is_booking_open` tinyint(1) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `semester_config`
+--
+
+INSERT INTO `semester_config` (`sem_id`, `sem_name`, `start_date`, `end_date`, `is_active`, `is_booking_open`) VALUES
+(2610, 'Trimester March/April 2026', '2026-03-30', '2026-07-09', 1, 0);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `staff`
 --
 
@@ -153,8 +192,9 @@ CREATE TABLE `staff` (
   `email` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL,
   `phone_num` varchar(20) NOT NULL,
-  `profile_pic` varchar(255) NOT NULL,
-  `position` enum('inspector','manager','admin') DEFAULT 'inspector',
+  `profile_pic` varchar(255) NOT NULL DEFAULT '',
+  `position` enum('inspector') NOT NULL DEFAULT 'inspector',
+  `status` enum('active','inactive') NOT NULL DEFAULT 'active',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -162,8 +202,8 @@ CREATE TABLE `staff` (
 -- Dumping data for table `staff`
 --
 
-INSERT INTO `staff` (`sid`, `staff_name`, `email`, `password`, `phone_num`, `profile_pic`, `position`, `created_at`) VALUES
-(9000, 'Vikram', 'vikram@gmail.com', '$2y$10$hU8obf2c0SE317q2FH1Qs.sWcrUC3MneI6SKOOYTq2ux7AiouOzsO', '0122233456', '', 'inspector', '2026-04-28 15:25:58');
+INSERT INTO `staff` (`sid`, `staff_name`, `email`, `password`, `phone_num`, `profile_pic`, `position`, `status`, `created_at`) VALUES
+(9000, 'Vikram', 'vikram@gmail.com', '$2y$10$hU8obf2c0SE317q2FH1Qs.sWcrUC3MneI6SKOOYTq2ux7AiouOzsO', '0122233456', '', 'inspector', 'active', '2026-04-28 15:25:58');
 
 -- --------------------------------------------------------
 
@@ -177,7 +217,9 @@ CREATE TABLE `user` (
   `email` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL,
   `phone_num` varchar(20) NOT NULL,
-  `profile_pic` varchar(255) NOT NULL,
+  `profile_pic` varchar(255) NOT NULL DEFAULT '',
+  `outstanding_debt` decimal(10,2) UNSIGNED NOT NULL DEFAULT 0.00,
+  `account_status` enum('active','restricted') NOT NULL DEFAULT 'active',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -185,12 +227,12 @@ CREATE TABLE `user` (
 -- Dumping data for table `user`
 --
 
-INSERT INTO `user` (`uid`, `username`, `email`, `password`, `phone_num`, `profile_pic`, `created_at`) VALUES
-('242DT2421C', 'test', 'test@gmail.com', '$2y$10$TjGMkbwlVVQO.fRym2HgAOWAv3yrUL3/a0GyZjYu5LwPZZjRg6wmm', '01241241124', '', '2026-05-06 06:21:11'),
-('242DT2429C', 'KamJS', 'kam@gmail.com', '$2y$10$b9IdO4GLAwsebemQD0x1Q.MKQL1UlyAn6ZhVyKtRkbYRghAbt4VMC', '01156811078', '', '2026-05-05 02:46:08'),
-('242DT2430C', 'LIM', 'Lim@gmail.com', '$2y$10$7sFovpK/duwjvV1jbwrfROmzxvURhuIXPJfEj5t3ePzg3j4vmqnOO', '0122233456', '', '2026-04-28 14:04:09'),
-('242DT245Y6', 'Frank', 'kai@student.mmu.edu.my', '$2y$10$aM1vOkGZ/5mKORZGGsxWCOfWYZkoOhDDbQV.gyBZa5m/lH9u1Lt5C', '0112334456', '', '2026-05-06 06:17:40'),
-('242DT267S4', 'Adam', 'yai@student.mmu.edu.my', '$2y$10$7Ph4jv5qNttlbv3xFlEYDOjQ8RI/7u/F5YTmzF7WSdiMYeL353lW2', '0111232455', '', '2026-05-06 06:19:43');
+INSERT INTO `user` (`uid`, `username`, `email`, `password`, `phone_num`, `profile_pic`, `outstanding_debt`, `account_status`, `created_at`) VALUES
+('242DT2421C', 'test', 'test@gmail.com', '$2y$10$TjGMkbwlVVQO.fRym2HgAOWAv3yrUL3/a0GyZjYu5LwPZZjRg6wmm', '01241241124', '', 0.00, 'active', '2026-05-06 06:21:11'),
+('242DT2429C', 'KamJS', 'kam@gmail.com', '$2y$10$b9IdO4GLAwsebemQD0x1Q.MKQL1UlyAn6ZhVyKtRkbYRghAbt4VMC', '01156811078', '', 0.00, 'active', '2026-05-05 02:46:08'),
+('242DT2430C', 'LIM', 'Lim@gmail.com', '$2y$10$7sFovpK/duwjvV1jbwrfROmzxvURhuIXPJfEj5t3ePzg3j4vmqnOO', '0122233456', '', 0.00, 'active', '2026-04-28 14:04:09'),
+('242DT245Y6', 'Frank', 'kai@student.mmu.edu.my', '$2y$10$aM1vOkGZ/5mKORZGGsxWCOfWYZkoOhDDbQV.gyBZa5m/lH9u1Lt5C', '0112334456', '', 0.00, 'active', '2026-05-06 06:17:40'),
+('242DT267S4', 'Adam', 'yai@student.mmu.edu.my', '$2y$10$7Ph4jv5qNttlbv3xFlEYDOjQ8RI/7u/F5YTmzF7WSdiMYeL353lW2', '0111232455', '', 0.00, 'active', '2026-05-06 06:19:43');
 
 -- --------------------------------------------------------
 
@@ -262,13 +304,21 @@ INSERT INTO `venue` (`vid`, `vname`, `vcid`, `max_cap`, `deposit`, `status`, `de
 CREATE TABLE `vpic` (
   `pic_id` int(11) NOT NULL,
   `pic` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `vid` varchar(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `vid` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `academic_schedule`
+--
+ALTER TABLE `academic_schedule`
+  ADD PRIMARY KEY (`sch_id`),
+  ADD KEY `fk_sch_venue` (`vid`),
+  ADD KEY `fk_sch_semester` (`sem_id`);
 
 --
 -- Indexes for table `admin`
@@ -300,7 +350,8 @@ ALTER TABLE `inspection`
 -- Indexes for table `inspic`
 --
 ALTER TABLE `inspic`
-  ADD PRIMARY KEY (`pic_id`);
+  ADD PRIMARY KEY (`pic_id`),
+  ADD KEY `fk_inspic_inspection` (`ins_id`);
 
 --
 -- Indexes for table `report`
@@ -308,6 +359,12 @@ ALTER TABLE `inspic`
 ALTER TABLE `report`
   ADD PRIMARY KEY (`rid`),
   ADD KEY `fk_report_ins` (`ins_id`);
+
+--
+-- Indexes for table `semester_config`
+--
+ALTER TABLE `semester_config`
+  ADD PRIMARY KEY (`sem_id`);
 
 --
 -- Indexes for table `staff`
@@ -342,11 +399,18 @@ ALTER TABLE `venue`
 -- Indexes for table `vpic`
 --
 ALTER TABLE `vpic`
-  ADD PRIMARY KEY (`pic_id`);
+  ADD PRIMARY KEY (`pic_id`),
+  ADD KEY `fk_vpic_venue` (`vid`);
 
 --
 -- AUTO_INCREMENT for dumped tables
 --
+
+--
+-- AUTO_INCREMENT for table `academic_schedule`
+--
+ALTER TABLE `academic_schedule`
+  MODIFY `sch_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `admin`
@@ -401,11 +465,19 @@ ALTER TABLE `vpic`
 --
 
 --
+-- Constraints for table `academic_schedule`
+--
+ALTER TABLE `academic_schedule`
+  ADD CONSTRAINT `fk_sch_semester` FOREIGN KEY (`sem_id`) REFERENCES `semester_config` (`sem_id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_sch_venue` FOREIGN KEY (`vid`) REFERENCES `venue` (`vid`) ON DELETE CASCADE;
+
+--
 -- Constraints for table `booking`
 --
 ALTER TABLE `booking`
   ADD CONSTRAINT `fk_booking_admin` FOREIGN KEY (`aid`) REFERENCES `admin` (`aid`) ON DELETE SET NULL,
-  ADD CONSTRAINT `fk_booking_user` FOREIGN KEY (`uid`) REFERENCES `user` (`uid`) ON DELETE CASCADE;
+  ADD CONSTRAINT `fk_booking_user` FOREIGN KEY (`uid`) REFERENCES `user` (`uid`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_booking_venue` FOREIGN KEY (`vid`) REFERENCES `venue` (`vid`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `inspection`
@@ -413,6 +485,12 @@ ALTER TABLE `booking`
 ALTER TABLE `inspection`
   ADD CONSTRAINT `fk_ins_booking` FOREIGN KEY (`bid`) REFERENCES `booking` (`bid`) ON DELETE CASCADE,
   ADD CONSTRAINT `fk_ins_staff` FOREIGN KEY (`sid`) REFERENCES `staff` (`sid`);
+
+--
+-- Constraints for table `inspic`
+--
+ALTER TABLE `inspic`
+  ADD CONSTRAINT `fk_inspic_inspection` FOREIGN KEY (`ins_id`) REFERENCES `inspection` (`ins_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `report`
@@ -425,6 +503,12 @@ ALTER TABLE `report`
 --
 ALTER TABLE `venue`
   ADD CONSTRAINT `vcategory_id` FOREIGN KEY (`vcid`) REFERENCES `vcategory` (`vcid`);
+
+--
+-- Constraints for table `vpic`
+--
+ALTER TABLE `vpic`
+  ADD CONSTRAINT `fk_vpic_venue` FOREIGN KEY (`vid`) REFERENCES `venue` (`vid`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

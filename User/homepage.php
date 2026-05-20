@@ -104,29 +104,26 @@ $result = $conn->query($sql);
                 <a href="homepage.php" class="text-white font-semibold px-2 py-2 text-lg drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]">Home</a>
                 <a href="venues.php" class="text-slate-400 hover:text-white transition-colors px-2 py-2 text-lg font-medium">Venues</a>
                 <a href="my_bookings.php" class="text-slate-400 hover:text-white transition-colors px-2 py-2 text-lg font-medium">My Bookings</a>
+                <a href="/FYP/User/user_dashboard.php" class="text-slate-400 hover:text-white transition-colors px-2 py-2 text-lg font-medium">Dashboard</a>
             </div>
 
             <div class="flex items-center gap-4">
     <?php if (isset($_SESSION['uid'])): ?>
-        <a href="user_dashboard.php" class="flex items-center gap-2 bg-white/10 py-1.5 px-4 rounded-full border border-white/10 backdrop-blur-md hover:bg-white/20 transition-all">
+        <a href="profile.php" class="flex items-center gap-2 bg-white/10 py-1.5 px-4 rounded-full border border-white/10 backdrop-blur-md hover:bg-white/20 transition-all" title="View Profile">
             <i data-lucide="user" class="w-4 h-4 text-mmu-glow"></i>
             <span class="text-sm font-semibold text-white max-w-[100px] truncate">
                 <?php echo htmlspecialchars($_SESSION['username'], ENT_QUOTES, 'UTF-8'); ?>
             </span>
         </a>
 
-        <a href="profile.php" class="text-slate-400 hover:text-white transition-colors">
-            <i data-lucide="settings" class="w-5 h-5"></i>
-        </a>
-
-        <a href="../User/user_logout.php" class="text-red-400 hover:text-red-300 transition-colors">
+        <a href="../User/user_logout.php" class="text-red-400 hover:text-red-300 transition-colors" title="Logout">
             <i data-lucide="log-out" class="w-5 h-5"></i>
         </a>
-        <?php else: ?>
+    <?php else: ?>
         <a href="../user/user_login.php" class="text-slate-300 hover:text-white font-semibold text-sm transition-colors">Login</a>
-        <a href="../user/user_register.php" class="bg-mmu-core hover:bg-blue-800 text-white px-5 py-2 rounded-xl text-sm font-bold shadow-[0_4px_14px_0_rgba(0,74,173,0.39)] transition-all">Sign Up</a>
-            <?php endif; ?>
-            </div>
+        <a href="../user/user_register.php" class="bg-mmu-core hover:bg-blue-800 text-white px-5 py-2 rounded-xl text-sm font-bold shadow-lg transition-all">Sign Up</a>
+          <?php endif; ?>
+          </div>
         </div>
     </div>
 </nav>
@@ -157,11 +154,11 @@ $result = $conn->query($sql);
 
         <!-- 发光色信任带 -->
         <div class="flex flex-wrap justify-center items-center gap-x-8 gap-y-4 text-slate-300 text-sm font-semibold">
-            <div class="flex items-center gap-2"><i data-lucide="zap" class="w-4 h-4 text-mmu-glow drop-shadow-[0_0_8px_rgba(59,130,246,0.8)]"></i> Instant Confirmation</div>
+            <div class="flex items-center gap-2"><i data-lucide="zap" class="w-4 h-4 text-mmu-glow drop-shadow-[0_0_14px_rgba(59,130,246,0.8)]"></i> Instant Confirmation</div>
             <div class="hidden sm:block w-1.5 h-1.5 rounded-full bg-slate-600"></div>
-            <div class="flex items-center gap-2"><i data-lucide="layers" class="w-4 h-4 text-mmu-glow drop-shadow-[0_0_8px_rgba(59,130,246,0.8)]"></i> Various Room Types</div>
+            <div class="flex items-center gap-2"><i data-lucide="layers" class="w-4 h-4 text-mmu-glow drop-shadow-[0_0_14px_rgba(59,130,246,0.8)]"></i> Various Room Types</div>
             <div class="hidden sm:block w-1.5 h-1.5 rounded-full bg-slate-600"></div>
-            <div class="flex items-center gap-2"><i data-lucide="shield-check" class="w-4 h-4 text-mmu-glow drop-shadow-[0_0_8px_rgba(59,130,246,0.8)]"></i> Guaranteed Availability</div>
+            <div class="flex items-center gap-2"><i data-lucide="shield-check" class="w-4 h-4 text-mmu-glow drop-shadow-[0_0_14px_rgba(59,130,246,0.8)]"></i> Guaranteed Availability</div>
         </div>
     </div>
 
@@ -226,11 +223,42 @@ $result = $conn->query($sql);
 </div>
 
 <!-- 悬浮页脚 (Floating Footer) -->
-<footer class="relative z-10 border-t border-white/10 bg-black/40 backdrop-blur-md">
-    <div class="max-w-7xl mx-auto px-4 py-8 text-center">
-        <p class="text-slate-500 text-sm font-medium tracking-wide">
-            &copy; <?php echo date("Y"); ?> MMU Campus Venue Booking System. Engineered for optimal resource allocation.
-        </p>
+<footer style="position: relative; z-index: 50; background-color: #020617; border-top: 1px solid rgba(255, 255, 255, 0.1); padding: 40px 24px; margin-top: 80px; font-family: sans-serif;">
+    <div style="max-w: 1280px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px;">
+        
+        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 32px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 24px;">
+            
+            <div>
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                    <div style="background-color: #2563eb; padding: 6px 12px; border-radius: 8px; font-weight: 900; color: #ffffff; font-size: 14px;">C</div>
+                    <span style="font-size: 20px; font-weight: 900; color: #00d4ff; letter-spacing: -0.05em;">CVBMS</span>
+                </div>
+                <p style="color: #94a3b8; font-size: 14px; margin: 0; max-w: 360px; line-height: 1.5;">
+                    Campus Venue Booking Management System. Engineered for optimal student resource allocation.
+                </p>
+            </div>
+
+            <div style="min-width: 250px;">
+                <h4 style="color: #ffffff; font-size: 16px; font-weight: 700; margin: 0 0 12px 0;">Need Assistance? Contact Helpdesk</h4>
+                <div style="display: flex; flex-direction: column; gap: 8px; font-size: 14px;">
+                    <a href="mailto:support@mmu.edu.my" style="color: #00d4ff; text-decoration: none; display: flex; align-items: center; gap: 8px;">
+                        <span>📧</span> support@mmu.edu.my
+                    </a>
+                    <span style="color: #cbd5e1; display: flex; align-items: center; gap: 8px;">
+                        <span>📞</span> IT Helpdesk: +6011-234-5678
+                    </span>
+                    <span style="color: #64748b; font-size: 12px; padding-left: 24px;">
+                        Mon - Fri (9:00 AM - 5:00 PM)
+                    </span>
+                </div>
+            </div>
+
+        </div>
+
+        <div style="text-align: center; color: #64748b; font-size: 12px;">
+            &copy; 2026Campus Venue Booking Management System. All rights reserved.
+        </div>
+
     </div>
 </footer>
 

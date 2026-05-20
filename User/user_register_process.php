@@ -1,31 +1,32 @@
 <?php
 include("../config/db.php");
-
-$uid = $_POST['uid'];
+$uid = trim($_POST['uid']);
+$email = trim($_POST['email']);
 $username = $_POST['username'];
-$email = $_POST['email'];
 $phone_num = $_POST['phone_num'];
 $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
 
-// 复合去重校验: 确保 ID 或 Email 均未被占用
+if (!preg_match('/^[0-9]{3}[A-Za-z]{2}[A-Za-z0-9]{5}$/', $uid)) {
+    header("Location: user_register.php?status=error&msg=Invalid+ID+Format");
+    exit();
+}
+if (strpos($email, '@student.mmu.edu.my') === false) {
+    header("Location: user_register.php?status=error&msg=Only+MMU+Emails+Allowed");
+    exit();
+}
 $stmt = $conn->prepare("SELECT uid FROM user WHERE uid = ? OR email = ?");
 $stmt->bind_param("ss", $uid, $email);
 $stmt->execute();
-$result = $stmt->get_result();
-
-if ($result->num_rows > 0) {
-    header("Location: user_register.php?error=exists");
+if ($stmt->get_result()->num_rows > 0) {
+    header("Location: user_register.php?status=error&msg=User+Already+Exists");
     exit();
 }
-
-// 执行规范化注入
 $stmt = $conn->prepare("INSERT INTO user (uid, username, email, password, phone_num) VALUES (?, ?, ?, ?, ?)");
 $stmt->bind_param("sssss", $uid, $username, $email, $password, $phone_num);
-
 if ($stmt->execute()) {
-    header("Location: user_login.php?success=registered");
+    header("Location: user_register.php?status=success&msg=Account+Created+Successfully");
 } else {
-    header("Location: user_register.php?error=failed");
+    header("Location: user_register.php?status=error&msg=Database+Error");
 }
 exit();
 ?>
