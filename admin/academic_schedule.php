@@ -3,7 +3,8 @@
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
-require_once __DIR__ . '/../core/components/datagrid.php'; // ∴ 引入引擎
+require_once __DIR__ . '/../core/components/datagrid.php'; 
+require_once __DIR__ . '/../core/components/filter_engine.php'; // ∴ 引入过滤器引擎
 
 /*
 |--------------------------------------------------------------------------
@@ -46,7 +47,7 @@ $result->data_seek(0);
 
 /*
 |--------------------------------------------------------------------------
-| C: Page Configuration & Schema Definition
+| C: Configuration & Schema Definitions
 |--------------------------------------------------------------------------
 */
 $page_title = "Class Schedule";
@@ -60,7 +61,68 @@ $topbar_content = '
 </div>';
 $extra_css = ["../assets/css/fiori_forms.css", "../assets/css/table.css"];
 
-// ∴ 核心拓扑：DataGrid 配置字典
+// ∴ 数据集降维转换 (Dataset Dimensionality Reduction)
+$sem_options = [];
+if ($semesters && $semesters->num_rows > 0) {
+    while($sem = $semesters->fetch_assoc()) {
+        $sem_options[$sem['sem_id']] = $sem['sem_name'];
+    }
+}
+
+$vid_options = [];
+if ($venues && $venues->num_rows > 0) {
+    while($v = $venues->fetch_assoc()) {
+        $vid_options[$v['vid']] = '[' . $v['vid'] . '] ' . $v['vname'];
+    }
+}
+
+// ∴ 核心拓扑一：Filter Schema 配置字典
+$filter_schema = [
+    'action' => 'academic_schedule.php',
+    'show_submit_btn' => false, // 禁用提交按钮，依赖 auto_submit
+    'fields' => [
+        [
+            'type' => 'select',
+            'name' => 'filter_sem',
+            'label' => 'Semester',
+            'value' => ($f_sem > 0) ? (string)$f_sem : '',
+            'placeholder' => 'All Semesters',
+            'auto_submit' => true,
+            'options' => $sem_options,
+            'width' => 'w-56' // 增加宽度以适配长学期名
+        ],
+        [
+            'type' => 'select',
+            'name' => 'filter_vid',
+            'label' => 'Venue',
+            'value' => $f_vid,
+            'placeholder' => 'All Venues',
+            'auto_submit' => true,
+            'options' => $vid_options,
+            'width' => 'w-48'
+        ],
+        [
+            'type' => 'select',
+            'name' => 'filter_day',
+            'label' => 'Day',
+            'value' => $f_day,
+            'placeholder' => 'All Days',
+            'auto_submit' => true,
+            'options' => [
+                'Monday' => 'Monday',
+                'Tuesday' => 'Tuesday',
+                'Wednesday' => 'Wednesday',
+                'Thursday' => 'Thursday',
+                'Friday' => 'Friday',
+                'Saturday' => 'Saturday',
+                'Sunday' => 'Sunday'
+            ],
+            'width' => 'w-36'
+        ]
+    ]
+];
+
+// ∴ 核心拓扑二：DataGrid Schema 配置字典
 $datagrid_schema = [
     'enable_checkbox' => true,
     'primary_key' => 'sch_id',
@@ -74,9 +136,9 @@ $datagrid_schema = [
     ]
 ];
 
-// ∴ 修正后的控制器注入字典
+// ∴ 控制器注入字典 (隔离外部 JavaScript)
 $controller_config = [
-    'edit_url_base' => 'add_exclusion.php?id=', // 必须严格对齐目标文件的 $_GET['id']
+    'edit_url_base' => 'add_exclusion.php?id=',
     'delete_entity_name' => 'schedule record'
 ];
 require_once __DIR__ . '/../core/components/datagrid_controller.php';
@@ -89,30 +151,7 @@ require_once __DIR__ . '/../core/components/datagrid_controller.php';
 ob_start();
 ?>
 
-<div class="bg-white p-5 rounded-md border border-slate-200 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] mb-4 shrink-0">
-    <form method="GET" action="academic_schedule.php" id="filterForm" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-        <div>
-            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Semester</label>
-            <select name="filter_sem" onchange="this.form.submit()" class="fiori-input w-full bg-white font-bold text-[#004aad] cursor-pointer">
-                <option value="0">All Semesters</option>
-                <?php while($sem = $semesters->fetch_assoc()): ?>
-                    <option value="<?php echo $sem['sem_id']; ?>" <?php echo ($f_sem == $sem['sem_id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($sem['sem_name']); ?></option>
-                <?php endwhile; ?>
-            </select>
-        </div>
-        <div>
-            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Venue</label>
-            <select name="filter_vid" onchange="this.form.submit()" class="fiori-input w-full bg-white font-bold text-slate-700 cursor-pointer"><option value="">All Venues</option></select>
-        </div>
-        <div>
-            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Day</label>
-            <select name="filter_day" onchange="this.form.submit()" class="fiori-input w-full bg-white font-bold text-slate-700 cursor-pointer"><option value="">All Days</option></select>
-        </div>
-        <div class="flex justify-end">
-            <a href="academic_schedule.php" class="px-4 py-2 bg-transparent text-slate-600 text-sm font-semibold rounded-md hover:bg-slate-100 border border-transparent transition flex items-center justify-center">Reset</a>
-        </div>
-    </form>
-</div>
+<?php echo render_filter_engine($filter_schema); ?>
 
 <div class="flex items-center justify-between mb-4 bg-white p-3 rounded-md border border-slate-200 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] shrink-0">
     <div class="flex space-x-1 border-r border-slate-200 pr-4 mr-4">
@@ -131,10 +170,7 @@ ob_start();
     <form id="bulkActionForm" action="../actions/process_schedule.php" method="POST" class="flex-1 overflow-hidden flex flex-col">
         <input type="hidden" name="action" id="bulk_action_type" value="">
         <div id="view-table-container" class="flex-1 overflow-y-auto">
-            <?php 
-                // ∴ 注入渲染函数，原有的数十行 <table> 代码已被完全剥离
-                echo render_datagrid($datagrid_schema, $result); 
-            ?>
+            <?php echo render_datagrid($datagrid_schema, $result); ?>
         </div>
     </form>
 
@@ -146,19 +182,7 @@ ob_start();
     </div>
 </div>
 
-<div id="custom-delete-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 backdrop-blur-sm opacity-0 transition-opacity duration-200">
-    <div id="custom-modal-panel" class="bg-white rounded-md shadow-lg w-full max-w-sm p-6 transform scale-95 transition-transform duration-200 border border-slate-200">
-        <h3 class="text-base font-bold text-slate-900 mb-2">Remove Exclusion</h3>
-        <p class="text-sm text-slate-600 mb-6" id="custom-modal-msg">Are you sure you want to delete the selected record(s)?</p>
-        <div class="flex justify-end space-x-3">
-            <button type="button" onclick="closeCustomModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 bg-transparent hover:bg-slate-100 rounded-md transition-colors">Cancel</button>
-            <button type="button" id="custom-modal-confirm-btn" class="px-4 py-2 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-md shadow-sm transition-colors border border-red-600">Delete</button>
-        </div>
-    </div>
-</div>
-
 <script>
-    // ∴ 视图控制器 (View Controller)
     function switchView(target) {
         const tableTab = document.getElementById('tab-btn-table');
         const calendarTab = document.getElementById('tab-btn-calendar');
@@ -186,7 +210,6 @@ ob_start();
         }
     }
 
-    // ∴ 空间矩阵渲染器 (Spatial Matrix Renderer)
     const rawEvents = <?php echo json_encode($calendar_events); ?>;
     
     function renderCalendar() {
@@ -206,7 +229,7 @@ ob_start();
                     colHtml += `<div class="bg-white border-l-4 border-[#004aad] rounded-md p-3 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] border border-slate-200">
                             <span class="block text-l font-extrabold text-slate-800 truncate" title="${evt.subject}">${evt.subject}</span>
                             <span class="block text-[12px] text-[#004aad] font-mono uppercase font-bold mt-1">${evt.venue}</span>
-                            <div class="mt-2 text-[10px] font-mono font-bold text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded-sm w-fit border border-slate-100">${evt.start} - ${evt.end}</div>
+                            <div class="mt-2 text-[14px] font-mono font-bold text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded-sm w-fit border border-slate-100">${evt.start} - ${evt.end}</div>
                         </div>`;
                 });
             }

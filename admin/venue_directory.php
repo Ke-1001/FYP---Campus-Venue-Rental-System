@@ -4,6 +4,7 @@ session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 require_once __DIR__ . '/../core/components/datagrid.php';
+require_once __DIR__ . '/../core/components/filter_engine.php';
 
 /*
 |--------------------------------------------------------------------------
@@ -13,6 +14,7 @@ require_once __DIR__ . '/../core/components/datagrid.php';
 $filter_name = trim($_GET['f_name'] ?? '');
 $filter_cat = trim($_GET['f_cat'] ?? '');
 $filter_status = trim($_GET['f_status'] ?? '');
+
 
 $cat_dict_sql = "SELECT DISTINCT UPPER(TRIM(category)) AS category_name FROM vcategory ORDER BY category_name ASC";
 $cat_dict_result = $conn->query($cat_dict_sql);
@@ -35,6 +37,8 @@ if (!empty($filter_status)) {
 }
 $sql .= " ORDER BY v.vname ASC";
 $result = $conn->query($sql);
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -83,6 +87,50 @@ $controller_config = [
 ];
 require_once __DIR__ . '/../core/components/datagrid_controller.php';
 
+// 提取 Datalist 选项数组
+$cat_options = [];
+if ($cat_dict_result && $cat_dict_result->num_rows > 0) {
+    while ($dict = $cat_dict_result->fetch_assoc()) {
+        $cat_options[] = $dict['category_name'];
+    }
+}
+
+// ∴ 定义 Filter Schema
+$filter_schema = [
+    'action' => 'venue_directory.php',
+    'show_submit_btn' => true,
+    'fields' => [
+        [
+            'type' => 'text',
+            'name' => 'f_name',
+            'label' => 'Venue',
+            'value' => $filter_name,
+            'placeholder' => 'Search name...'
+        ],
+        [
+            'type' => 'datalist',
+            'name' => 'f_cat',
+            'label' => 'Category',
+            'value' => $filter_cat,
+            'placeholder' => 'Keyword...',
+            'options' => $cat_options
+        ],
+        [
+            'type' => 'select',
+            'name' => 'f_status',
+            'label' => 'State',
+            'value' => $filter_status,
+            'placeholder' => 'All States',
+            'auto_submit' => false,
+            'options' => [
+                'available' => 'Available',
+                'maintenance' => 'Maintenance',
+                'booked' => 'Booked'
+            ]
+        ]
+    ]
+];
+
 /*
 |--------------------------------------------------------------------------
 | V: View Rendering (Output Buffer)
@@ -91,43 +139,7 @@ require_once __DIR__ . '/../core/components/datagrid_controller.php';
 ob_start();
 ?>
 
-<div class="mb-4 bg-white border border-slate-200 rounded-md p-3 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] shrink-0">
-    <form method="GET" action="venue_directory.php" id="filterForm" class="flex flex-wrap items-center gap-4">
-        <div class="flex items-center space-x-2">
-            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Venue:</label>
-            <input type="text" name="f_name" value="<?php echo htmlspecialchars($filter_name); ?>" placeholder="Search name..." class="border border-slate-200 rounded px-3 py-1.5 text-xs font-semibold focus:outline-none focus:border-[#004aad] w-40 bg-white">
-        </div>
-        
-        <div class="flex items-center space-x-2">
-            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Category:</label>
-            <input list="category-suggestions" name="f_cat" value="<?php echo htmlspecialchars($filter_cat); ?>" oninput="this.value = this.value.toUpperCase()" placeholder="Keyword..." class="border border-slate-200 rounded px-3 py-1.5 text-xs font-bold text-[#004aad] focus:outline-none focus:border-[#004aad] w-40 bg-white">
-            <datalist id="category-suggestions">
-                <?php 
-                if ($cat_dict_result && $cat_dict_result->num_rows > 0) {
-                    while ($dict = $cat_dict_result->fetch_assoc()) {
-                        echo '<option value="' . htmlspecialchars($dict['category_name']) . '"></option>';
-                    }
-                }
-                ?>
-            </datalist>
-        </div>
-
-        <div class="flex items-center space-x-2">
-            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">State:</label>
-            <select name="f_status" onchange="this.form.submit()" class="border border-slate-200 rounded px-3 py-1.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#004aad] cursor-pointer bg-white">
-                <option value="">All States</option>
-                <option value="available" <?php if($filter_status==='available') echo 'selected'; ?>>Available</option>
-                <option value="maintenance" <?php if($filter_status==='maintenance') echo 'selected'; ?>>Maintenance</option>
-                <option value="booked" <?php if($filter_status==='booked') echo 'selected'; ?>>Booked</option>
-            </select>
-        </div>
-
-        <div class="flex space-x-2 ml-auto">
-            <button type="submit" class="px-4 py-1.5 bg-slate-800 text-white text-xs font-bold rounded hover:bg-slate-900 transition shadow-sm">Filter</button>
-            <a href="venue_directory.php" class="px-3 py-1.5 bg-transparent text-slate-500 text-xs font-bold rounded hover:bg-slate-100 transition border border-transparent flex items-center">Reset</a>
-        </div>
-    </form>
-</div>
+<?php echo render_filter_engine($filter_schema); ?>
 
 <div class="mb-4 bg-white p-3 rounded-md border border-slate-200 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] shrink-0 flex justify-between items-center">
     <div class="text-xs font-bold text-slate-500 pl-2">
