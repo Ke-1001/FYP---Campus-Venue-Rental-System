@@ -2,38 +2,28 @@
 session_start();
 include("../config/db.php");
 
-$identifier = $_POST['login_identifier'];
+$uid = trim($_POST['uid']);
 $password = $_POST['password'];
 
-// 采用 ID 为主，Email 为辅的复合查询
-$stmt = $conn->prepare("SELECT * FROM user WHERE uid = ? OR email = ?");
-if (!$stmt) {
-    die("SQL Error: " . $conn->error);
-}
-$stmt->bind_param("ss", $identifier, $identifier);
+// 1. Update the SELECT statement to include 'username'
+$stmt = $conn->prepare("SELECT uid, password, username FROM user WHERE uid = ? OR email = ?");
+$stmt->bind_param("ss", $uid, $uid);
 $stmt->execute();
 $result = $stmt->get_result();
 
-if ($row = $result->fetch_assoc()) {
-
-    if (password_verify($password, $row['password'])) {
-        // 修正：采用实际 Schema 的 `uid` 字段，并与 user_login.php 保持统一
-        $_SESSION['uid'] = $row['uid'];
-        $_SESSION['username'] = $row['username'];
-        $_SESSION['email'] = $row['email'];
-        $_SESSION['phone_num'] = $row['phone_num'];
-        $_SESSION['role'] = 'user'; // 同步前端逻辑验证的标量
-
-        header("Location: homepage.php");
-        exit();
-
-    } else {
-        header("Location: user_login.php?error=invalid");
+if ($result->num_rows === 1) {
+    $user = $result->fetch_assoc();
+    if (password_verify($password, $user['password'])) {
+        $_SESSION['uid'] = $user['uid'];
+        
+        // 2. ADD THIS LINE: Save the name to the session
+        $_SESSION['username'] = $user['username'];
+        
+        header("Location: ../User/user_dashboard.php");
         exit();
     }
-
-} else {
-    header("Location: user_login.php?error=invalid");
-    exit();
 }
+
+header("Location: user_login.php?status=error&msg=Invalid+ID+or+Password");
+exit();
 ?>

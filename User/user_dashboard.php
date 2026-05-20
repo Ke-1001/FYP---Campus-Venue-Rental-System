@@ -7,94 +7,64 @@ if (!isset($_SESSION['uid'])) {
     exit();
 }
 
+$uid = $_SESSION['uid'];
+$display_name = isset($_SESSION['username']) ? $_SESSION['username'] : $uid;
+
+// 1. FIXED: Query Stats with correct column references (no single quotes around column names)
+$stats_stmt = $conn->prepare("SELECT 
+    COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending,
+    COUNT(CASE WHEN status = 'approved' THEN 1 END) as approved,
+    COUNT(*) as total 
+    FROM booking WHERE uid = ?");
+$stats_stmt->bind_param("s", $uid);
+$stats_stmt->execute();
+$stats = $stats_stmt->get_result()->fetch_assoc();
+
+// 2. Query Activity
+$history_stmt = $conn->prepare("SELECT v.vname, b.date_booked, b.status 
+    FROM booking b
+    JOIN venue v ON b.vid = v.vid
+    WHERE b.uid = ?
+    ORDER BY b.date_booked DESC LIMIT 5");
+$history_stmt->bind_param("s", $uid);
+$history_stmt->execute();
+$history_result = $history_stmt->get_result();
+
 $page_title = "Dashboard | CVBMS";
 include("../includes/user_header.php");
 include("../includes/user_navbar.php");
 ?>
 
 <style>
-    .dashboard-bg {
-        position: fixed;
-        inset: 0;
-        z-index: -1;
-        background: linear-gradient(to bottom, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.95)), 
-                    url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80');
-        background-size: cover;
-        background-position: center;
-    }
-
-    .glass-card {
-        background: rgba(255, 255, 255, 0.03);
-        backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 2.5rem;
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .btn-main {
-        background: linear-gradient(135deg, #004aad 0%, #00357a 100%);
-        border: 1px solid rgba(0, 212, 255, 0.4);
-    }
-
-    .btn-main:hover {
-        transform: translateY(-10px);
-        border-color: #00d4ff;
-        box-shadow: 0 15px 30px rgba(0, 74, 173, 0.6);
-    }
-
-    .text-mmu-glow {
-        color: #00d4ff;
-        text-shadow: 0 0 15px rgba(0, 212, 255, 0.5);
-    }
+    .dashboard-bg { position: fixed; inset: 0; z-index: -1; background: linear-gradient(to bottom, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.95)), url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80'); background-size: cover; background-position: center; }
+    .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 2.5rem; }
+    .text-mmu-glow { color: #00d4ff; text-shadow: 0 0 15px rgba(0, 212, 255, 0.5); }
 </style>
 
 <div class="dashboard-bg"></div>
 
 <div class="relative z-10 w-full pt-32 pb-20 px-6">
     <div class="max-w-7xl mx-auto">
-        
-        <div class="mb-14">
-            <h1 class="text-5xl font-black text-white mb-4 tracking-tight">
-                Welcome back, <span class="text-mmu-glow"><?php echo htmlspecialchars($_SESSION['username']); ?>!</span>
-            </h1>
-            <p class="text-slate-400 text-xl font-medium max-w-2xl leading-relaxed">
-                What would you like to do today?
-            </p>
+        <h1 class="text-5xl font-black text-white mb-14">Welcome back, <span class="text-mmu-glow"><?php echo htmlspecialchars($display_name); ?>!</span></h1>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            <div class="glass-card p-10 text-center"><p class="text-white opacity-70">Total Bookings</p><h3 class="text-4xl font-bold text-white"><?php echo $stats['total']; ?></h3></div>
+            <div class="glass-card p-10 text-center"><p class="text-white opacity-70">Approved</p><h3 class="text-4xl font-bold text-white"><?php echo $stats['approved']; ?></h3></div>
+            <div class="glass-card p-10 text-center"><p class="text-white opacity-70">Pending</p><h3 class="text-4xl font-bold text-white"><?php echo $stats['pending']; ?></h3></div>
         </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            
-            <a href="venues.php" class="glass-card btn-main p-10 flex flex-col items-center text-center group">
-                <div class="w-20 h-20 bg-white/10 rounded-3xl flex items-center justify-center mb-6 group-hover:bg-white/20 transition-all">
-                    <i data-lucide="search" class="w-10 h-10 text-white"></i>
-                </div>
-                <h3 class="text-2xl font-bold text-white mb-3 tracking-tight">Browse Venues</h3>
-                <p class="text-blue-100/70 text-sm leading-relaxed">View all available halls, labs, and discussion rooms.</p>
-            </a>
-
-            <a href="venues.php" class="glass-card btn-main p-10 flex flex-col items-center text-center group">
-                <div class="w-20 h-20 bg-white/10 rounded-3xl flex items-center justify-center mb-6 group-hover:bg-white/20 transition-all">
-                    <i data-lucide="calendar-plus" class="w-10 h-10 text-white"></i>
-                </div>
-                <h3 class="text-2xl font-bold text-white mb-3 tracking-tight">New Booking</h3>
-                <p class="text-blue-100/70 text-sm leading-relaxed">Submit a fast request for your next event or session.</p>
-            </a>
-
-            <a href="my_bookings.php" class="glass-card btn-main p-10 flex flex-col items-center text-center group">
-                <div class="w-20 h-20 bg-white/10 rounded-3xl flex items-center justify-center mb-6 group-hover:bg-white/20 transition-all">
-                    <i data-lucide="clipboard-list" class="w-10 h-10 text-white"></i>
-                </div>
-                <h3 class="text-2xl font-bold text-white mb-3 tracking-tight">Booking History</h3>
-                <p class="text-blue-100/70 text-sm leading-relaxed">Monitor your status and manage past reservations.</p>
-            </a>
-
+        
+        <div class="glass-card p-8 text-white">
+            <h3 class="text-2xl font-bold mb-6">Recent Activity</h3>
+            <table class="w-full text-left">
+                <thead><tr class="text-gray-400 border-b border-white/10"><th class="pb-4">Venue</th><th class="pb-4">Date</th><th class="pb-4">Status</th></tr></thead>
+                <tbody>
+                    <?php while($row = $history_result->fetch_assoc()): ?>
+                    <tr class="border-b border-white/5"><td class="py-4"><?php echo htmlspecialchars($row['vname']); ?></td><td class="py-4"><?php echo htmlspecialchars($row['date_booked']); ?></td><td class="py-4 uppercase text-sm"><?php echo htmlspecialchars($row['status']); ?></td></tr>
+                    <?php endwhile; ?>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 
 <?php include("../includes/user_footer.php"); ?>
-
-<script src="https://unpkg.com/lucide@latest"></script>
-<script>
-    lucide.createIcons();
-</script>
