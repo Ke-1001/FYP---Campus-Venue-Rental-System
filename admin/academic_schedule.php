@@ -1,295 +1,228 @@
 <?php
 // File: admin/academic_schedule.php
 session_start();
-require_once '../config/db.php';
-require_once '../includes/admin_auth.php';
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/admin_auth.php';
+require_once __DIR__ . '/../core/components/datagrid.php'; // ∴ 引入引擎
 
-// 💡 編輯模式數據加載 (Update Mode)
-$edit_id = isset($_GET['edit']) ? intval($_GET['edit']) : 0;
-$edit_data = null;
-if ($edit_id > 0) {
-    $stmt = $conn->prepare("SELECT * FROM academic_schedule WHERE sch_id = ?");
-    $stmt->bind_param("i", $edit_id);
-    $stmt->execute();
-    $edit_data = $stmt->get_result()->fetch_assoc();
-}
+/*
+|--------------------------------------------------------------------------
+| D: Data Retrieval & Logic
+|--------------------------------------------------------------------------
+*/
+$f_sem = isset($_GET['filter_sem']) ? intval($_GET['filter_sem']) : 0;
+$f_vid = isset($_GET['filter_vid']) ? trim($_GET['filter_vid']) : '';
+$f_day = isset($_GET['filter_day']) ? trim($_GET['filter_day']) : '';
 
 $venues = $conn->query("SELECT vid, vname FROM venue ORDER BY vid ASC");
+$semesters = $conn->query("SELECT sem_id, sem_name, is_active FROM semester_config ORDER BY start_date DESC");
 
-$sql = "SELECT s.*, v.vname FROM academic_schedule s 
+$sql = "SELECT s.*, v.vname, sem.sem_name 
+        FROM academic_schedule s 
         JOIN venue v ON s.vid = v.vid 
-        ORDER BY FIELD(s.day_of_week, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'), s.start_time ASC";
+        JOIN semester_config sem ON s.sem_id = sem.sem_id
+        WHERE 1=1";
+
+if ($f_sem > 0) $sql .= " AND s.sem_id = " . $f_sem;
+if (!empty($f_vid)) $sql .= " AND s.vid = '" . $conn->real_escape_string($f_vid) . "'";
+if (!empty($f_day)) $sql .= " AND s.day_of_week = '" . $conn->real_escape_string($f_day) . "'";
+
+$sql .= " ORDER BY sem.start_date DESC, FIELD(s.day_of_week, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'), s.start_time ASC";
 $result = $conn->query($sql);
+
+$calendar_events = [];
+while($row = $result->fetch_assoc()) {
+    $calendar_events[] = [
+        'id' => $row['sch_id'],
+        'venue' => $row['vid'],
+        'semester' => $row['sem_name'],
+        'day' => $row['day_of_week'],
+        'start' => substr($row['start_time'], 0, 5),
+        'end' => substr($row['end_time'], 0, 5),
+        'subject' => $row['subject_name']
+    ];
+}
+$result->data_seek(0); 
+
+/*
+|--------------------------------------------------------------------------
+| C: Page Configuration & Schema Definition
+|--------------------------------------------------------------------------
+*/
+$page_title = "Class Schedule";
+$page_description = "Manage weekly class schedules and block venue availability.";
+$topbar_content = '
+<div class="flex items-center">
+    <a href="academic.php" class="text-sm font-bold text-[#004aad] hover:text-[#003882] flex items-center mr-4 transition-colors">
+        <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i> Back
+    </a>
+    <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Academic / Class Schedule</h2>
+</div>';
+$extra_css = ["../assets/css/fiori_forms.css", "../assets/css/table.css"];
+
+// ∴ 核心拓扑：DataGrid 配置字典
+$datagrid_schema = [
+    'enable_checkbox' => true,
+    'primary_key' => 'sch_id',
+    'checkbox_name' => 'sch_ids',
+    'columns' => [
+        ['key' => 'sem_name', 'label' => 'Semester', 'type' => 'text', 'width' => 'w-40'],
+        ['key' => 'subject_name', 'label' => 'Subject', 'type' => 'text_bold', 'width' => 'w-48'],
+        ['key' => 'vid', 'label' => 'Venue ID', 'type' => 'link', 'url_format' => 'register_venue.php?vid=%s', 'width' => 'w-32'],
+        ['key' => 'day_of_week', 'label' => 'Day', 'type' => 'text', 'width' => 'w-40'],
+        ['type' => 'time_range', 'label' => 'Time', 'start_key' => 'start_time', 'end_key' => 'end_time', 'width' => 'w-40']
+    ]
+];
+
+// ∴ 修正后的控制器注入字典
+$controller_config = [
+    'edit_url_base' => 'add_exclusion.php?id=', // 必须严格对齐目标文件的 $_GET['id']
+    'delete_entity_name' => 'schedule record'
+];
+require_once __DIR__ . '/../core/components/datagrid_controller.php';
+
+/*
+|--------------------------------------------------------------------------
+| V: View Rendering (Output Buffer)
+|--------------------------------------------------------------------------
+*/
+ob_start();
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MMU Admin | Academic Schedule</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script>
-        tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b' } } } } }
-    </script>
-    <link rel="stylesheet" href="layout.css?v=1.2">
-    <link rel="stylesheet" href="../assets/css/fiori_forms.css">
-</head>
-<body class="bg-[#f4f4f4] text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
 
-    <?php include('../includes/admin_sidebar.php'); ?>
-
-    <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
-        
-        <?php 
-        $topbar_content = '<div class="flex items-center">
-            <a href="academic.php" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 flex items-center mr-4 transition-colors">
-                <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i> Back
-            </a>
-            <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Academic / Semester</h2>
-        </div>';
-        include('../includes/admin_topbar.php'); 
-        ?>
-
-        <div class="flex-1 overflow-y-auto p-8 scroll-smooth flex flex-col xl:flex-row gap-8">
-            
-            <div class="w-full xl:w-1/3 shrink-0">
-                <div class="mb-6">
-                    <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Pre-book Slot</h1>
-                    <p class="text-xs text-slate-500 mt-1">Lock venues for periodic academic sessions.</p>
-                </div>
-
-                <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden flex flex-col">
-                    
-                    <form action="../actions/process_schedule.php" method="POST" class="flex flex-col">
-                        <input type="hidden" name="action" value="<?php echo $edit_data ? 'update' : 'create'; ?>">
-                        <?php if ($edit_data): ?><input type="hidden" name="sch_id" value="<?php echo $edit_id; ?>"><?php endif; ?>
-
-                        <div class="px-6 py-4 border-b border-slate-200 bg-white flex items-center">
-                            <h2 class="text-sm font-bold text-slate-400">Schedule Parameter</h2>
-                        </div>
-
-                        <div class="p-6 space-y-5">
-                            <div>
-                                <label class="block text-[12px] font-black text-slate-400 tracking-widest mb-2">Target Venue</label>
-                                <div class="relative">
-                                    <select name="vid" required class="fiori-input w-full appearance-none pr-8 bg-white cursor-pointer font-bold text-slate-700">
-                                        <option value="" disabled selected>Select Venue Node</option>
-                                        <?php while($v = $venues->fetch_assoc()): ?>
-                                            <option value="<?php echo $v['vid']; ?>" <?php echo ($edit_data && $edit_data['vid'] == $v['vid']) ? 'selected' : ''; ?>>
-                                                [<?php echo $v['vid']; ?>] <?php echo htmlspecialchars($v['vname']); ?>
-                                            </option>
-                                        <?php endwhile; ?>
-                                    </select>
-                                    <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 absolute right-3 top-2.5 pointer-events-none"></i>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label class="block text-[12px] font-black text-slate-400 tracking-widest mb-2">Day</label>
-                                <select name="day_of_week" required class="fiori-input w-full">
-                                    <?php 
-                                    $days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
-                                    foreach($days as $day) {
-                                        $sel = ($edit_data && $edit_data['day_of_week'] == $day) ? 'selected' : '';
-                                        echo "<option value='$day' $sel>$day</option>";
-                                    }
-                                    ?>
-                                </select>
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-[12px] font-black text-slate-400 tracking-widest mb-2">Start Time</label>
-                                    <input type="time" name="start_time" value="<?php echo $edit_data ? $edit_data['start_time'] : '08:00'; ?>" required class="fiori-input w-full font-mono">
-                                </div>
-                                <div>
-                                    <label class="block text-[12px] font-black text-slate-400 tracking-widest mb-2">End Time</label>
-                                    <input type="time" name="end_time" value="<?php echo $edit_data ? $edit_data['end_time'] : '10:00'; ?>" required class="fiori-input w-full font-mono">
-                                </div>
-                            </div>
-
-                            <div>
-                                <label class="block text-[12px] font-black text-slate-400 tracking-widest mb-2">Subject / Reference</label>
-                                <input type="text" name="subject" value="<?php echo $edit_data ? htmlspecialchars($edit_data['subject_name']) : ''; ?>" required placeholder="e.g., Database Systems Lecture" class="fiori-input w-full">
-                            </div>
-                        </div>
-
-                        <div class="border-t border-slate-200 bg-white px-6 py-3 flex justify-end space-x-2 shrink-0">
-                            <?php if ($edit_data): ?>
-                                <a href="academic_schedule.php" class="px-5 py-2 text-sm font-bold text-indigo-600 hover:bg-indigo-50 rounded transition-colors">Discard</a>
-                                <button type="submit" class="px-5 py-2 text-sm font-bold text-white bg-amber-500 hover:bg-amber-600 rounded shadow-sm">Save Changes</button>
-                            <?php else: ?>
-                                <button type="submit" class="px-5 py-2 text-sm font-bold text-white bg-[#0a6ed1] hover:bg-[#085caf] rounded shadow-sm">Lock Slot</button>
-                            <?php endif; ?>
-                        </div>
-                    </form>
-
-                    <?php if (!$edit_data): ?>
-                    <form action="../actions/process_schedule.php" method="POST" enctype="multipart/form-data" class="bg-slate-50 border-t border-slate-200 p-4">
-                        <input type="hidden" name="action" value="batch_import">
-                        <div class="flex items-center space-x-3">
-                            <div class="flex-1 relative">
-                                <input type="file" name="csv_file" accept=".csv" required class="absolute inset-0 opacity-0 cursor-pointer z-10 w-full h-full" onchange="document.getElementById('file-name-display').innerText = this.files[0].name || 'Choose .csv file...'">
-                                <div class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-xs text-slate-500 font-mono flex justify-between items-center group hover:border-emerald-400 transition-colors">
-                                    <span id="file-name-display" class="truncate pr-2">Choose .csv file...</span>
-                                    <i data-lucide="upload" class="w-4 h-4 text-slate-400 group-hover:text-emerald-500 shrink-0"></i>
-                                </div>
-                            </div>
-                            <button type="submit" class="px-5 py-2.5 bg-emerald-600 text-white text-xs font-bold rounded-lg shadow-sm hover:bg-emerald-700 transition-colors whitespace-nowrap flex items-center">
-                                <i data-lucide="file-up" class="w-3 h-3 mr-1.5"></i> CSV Sync
-                            </button>
-                        </div>
-                    </form>
-                    <?php endif; ?>
-                </div>
-            </div>
-
-            <div class="w-full xl:w-2/3 flex flex-col">
-                
-                <?php if (isset($_SESSION['batch_results'])): 
-                    $results = $_SESSION['batch_results'];
-                    unset($_SESSION['batch_results']); 
-                ?>
-                <div id="batch-report-panel" class="mb-6 p-6 bg-white border border-red-100 rounded-2xl shadow-sm relative animate-[fadeIn_0.3s_ease-out]">
-                    <button onclick="document.getElementById('batch-report-panel').remove()" class="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded transition-colors" title="Dismiss Report">
-                        <i data-lucide="x" class="w-4 h-4"></i>
-                    </button>
-                    
-                    <div class="flex items-center space-x-3 mb-4">
-                        <h3 class="text-sm font-bold text-slate-800">Batch Synchronization Report</h3>
-                        <span class="px-3 py-1 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-full text-[10px] font-black uppercase tracking-widest">
-                            Success: <?php echo $results['success']; ?>
-                        </span>
-                    </div>
-                    
-                    <?php if (!empty($results['conflicts'])): ?>
-                        <div class="space-y-3">
-                            <p class="text-[10px] font-bold text-red-500 uppercase tracking-widest">Conflict Anomalies Detected (<?php echo count($results['conflicts']); ?>)</p>
-                            <div class="max-h-60 overflow-y-auto border border-slate-100 rounded-lg shadow-inner bg-slate-50/50">
-                                <table class="w-full text-[11px] text-left">
-                                    <thead class="bg-white sticky top-0 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
-                                        <tr class="text-slate-400 font-bold uppercase tracking-wider">
-                                            <th class="px-4 py-3">Venue</th>
-                                            <th class="px-4 py-3">Time Window</th>
-                                            <th class="px-4 py-3">Conflict Reason</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-slate-100">
-                                        <?php foreach ($results['conflicts'] as $err): ?>
-                                        <tr class="hover:bg-red-50/30 transition-colors">
-                                            <td class="px-4 py-3 font-bold text-slate-700"><?php echo htmlspecialchars($err['vid']); ?></td>
-                                            <td class="px-4 py-3 font-mono text-slate-500"><?php echo htmlspecialchars($err['day']); ?> <?php echo htmlspecialchars($err['start']); ?>-<?php echo htmlspecialchars($err['end']); ?></td>
-                                            <td class="px-4 py-3 text-red-600 font-medium"><?php echo htmlspecialchars($err['reason']); ?></td>
-                                        </tr>
-                                        <?php endforeach; ?>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    <?php endif; ?>
-                </div>
-                <?php endif; ?>
-
-                <div class="mb-6">
-                    <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Active Exclusions</h1>
-                    <p class="text-xs text-slate-500 mt-1">Periodic time windows locked for academic priority.</p>
-                </div>
-
-                <div class="bg-white rounded-lg shadow-sm border border-slate-200 flex-1 overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse min-w-[750px]">
-                            <thead class="bg-slate-50 text-[10px] text-slate-400 font-black uppercase tracking-widest border-b border-slate-200">
-                                <tr>
-                                    <th class="px-6 py-4">Venue & Subject</th>
-                                    <th class="px-6 py-4">Day of Week</th>
-                                    <th class="px-6 py-4">Time Window</th>
-                                    <th class="px-6 py-4 text-right">Execution</th>
-                                </tr>
-                            </thead>
-                            <tbody class="text-sm divide-y divide-slate-100">
-                                <?php if ($result && $result->num_rows > 0): ?>
-                                    <?php while($row = $result->fetch_assoc()): ?>
-                                    <tr class="hover:bg-slate-50 transition-colors">
-                                        <td class="px-6 py-4">
-                                            <span class="font-bold text-slate-800 block"><?php echo htmlspecialchars($row['subject_name']); ?></span>
-                                            <span class="text-[12px] text-indigo-500 font-mono uppercase mt-1 block"><?php echo $row['vid']; ?> (<?php echo htmlspecialchars($row['vname']); ?>)</span>
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <span class="px-2 py-1 text-slate-600 rounded text-[12px] font-black uppercase ">
-                                                <?php echo $row['day_of_week']; ?>
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-4 font-mono text-xs">
-                                            <span class="font-mono text-xs text-slate-600 block"><span class="mr-1 font-sans font-bold text-[10px] text-slate-400">START</span><?php echo date('H:i', strtotime($row['start_time'])); ?></span>
-                                            <span class="font-mono text-xs text-slate-600 block mt-1"><span class="mr-3 font-sans font-bold text-[10px] text-slate-400">END</span><?php echo date('H:i', strtotime($row['end_time'])); ?></span>
-                                        </td>
-                                        <td class="px-6 py-4 text-right">
-                                            <div class="flex items-center justify-end space-x-1">
-                                                <a href="?edit=<?php echo $row['sch_id']; ?>" class="p-2 text-indigo-500 hover:bg-indigo-50 rounded transition"><i data-lucide="edit-3" class="w-4 h-4"></i></a>
-                                                <form action="../actions/process_schedule.php" method="POST" class="inline">
-                                                    <input type="hidden" name="action" value="delete">
-                                                    <input type="hidden" name="sch_id" value="<?php echo $row['sch_id']; ?>">
-                                                    <button type="button" onclick="triggerCustomModal(this.closest('form'), 'Drop this pre-book slot? The venue will become available for student booking.')" class="p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded transition">
-                                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <?php endwhile; ?>
-                                <?php else: ?>
-                                    <tr><td colspan="4" class="px-6 py-12 text-center text-slate-400 font-medium"><i data-lucide="calendar-x" class="w-8 h-8 mx-auto text-slate-300 mb-2 opacity-50"></i>No academic exclusions defined.</td></tr>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+<div class="bg-white p-5 rounded-md border border-slate-200 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] mb-4 shrink-0">
+    <form method="GET" action="academic_schedule.php" id="filterForm" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+        <div>
+            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Semester</label>
+            <select name="filter_sem" onchange="this.form.submit()" class="fiori-input w-full bg-white font-bold text-[#004aad] cursor-pointer">
+                <option value="0">All Semesters</option>
+                <?php while($sem = $semesters->fetch_assoc()): ?>
+                    <option value="<?php echo $sem['sem_id']; ?>" <?php echo ($f_sem == $sem['sem_id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($sem['sem_name']); ?></option>
+                <?php endwhile; ?>
+            </select>
         </div>
-    </main>
+        <div>
+            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Venue</label>
+            <select name="filter_vid" onchange="this.form.submit()" class="fiori-input w-full bg-white font-bold text-slate-700 cursor-pointer"><option value="">All Venues</option></select>
+        </div>
+        <div>
+            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Day</label>
+            <select name="filter_day" onchange="this.form.submit()" class="fiori-input w-full bg-white font-bold text-slate-700 cursor-pointer"><option value="">All Days</option></select>
+        </div>
+        <div class="flex justify-end">
+            <a href="academic_schedule.php" class="px-4 py-2 bg-transparent text-slate-600 text-sm font-semibold rounded-md hover:bg-slate-100 border border-transparent transition flex items-center justify-center">Reset</a>
+        </div>
+    </form>
+</div>
 
-    <div id="custom-modal" class="fixed inset-0 z-[100] hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center transition-opacity opacity-0">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform" id="modal-panel">
-            <div class="p-6">
-                <h3 class="text-lg font-extrabold text-slate-800 mb-2">Warning</h3>
-                <p id="modal-msg" class="text-sm text-slate-500 font-medium leading-relaxed"></p>
-            </div>
-            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end space-x-2">
-                <button type="button" onclick="closeCustomModal()" class="px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-200 rounded-lg transition-colors">Cancel</button>
-                <button type="button" id="confirm-btn" class="px-4 py-2 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors">Proceed</button>
-            </div>
+<div class="flex items-center justify-between mb-4 bg-white p-3 rounded-md border border-slate-200 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] shrink-0">
+    <div class="flex space-x-1 border-r border-slate-200 pr-4 mr-4">
+        <button onclick="switchView('table')" id="tab-btn-table" class="px-4 py-2 text-xs font-bold rounded-md transition-all flex items-center bg-[#f1f5f9] text-[#004aad] shadow-sm"><i data-lucide="list" class="w-3.5 h-3.5 mr-1.5"></i> Table View</button>
+        <button onclick="switchView('calendar')" id="tab-btn-calendar" class="px-4 py-2 text-xs font-bold rounded-md transition-all flex items-center text-slate-500 hover:bg-slate-50"><i data-lucide="calendar" class="w-3.5 h-3.5 mr-1.5"></i> Calendar View</button>
+    </div>
+    <div class="flex space-x-2">
+        <button onclick="window.location.href='add_exclusion.php'" class="px-4 py-2 text-xs font-semibold text-white bg-[#004aad] hover:bg-[#003882] rounded-md shadow-sm transition border border-[#004aad]"><i data-lucide="plus" class="w-3.5 h-3.5 inline mr-1"></i> Add Schedule</button>
+        <button id="btn-edit" disabled onclick="executeAction('edit')" class="px-4 py-2 text-xs font-semibold text-slate-400 bg-slate-100 rounded-md transition cursor-not-allowed border border-slate-200"><i data-lucide="edit-3" class="w-3.5 h-3.5 inline mr-1"></i> Edit</button>
+        <button id="btn-delete" disabled onclick="executeAction('delete')" class="px-4 py-2 text-xs font-semibold text-slate-400 bg-slate-100 rounded-md transition cursor-not-allowed border border-slate-200"><i data-lucide="trash-2" class="w-3.5 h-3.5 inline mr-1"></i> Delete</button>
+    </div>
+</div>
+
+<div class="flex-1 custom-table-container flex flex-col relative overflow-hidden">
+    
+    <form id="bulkActionForm" action="../actions/process_schedule.php" method="POST" class="flex-1 overflow-hidden flex flex-col">
+        <input type="hidden" name="action" id="bulk_action_type" value="">
+        <div id="view-table-container" class="flex-1 overflow-y-auto">
+            <?php 
+                // ∴ 注入渲染函数，原有的数十行 <table> 代码已被完全剥离
+                echo render_datagrid($datagrid_schema, $result); 
+            ?>
+        </div>
+    </form>
+
+    <div id="view-calendar-container" class="hidden flex-1 p-6 flex-col overflow-hidden bg-slate-50">
+        <div class="grid grid-cols-7 gap-4 text-center font-black text-[10px] uppercase tracking-widest text-slate-400 border-b border-slate-200 pb-3 mb-4">
+            <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
+        </div>
+        <div class="grid grid-cols-7 gap-4 flex-1 overflow-y-auto" id="calendar-matrix-grid"></div>
+    </div>
+</div>
+
+<div id="custom-delete-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 backdrop-blur-sm opacity-0 transition-opacity duration-200">
+    <div id="custom-modal-panel" class="bg-white rounded-md shadow-lg w-full max-w-sm p-6 transform scale-95 transition-transform duration-200 border border-slate-200">
+        <h3 class="text-base font-bold text-slate-900 mb-2">Remove Exclusion</h3>
+        <p class="text-sm text-slate-600 mb-6" id="custom-modal-msg">Are you sure you want to delete the selected record(s)?</p>
+        <div class="flex justify-end space-x-3">
+            <button type="button" onclick="closeCustomModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 bg-transparent hover:bg-slate-100 rounded-md transition-colors">Cancel</button>
+            <button type="button" id="custom-modal-confirm-btn" class="px-4 py-2 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-md shadow-sm transition-colors border border-red-600">Delete</button>
         </div>
     </div>
+</div>
 
-    <?php include('../includes/ui_components.php'); ?>
+<script>
+    // ∴ 视图控制器 (View Controller)
+    function switchView(target) {
+        const tableTab = document.getElementById('tab-btn-table');
+        const calendarTab = document.getElementById('tab-btn-calendar');
+        const tableForm = document.getElementById('bulkActionForm');
+        const calendarContainer = document.getElementById('view-calendar-container');
 
-    <script>
-        lucide.createIcons();
-        function toggleSidebar() { document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed'); }
-
-        let activeForm = null;
-        function triggerCustomModal(form, msg) {
-            activeForm = form;
-            document.getElementById('modal-msg').innerText = msg;
-            const m = document.getElementById('custom-modal');
-            const p = document.getElementById('modal-panel');
-            m.classList.remove('hidden');
-            setTimeout(() => { m.classList.remove('opacity-0'); p.classList.remove('scale-95'); }, 10);
+        if (target === 'table') {
+            tableTab.className = "px-4 py-2 text-xs font-bold rounded-md transition-all flex items-center bg-[#f1f5f9] text-[#004aad] shadow-sm";
+            calendarTab.className = "px-4 py-2 text-xs font-bold rounded-md transition-all flex items-center text-slate-500 hover:bg-slate-50";
+            
+            tableForm.classList.remove('hidden');
+            tableForm.classList.add('flex');
+            calendarContainer.classList.add('hidden');
+            calendarContainer.classList.remove('flex');
+        } else {
+            calendarTab.className = "px-4 py-2 text-xs font-bold rounded-md transition-all flex items-center bg-[#f1f5f9] text-[#004aad] shadow-sm";
+            tableTab.className = "px-4 py-2 text-xs font-bold rounded-md transition-all flex items-center text-slate-500 hover:bg-slate-50";
+            
+            calendarContainer.classList.remove('hidden');
+            calendarContainer.classList.add('flex');
+            tableForm.classList.add('hidden');
+            tableForm.classList.remove('flex');
+            
+            renderCalendar(); 
         }
-        function closeCustomModal() {
-            const m = document.getElementById('custom-modal');
-            const p = document.getElementById('modal-panel');
-            m.classList.add('opacity-0'); p.classList.add('scale-95');
-            setTimeout(() => { m.classList.add('hidden'); activeForm = null; }, 200);
-        }
-        document.getElementById('confirm-btn').addEventListener('click', () => {
-            if(activeForm) {
-                document.getElementById('confirm-btn').innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>';
-                lucide.createIcons();
-                activeForm.submit();
+    }
+
+    // ∴ 空间矩阵渲染器 (Spatial Matrix Renderer)
+    const rawEvents = <?php echo json_encode($calendar_events); ?>;
+    
+    function renderCalendar() {
+        const gridContainer = document.getElementById('calendar-matrix-grid');
+        gridContainer.innerHTML = '';
+        const daysOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        const columnMaps = {}; 
+        
+        daysOrder.forEach(day => { columnMaps[day] = []; });
+        rawEvents.forEach(evt => { if(columnMaps[evt.day]) columnMaps[evt.day].push(evt); });
+        
+        daysOrder.forEach(day => {
+            let colHtml = `<div class="space-y-3 min-h-[400px]">`;
+            if(columnMaps[day].length > 0) {
+                columnMaps[day].sort((a,b) => a.start.localeCompare(b.start));
+                columnMaps[day].forEach(evt => {
+                    colHtml += `<div class="bg-white border-l-4 border-[#004aad] rounded-md p-3 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] border border-slate-200">
+                            <span class="block text-l font-extrabold text-slate-800 truncate" title="${evt.subject}">${evt.subject}</span>
+                            <span class="block text-[12px] text-[#004aad] font-mono uppercase font-bold mt-1">${evt.venue}</span>
+                            <div class="mt-2 text-[10px] font-mono font-bold text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded-sm w-fit border border-slate-100">${evt.start} - ${evt.end}</div>
+                        </div>`;
+                });
             }
+            colHtml += `</div>`; 
+            gridContainer.innerHTML += colHtml;
         });
-    </script>
-</body>
-</html>
+    }
+</script>
+
+<?php
+$page_content = ob_get_clean();
+
+/*
+|--------------------------------------------------------------------------
+| L: Global Layout Engine
+|--------------------------------------------------------------------------
+*/
+require_once __DIR__ . '/../core/layout.php';
+?>

@@ -57,7 +57,7 @@ $result = $conn->query($base_sql);
     <script>
         tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b' } } } } }
     </script>
-    <link rel="stylesheet" href="layout.css?v=1.2">
+    <link rel="stylesheet" href="../assets/css/layout.css?v=1.2">
     <link rel="stylesheet" href="../assets/css/fiori_forms.css">
 </head>
 <body class="bg-[#f4f4f4] text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
@@ -83,8 +83,8 @@ $result = $conn->query($base_sql);
             
             <div class="mb-6 flex justify-between items-end">
                 <div>
-                    <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Unified Personnel Index</h1>
-                    <p class="text-xs text-slate-500 mt-1">Govern cross-departmental entities including Administrators and Field Inspectors.</p>
+                    <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Manage Existing Staff</h1>
+                    <p class="text-xs text-slate-500 mt-1">Manage existing staff details and status.</p>
                 </div>
                 <a href="add_staff.php" class="px-5 py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-lg shadow-sm hover:bg-indigo-700 transition flex items-center">
                     Register New Staff
@@ -95,7 +95,7 @@ $result = $conn->query($base_sql);
                 <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                     
                     <div class="md:col-span-2">
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Identity Query</label>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Identity</label>
                         <input type="text" name="f_query" value="<?php echo htmlspecialchars($filter_query); ?>" placeholder="Search ID, Name, or Email..." class="fiori-input w-full">
                     </div>
                     
@@ -129,7 +129,7 @@ $result = $conn->query($base_sql);
 
             <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
                 <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-                    <h3 class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Global Personnel Index (<?php echo $result->num_rows; ?>)</h3>
+                    <h3 class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Personnel (<?php echo $result->num_rows; ?>)</h3>
                 </div>
                 <table class="w-full text-left border-collapse">
                     <thead class="bg-white text-[10px] text-slate-400 font-black uppercase tracking-widest border-b border-slate-100">

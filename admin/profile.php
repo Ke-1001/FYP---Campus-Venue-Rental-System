@@ -31,7 +31,7 @@ $stmt->close();
     <script>
         tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b', accent: '#38bdf8' } } } } }
     </script>
-    <link rel="stylesheet" href="layout.css?v=1.2">
+    <link rel="stylesheet" href="../assets/css/layout.css?v=1.2">
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
 
@@ -59,14 +59,14 @@ $stmt->close();
                         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                             <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center">
                                 <i data-lucide="user" class="w-5 h-5 mr-2 text-mmu-blue"></i>
-                                <h3 class="text-lg font-extrabold text-slate-800">Identity Parameters</h3>
+                                <h3 class="text-lg font-extrabold text-slate-800">Identity</h3>
                             </div>
                             <form action="../actions/process_profile.php" method="POST" class="p-6 space-y-6">
                                 <input type="hidden" name="action" value="update_profile">
                                 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
-                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Entity Full Name</label>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Username</label>
                                         <input type="text" name="admin_name" value="<?php echo htmlspecialchars($admin_data['admin_name']); ?>" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-mmu-blue outline-none text-sm transition-all">
                                     </div>
                                     <div>
@@ -88,7 +88,7 @@ $stmt->close();
 
                                 <div class="flex justify-end pt-4 border-t border-slate-100">
                                     <button type="submit" class="px-6 py-3 text-sm font-bold text-white bg-mmu-blue hover:bg-blue-700 rounded-lg transition-all shadow-md flex items-center">
-                                        <i data-lucide="save" class="w-4 h-4 mr-2"></i> Save Parameters
+                                        <i data-lucide="save" class="w-4 h-4 mr-2"></i> Save Changes
                                     </button>
                                 </div>
                             </form>
@@ -97,18 +97,18 @@ $stmt->close();
                         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                             <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center">
                                 <i data-lucide="key" class="w-5 h-5 mr-2 text-indigo-600"></i>
-                                <h3 class="text-lg font-extrabold text-slate-800">Cryptographic Key Configuration</h3>
+                                <h3 class="text-lg font-extrabold text-slate-800">Reset Password</h3>
                             </div>
                             <form action="../actions/process_profile.php" method="POST" id="passwordForm" class="p-6 space-y-6">
                                 <input type="hidden" name="action" value="update_password">
                                 
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Current Key</label>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Current Password</label>
                                     <input type="password" name="current_password" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-mono tracking-widest transition-all">
                                 </div>
 
                                 <div class="border-t border-slate-100 pt-6">
-                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">New Cryptographic Key</label>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">New Password</label>
                                     <input type="password" name="new_password" id="new_password" required onkeyup="validateCryptographicMatrix()" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-mono tracking-widest transition-all">
                                     
                                     <div class="mt-4 p-4 bg-slate-50 border border-slate-200 rounded-lg grid grid-cols-1 md:grid-cols-2 gap-2 text-xs font-bold text-slate-400">
@@ -121,40 +121,21 @@ $stmt->close();
                                 </div>
 
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Verify New Key</label>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Verify New Password</label>
                                     <input type="password" name="confirm_password" id="confirm_password" required onkeyup="validateCryptographicMatrix()" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-mono tracking-widest transition-all">
-                                    <p id="match-feedback" class="text-[10px] font-bold text-red-500 mt-1 hidden tracking-wide uppercase">Keys do not match</p>
+                                    <p id="match-feedback" class="text-[10px] font-bold text-red-500 mt-1 hidden tracking-wide uppercase">Password do not match</p>
                                 </div>
 
                                 <div class="flex justify-end pt-4 border-t border-slate-100">
                                     <button type="submit" id="btn-pwd-submit" disabled class="px-6 py-3 text-sm font-bold text-white bg-slate-300 rounded-lg transition-all flex items-center cursor-not-allowed">
-                                        <i data-lucide="shield" class="w-4 h-4 mr-2"></i> Enforce New Key
+                                        <i data-lucide="shield" class="w-4 h-4 mr-2"></i> Change New Password
                                     </button>
                                 </div>
                             </form>
                         </div>
                     </div>
 
-                    <div class="lg:col-span-1">
-                        <div class="bg-slate-900 rounded-2xl shadow-lg border border-slate-800 p-6 text-white sticky top-8">
-                            <div class="flex items-center justify-center w-20 h-20 bg-mmu-blue/20 rounded-full border-2 border-mmu-blue mx-auto mb-4">
-                                <i data-lucide="shield-check" class="w-10 h-10 text-mmu-accent"></i>
-                            </div>
-                            <h3 class="text-center text-xl font-extrabold tracking-wide mb-1"><?php echo htmlspecialchars($admin_data['admin_name']); ?></h3>
-                            <p class="text-center text-xs text-slate-400 font-mono tracking-widest uppercase mb-6"><?php echo ucwords(str_replace('_', ' ', $admin_data['role'])); ?></p>
-                            
-                            <div class="space-y-4">
-                                <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
-                                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Session Node</p>
-                                    <p class="text-sm font-mono text-emerald-400 flex items-center"><i data-lucide="activity" class="w-3 h-3 mr-1"></i> Active & Secured</p>
-                                </div>
-                                <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
-                                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">System Privilege</p>
-                                    <p class="text-sm text-slate-300"><?php echo $admin_data['role'] === 'super_admin' ? 'Root access granted. Can configure infrastructure and identity nodes.' : 'Standard operational access. Restricted identity governance.'; ?></p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    
 
                 </div>
             </div>

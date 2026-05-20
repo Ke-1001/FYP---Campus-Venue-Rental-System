@@ -1,21 +1,23 @@
 <?php
 // File: admin/venue_directory.php
 session_start();
-require_once '../config/db.php';
-require_once '../includes/admin_auth.php';
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/admin_auth.php';
+require_once __DIR__ . '/../core/components/datagrid.php';
 
-// 💡 1. 接收多維度過濾參數
+/*
+|--------------------------------------------------------------------------
+| D: Data Retrieval & Filter Logic
+|--------------------------------------------------------------------------
+*/
 $filter_name = trim($_GET['f_name'] ?? '');
 $filter_cat = trim($_GET['f_cat'] ?? '');
 $filter_status = trim($_GET['f_status'] ?? '');
 
-// 💡 2. 動態提取類別字典 (修復：改為從 vcategory 提取以對齊正規化 Schema)
-$cat_dict_sql = "SELECT DISTINCT UPPER(TRIM(category)) AS category_name 
-                 FROM vcategory 
-                 ORDER BY category_name ASC";
+$cat_dict_sql = "SELECT DISTINCT UPPER(TRIM(category)) AS category_name FROM vcategory ORDER BY category_name ASC";
 $cat_dict_result = $conn->query($cat_dict_sql);
 
-// 💡 3. 建構多維度查詢引擎 (修復：引入 JOIN vcategory 以解析 vcid)
+
 $sql = "SELECT v.*, vc.category AS venue_category 
         FROM venue v 
         JOIN vcategory vc ON v.vcid = vc.vcid 
@@ -31,175 +33,146 @@ if (!empty($filter_cat)) {
 if (!empty($filter_status)) {
     $sql .= " AND v.status = '" . $conn->real_escape_string($filter_status) . "'";
 }
-
 $sql .= " ORDER BY v.vname ASC";
 $result = $conn->query($sql);
+
+/*
+|--------------------------------------------------------------------------
+| C: Configuration & DataGrid Schema
+|--------------------------------------------------------------------------
+*/
+$page_title = "Venue Directory";
+$page_description = "Search, filter, and manage existing physical assets.";
+$topbar_content = '
+<div class="flex items-center">
+    <a href="manage_venues.php" class="text-sm font-bold text-[#004aad] hover:text-[#003882] flex items-center mr-4 transition-colors">
+        <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i> Back
+    </a>
+    <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Asset Management / Directory</h2>
+</div>';
+
+$extra_css = ["../assets/css/fiori_forms.css", "../assets/css/table.css"];
+$extra_js = [];
+
+// ∴ 数据网格拓扑定义: 多元状态映射与财务单位绑定
+$datagrid_schema = [
+    'enable_checkbox' => true,
+    'primary_key' => 'vid',
+    'checkbox_name' => 'selected_vids',
+    'row_action_url' => 'register_venue.php?vid=%s',
+    'columns' => [
+        ['key' => 'vid', 'label' => 'Identifier', 'type' => 'text_muted_mono', 'width' => 'w-32'],
+        ['key' => 'vname', 'label' => 'Venue Name', 'type' => 'link', 'url_format' => 'register_venue.php?vid=%s', 'width' => 'w-48'],
+        ['key' => 'venue_category', 'label' => 'Category', 'type' => 'badge', 'width' => 'w-40'],
+        ['key' => 'max_cap', 'label' => 'Capacity', 'type' => 'suffix_text', 'suffix' => 'Pax', 'width' => ''],
+        ['key' => 'deposit', 'label' => 'Deposit', 'type' => 'currency', 'prefix' => 'RM ', 'width' => ''],
+        ['key' => 'status', 'label' => 'Current State', 'type' => 'map_badge', 'width' => 'w-40',
+            'map' => [
+                'available' => ['label' => 'Available', 'class' => 'bg-emerald-50 text-emerald-700 border-emerald-200'],
+                'maintenance' => ['label' => 'Maintenance', 'class' => 'bg-red-50 text-red-700 border-red-200'],
+                'booked' => ['label' => 'Booked', 'class' => 'bg-blue-50 text-blue-700 border-blue-200']
+            ],
+            'default_map' => ['label' => 'Unknown', 'class' => 'bg-slate-50 text-slate-600 border-slate-200']
+        ]
+    ]
+];
+
+$controller_config = [
+    'edit_url_base' => 'register_venue.php?vid=',
+    'delete_entity_name' => 'venue'
+];
+require_once __DIR__ . '/../core/components/datagrid_controller.php';
+
+/*
+|--------------------------------------------------------------------------
+| V: View Rendering (Output Buffer)
+|--------------------------------------------------------------------------
+*/
+ob_start();
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MMU Admin | Venue Directory</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script>
-        tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b' } } } } }
-    </script>
-    <link rel="stylesheet" href="layout.css?v=1.2">
-    <link rel="stylesheet" href="../assets/css/fiori_forms.css">
-</head>
-<body class="bg-[#f4f4f4] text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
 
-    <?php include('../includes/admin_sidebar.php'); ?>
-
-    <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
-        
-        <header class="h-16 glass-panel border-b border-slate-200 flex items-center justify-between px-6 z-10 shrink-0 bg-white">
-            <?php 
-            $topbar_content = '
-            <div class="flex items-center">
-                <a href="manage_venues.php" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 flex items-center mr-4 transition-colors">
-                    <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i> Back
-                </a>
-                <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Asset Management / Directory</h2>
-            </div>';
-            include('../includes/admin_topbar.php'); 
-            ?>
-        </header>
-
-        <div class="flex-1 overflow-y-auto p-8 scroll-smooth">
-            
-            <div class="mb-6">
-                <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Venue Registry Directory</h1>
-                <p class="text-xs text-slate-500 mt-1">Search, filter, and manage existing physical assets.</p>
-            </div>
-
-            <div class="bg-white p-5 rounded-lg shadow-sm border border-slate-200 mb-6">
-                <form method="GET" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-                    
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Venue</label>
-                        <input type="text" name="f_name" value="<?php echo htmlspecialchars($filter_name); ?>" placeholder="Search venue name..." class="fiori-input w-full">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Category</label>
-                        <input list="category-suggestions" name="f_cat" value="<?php echo htmlspecialchars($filter_cat); ?>" oninput="this.value = this.value.toUpperCase()" placeholder="Type or select keyword..." class="fiori-input w-full uppercase font-bold text-indigo-700">
-                        <datalist id="category-suggestions">
-                            <?php 
-                            if ($cat_dict_result && $cat_dict_result->num_rows > 0) {
-                                while ($dict = $cat_dict_result->fetch_assoc()) {
-                                    echo '<option value="' . htmlspecialchars($dict['category_name']) . '"></option>';
-                                }
-                            }
-                            ?>
-                        </datalist>
-                    </div>
-
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Venue State</label>
-                        <div class="relative">
-                            <select name="f_status" class="fiori-input w-full appearance-none pr-8 bg-white cursor-pointer font-bold text-slate-700">
-                                <option value="">All States</option>
-                                <option value="available" <?php if($filter_status==='available') echo 'selected'; ?>>Available</option>
-                                <option value="maintenance" <?php if($filter_status==='maintenance') echo 'selected'; ?>>Maintenance</option>
-                                <option value="booked" <?php if($filter_status==='booked') echo 'selected'; ?>>Booked</option>
-                            </select>
-                            <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 absolute right-3 top-2.5 pointer-events-none"></i>
-                        </div>
-                    </div>
-
-                    <div class="flex space-x-2">
-                        <button type="submit" class="w-full py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-700 transition shadow-sm flex items-center justify-center">
-                            Apply Filter
-                        </button>
-                        <a href="venue_directory.php" class="px-4 py-2.5 bg-slate-100 text-slate-600 text-sm font-bold rounded-lg hover:bg-slate-200 transition flex items-center justify-center" title="Reset Filters">
-                            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
-                        </a>
-                    </div>
-
-                </form>
-            </div>
-
-            <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-                    <h3 class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Venue Index (<?php echo $result->num_rows; ?>)</h3>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse min-w-[800px]">
-                        <thead class="bg-white text-[10px] text-slate-400 font-black uppercase tracking-widest border-b border-slate-100">
-                            <tr>
-                                <th class="px-6 py-4 w-32">Identifier</th>
-                                <th class="px-6 py-4 w-48">Venue Name</th>
-                                <th class="px-6 py-4 w-40">Category</th>
-                                <th class="px-6 py-4">Capacity</th>
-                                <th class="px-6 py-4">Deposit</th>
-                                <th class="px-6 py-4">Current State</th>
-                                <th class="px-6 py-4 text-right">Execution</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-sm divide-y divide-slate-50">
-                            <?php if ($result && $result->num_rows > 0): ?>
-                                <?php while($row = $result->fetch_assoc()): ?>
-                                <tr class="hover:bg-slate-50 transition-colors">
-                                    <td class="px-6 py-4">
-                                        <span class="font-mono text-[11px] font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded border border-slate-200"><?php echo htmlspecialchars($row['vid']); ?></span>
-                                    </td>
-                                    <td class="px-6 py-4 font-extrabold text-slate-800">
-                                        <?php echo htmlspecialchars($row['vname']); ?>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <span class="px-2 py-1 bg-indigo-50 text-indigo-700 text-[9px] font-black uppercase tracking-wider rounded border border-indigo-100">
-                                            <?php echo htmlspecialchars($row['venue_category']); ?>
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4 font-mono font-bold text-slate-700">
-                                        <?php echo $row['max_cap']; ?> <span class="text-[9px] uppercase tracking-widest text-slate-400 ml-1">Pax</span>
-                                    </td>
-                                    <td class="px-6 py-4 font-mono font-bold text-emerald-600">
-                                        RM <?php echo number_format($row['deposit'], 2); ?>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <?php 
-                                        $status_css = match($row['status']) {
-                                            'available' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
-                                            'maintenance' => 'bg-red-50 text-red-700 border-red-200',
-                                            'booked' => 'bg-blue-50 text-blue-700 border-blue-200',
-                                            default => 'bg-slate-50 text-slate-600 border-slate-200'
-                                        };
-                                        ?>
-                                        <span class="px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-widest border <?php echo $status_css; ?>">
-                                            <?php echo $row['status']; ?>
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4 text-right">
-                                        <a href="edit_venue.php?vid=<?php echo $row['vid']; ?>" class="inline-flex items-center px-4 py-2 bg-white border border-slate-200 text-indigo-600 text-xs font-bold rounded-lg hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-colors shadow-sm">
-                                            Modify Node
-                                        </a>
-                                    </td>
-                                </tr>
-                                <?php endwhile; ?>
-                            <?php else: ?>
-                                <tr>
-                                    <td colspan="7" class="px-6 py-12 text-center text-slate-400 font-medium">
-                                        <i data-lucide="search-x" class="w-8 h-8 mx-auto text-slate-300 mb-3 opacity-50"></i>
-                                        No venues match the specified parameters.
-                                    </td>
-                                </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+<div class="mb-4 bg-white border border-slate-200 rounded-md p-3 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] shrink-0">
+    <form method="GET" action="venue_directory.php" id="filterForm" class="flex flex-wrap items-center gap-4">
+        <div class="flex items-center space-x-2">
+            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Venue:</label>
+            <input type="text" name="f_name" value="<?php echo htmlspecialchars($filter_name); ?>" placeholder="Search name..." class="border border-slate-200 rounded px-3 py-1.5 text-xs font-semibold focus:outline-none focus:border-[#004aad] w-40 bg-white">
         </div>
-    </main>
+        
+        <div class="flex items-center space-x-2">
+            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Category:</label>
+            <input list="category-suggestions" name="f_cat" value="<?php echo htmlspecialchars($filter_cat); ?>" oninput="this.value = this.value.toUpperCase()" placeholder="Keyword..." class="border border-slate-200 rounded px-3 py-1.5 text-xs font-bold text-[#004aad] focus:outline-none focus:border-[#004aad] w-40 bg-white">
+            <datalist id="category-suggestions">
+                <?php 
+                if ($cat_dict_result && $cat_dict_result->num_rows > 0) {
+                    while ($dict = $cat_dict_result->fetch_assoc()) {
+                        echo '<option value="' . htmlspecialchars($dict['category_name']) . '"></option>';
+                    }
+                }
+                ?>
+            </datalist>
+        </div>
 
-    <?php include('../includes/ui_components.php'); ?>
+        <div class="flex items-center space-x-2">
+            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">State:</label>
+            <select name="f_status" onchange="this.form.submit()" class="border border-slate-200 rounded px-3 py-1.5 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#004aad] cursor-pointer bg-white">
+                <option value="">All States</option>
+                <option value="available" <?php if($filter_status==='available') echo 'selected'; ?>>Available</option>
+                <option value="maintenance" <?php if($filter_status==='maintenance') echo 'selected'; ?>>Maintenance</option>
+                <option value="booked" <?php if($filter_status==='booked') echo 'selected'; ?>>Booked</option>
+            </select>
+        </div>
 
-    <script>
-        lucide.createIcons();
-        function toggleSidebar() { document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed'); }
-    </script>
-</body>
-</html>
+        <div class="flex space-x-2 ml-auto">
+            <button type="submit" class="px-4 py-1.5 bg-slate-800 text-white text-xs font-bold rounded hover:bg-slate-900 transition shadow-sm">Filter</button>
+            <a href="venue_directory.php" class="px-3 py-1.5 bg-transparent text-slate-500 text-xs font-bold rounded hover:bg-slate-100 transition border border-transparent flex items-center">Reset</a>
+        </div>
+    </form>
+</div>
+
+<div class="mb-4 bg-white p-3 rounded-md border border-slate-200 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] shrink-0 flex justify-between items-center">
+    <div class="text-xs font-bold text-slate-500 pl-2">
+        <span id="cb-counter">0</span> selected
+    </div>
+    <div class="flex space-x-2">
+        <button onclick="window.location.href='register_venue.php'" class="px-4 py-2 text-xs font-semibold text-white bg-[#004aad] hover:bg-[#003882] rounded-md shadow-sm transition border border-[#004aad]">
+            <i data-lucide="plus" class="w-3.5 h-3.5 inline mr-1"></i> Create Venue
+        </button>
+        <button id="btn-edit" disabled onclick="executeAction('edit')" class="px-4 py-2 text-xs font-semibold text-slate-400 bg-slate-100 rounded-md transition cursor-not-allowed border border-slate-200">
+            <i data-lucide="edit-3" class="w-3.5 h-3.5 inline mr-1"></i> Edit
+        </button>
+        <button id="btn-delete" disabled onclick="executeAction('delete')" class="px-4 py-2 text-xs font-semibold text-slate-400 bg-slate-100 rounded-md transition cursor-not-allowed border border-slate-200">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5 inline mr-1"></i> Delete
+        </button>
+    </div>
+</div>
+
+<form id="bulkActionForm" action="../actions/process_venue.php" method="POST" class="flex-1 overflow-hidden flex flex-col custom-table-container">
+    <input type="hidden" name="action" id="bulk_action_type" value="">
+    <div class="flex-1 overflow-y-auto">
+        <?php echo render_datagrid($datagrid_schema, $result); ?>
+    </div>
+</form>
+
+<div id="custom-delete-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 backdrop-blur-sm opacity-0 transition-opacity duration-200">
+    <div id="custom-modal-panel" class="bg-white rounded-md shadow-lg w-full max-w-sm p-6 transform scale-95 transition-transform duration-200 border border-slate-200">
+        <h3 class="text-base font-bold text-slate-900 mb-2">Delete Asset</h3>
+        <p class="text-sm text-slate-600 mb-6" id="custom-modal-msg">Are you sure you want to delete the selected venue(s)?</p>
+        <div class="flex justify-end space-x-3">
+            <button type="button" onclick="closeCustomModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 bg-transparent hover:bg-slate-100 rounded-md transition-colors">Cancel</button>
+            <button type="button" id="custom-modal-confirm-btn" class="px-4 py-2 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-md shadow-sm transition-colors border border-red-600">Delete</button>
+        </div>
+    </div>
+</div>
+
+
+
+<?php
+$page_content = ob_get_clean();
+
+/*
+|--------------------------------------------------------------------------
+| L: Global Layout Engine
+|--------------------------------------------------------------------------
+*/
+require_once __DIR__ . '/../core/layout.php';
+?>

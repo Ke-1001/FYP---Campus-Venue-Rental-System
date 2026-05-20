@@ -24,7 +24,7 @@ if (!$admin) die("Anomaly: Admin object not found.");
     <script>
         tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b' } } } } }
     </script>
-    <link rel="stylesheet" href="layout.css?v=1.2">
+    <link rel="stylesheet" href="../assets/css/layout.css?v=1.2">
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
 
@@ -50,8 +50,8 @@ if (!$admin) die("Anomaly: Admin object not found.");
                 
                 <div class="mb-8 flex justify-between items-end">
                     <div>
-                        <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Edit Admin Node</h1>
-                        <p class="text-sm text-slate-500 mt-1">Reconfigure administrative privileges and contact vectors.</p>
+                        <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Edit Admin</h1>
+                        <p class="text-sm text-slate-500 mt-1">Reconfigure name, contact details and password.</p>
                     </div>
                     <span class="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-indigo-100 shadow-sm">
                         AID: <?php echo $aid; ?>

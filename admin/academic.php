@@ -14,7 +14,7 @@ require_once('../includes/admin_auth.php');
     <script>
         tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b', accent: '#38bdf8' } } } } }
     </script>
-    <link rel="stylesheet" href="layout.css?v=1.2">
+    <link rel="stylesheet" href="../assets/css/layout.css?v=1.2">
     <link rel="stylesheet" href="../assets/css/fiori-tile.css">
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
@@ -54,7 +54,7 @@ require_once('../includes/admin_auth.php');
                     <div class="fiori-tile-header">
                         <h3 class="fiori-tile-title">Academic Schedule</h3>
                     </div>
-                    <p class="fiori-tile-desc">Pre-book the venue for internal staff.</p>
+                    <p class="fiori-tile-desc">Configure exclusion for internal staff.</p>
                     <div class="fiori-tile-kpi">
                         <i data-lucide="book-plus" class="w-8 h-8 opacity-20"></i>
                     </div>

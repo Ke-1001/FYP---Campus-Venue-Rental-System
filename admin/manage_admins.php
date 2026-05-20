@@ -22,7 +22,7 @@ $kpi_total = $conn->query($kpi_sql)->fetch_row()[0] ?? 0;
     <script>
         tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b' } } } } }
     </script>
-    <link rel="stylesheet" href="layout.css?v=1.2">
+    <link rel="stylesheet" href="../assets/css/layout.css?v=1.2">
     <link rel="stylesheet" href="../assets/css/fiori-tile.css">
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans h-screen flex overflow-hidden">
@@ -40,7 +40,7 @@ $kpi_total = $conn->query($kpi_sql)->fetch_row()[0] ?? 0;
             
             <div class="mb-6 border-t border-slate-200 pt-10">
                 <h2 class="text-2xl font-extrabold text-slate-800 tracking-tight">Staff Management</h2>
-                <p class="text-sm text-slate-500 mt-1">Manage operational personnel, including venue inspectors and maintenance crew.</p>
+                <p class="text-sm text-slate-500 mt-1">Manage operational personnel, including admins and venue inspectors.</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">

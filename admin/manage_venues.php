@@ -19,7 +19,7 @@ $kpi_available = $conn->query("SELECT COUNT(*) FROM venue WHERE status = 'availa
     <script>
         tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b' } } } } }
     </script>
-    <link rel="stylesheet" href="layout.css?v=1.2">
+    <link rel="stylesheet" href="../assets/css/layout.css?v=1.2">
     <link rel="stylesheet" href="../assets/css/fiori-tile.css">
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
@@ -37,7 +37,7 @@ $kpi_available = $conn->query("SELECT COUNT(*) FROM venue WHERE status = 'availa
             
             <div class="mb-8 border-b border-slate-200 pb-4">
                 <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Venue Registry</h1>
-                <p class="text-sm text-slate-500 mt-1">Configure physical assets, capacity constraints, and financial deposit requirements.</p>
+                <p class="text-sm text-slate-500 mt-1">Configure venues, capacity constraints, and financial deposit requirements.</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -47,7 +47,7 @@ $kpi_available = $conn->query("SELECT COUNT(*) FROM venue WHERE status = 'availa
                         <h3 class="fiori-tile-title">Register Venue</h3>
                         <i data-lucide="plus-square" class="w-5 h-5 fiori-tile-icon"></i>
                     </div>
-                    <p class="fiori-tile-desc">Add a new physical venue to the system repository.</p>
+                    <p class="fiori-tile-desc">Add a new venue to the system.</p>
                     <div class="fiori-tile-kpi">
                         <i data-lucide="door-open" class="w-8 h-8 opacity-20"></i>
                     </div>

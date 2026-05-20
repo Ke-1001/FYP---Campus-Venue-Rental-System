@@ -39,7 +39,7 @@
 
 /* 語義標題：字重適中，緊湊字距 */
 .fiori-tile-title {
-    font-size: 0.875rem; /* 縮小標題尺寸 */
+    font-size: 14px; /* 縮小標題尺寸 */
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -48,7 +48,7 @@
 
 /* 次要描述：提高文字資訊密度 */
 .fiori-tile-desc {
-    font-size: 0.75rem;
+    font-size: 12px;
     color: #64748b;
     line-height: 1.5;
     margin-bottom: 1rem;

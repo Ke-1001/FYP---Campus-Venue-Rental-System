@@ -3,7 +3,6 @@
 
 function checkTimeSlotConflict($conn, $vid, $date_booked, $new_start_time, $new_end_time) {
     // 💡 驗證層 1：動態預約碰撞檢測 (Dynamic Booking Collision)
-    // 數學定理：若兩區間 [S1, E1] 與 [S2, E2] 重疊，則必滿足 S1 < E2 且 E1 > S2
     $sql1 = "SELECT COUNT(*) as conflict_count 
             FROM booking 
             WHERE vid = ? 
@@ -17,26 +16,25 @@ function checkTimeSlotConflict($conn, $vid, $date_booked, $new_start_time, $new_
     $res1 = $stmt1->get_result()->fetch_assoc();
     $stmt1->close(); 
     
-    // 若在 booking 表中發現衝突，直接拋出異常
-    if ($res1['conflict_count'] > 0) {
-        return true;
-    }
+    if ($res1['conflict_count'] > 0) return true;
 
-    // 💡 驗證層 2：學術排他矩陣碰撞檢測 (Academic Exclusion Matrix Collision)
-    // 利用 DAYNAME() 函數將絕對日期 (如 2026-05-12) 投影至週期性特徵空間 (如 'Tuesday')
+    // 💡 驗證層 2：學術排他矩陣映射 (Semester-Mapped Exclusion Matrix)
+    // 數學邏輯：只擷取「該預約日期所屬學期」的課表進行碰撞比對
     $sql2 = "SELECT COUNT(*) as conflict_count 
-             FROM academic_schedule 
-             WHERE vid = ? 
-               AND day_of_week = DAYNAME(?) 
-               AND (start_time < ? AND end_time > ?)";
+             FROM academic_schedule a
+             JOIN semester_config s ON a.sem_id = s.sem_id
+             WHERE a.vid = ? 
+               AND ? BETWEEN s.start_date AND s.end_date
+               AND a.day_of_week = DAYNAME(?) 
+               AND (a.start_time < ? AND a.end_time > ?)";
 
     $stmt2 = $conn->prepare($sql2);
-    $stmt2->bind_param("ssss", $vid, $date_booked, $new_end_time, $new_start_time);
+    // Bind: vid, date_booked, date_booked, new_end_time, new_start_time
+    $stmt2->bind_param("sssss", $vid, $date_booked, $date_booked, $new_end_time, $new_start_time);
     $stmt2->execute();
     $res2 = $stmt2->get_result()->fetch_assoc();
     $stmt2->close();
 
-    // 若在 academic_schedule 中發現衝突，同樣攔截
     return ($res2['conflict_count'] > 0);
 }
 ?>

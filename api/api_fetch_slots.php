@@ -14,7 +14,7 @@ if (empty($vid) || empty($date)) {
 $blocked_vectors = [];
 
 try {
-    // 💡 向量提取 1：一般學生預約集 (Dynamic Bookings)
+    // 💡 向量提取 1：一般學生預約集
     $stmt1 = $conn->prepare("SELECT time_start, time_end FROM booking WHERE vid = ? AND date_booked = ? AND status IN ('pending', 'approved')");
     $stmt1->bind_param("ss", $vid, $date);
     $stmt1->execute();
@@ -27,10 +27,16 @@ try {
     }
     $stmt1->close();
 
-    // 💡 向量提取 2：學術排他矩陣 (Academic Exclusion Matrix)
-    // 再次利用 DAYNAME() 提取該日期對應的固定課表
-    $stmt2 = $conn->prepare("SELECT start_time, end_time FROM academic_schedule WHERE vid = ? AND day_of_week = DAYNAME(?)");
-    $stmt2->bind_param("ss", $vid, $date);
+    // 💡 向量提取 2：特定學期的學術排他矩陣
+    $sql2 = "SELECT a.start_time, a.end_time 
+             FROM academic_schedule a
+             JOIN semester_config s ON a.sem_id = s.sem_id
+             WHERE a.vid = ? 
+               AND ? BETWEEN s.start_date AND s.end_date
+               AND a.day_of_week = DAYNAME(?)";
+               
+    $stmt2 = $conn->prepare($sql2);
+    $stmt2->bind_param("sss", $vid, $date, $date);
     $stmt2->execute();
     $res2 = $stmt2->get_result();
     while ($row = $res2->fetch_assoc()) {
@@ -41,11 +47,7 @@ try {
     }
     $stmt2->close();
 
-    // 將聯集結果回傳給 booking_form.php 的 JavaScript 渲染引擎
-    echo json_encode([
-        'status' => 'success',
-        'blocked_vectors' => $blocked_vectors
-    ]);
+    echo json_encode(['status' => 'success', 'blocked_vectors' => $blocked_vectors]);
 
 } catch (Exception $e) {
     echo json_encode(['status' => 'error', 'message' => 'Database Query Anomaly: ' . $e->getMessage()]);

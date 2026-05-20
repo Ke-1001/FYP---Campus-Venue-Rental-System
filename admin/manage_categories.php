@@ -45,7 +45,7 @@ $result = $conn->query("SELECT * FROM venue_category ORDER BY category_name ASC"
     <script>
         tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b' } } } } }
     </script>
-    <link rel="stylesheet" href="layout.css?v=1.2">
+    <link rel="stylesheet" href="../assets/css/layout.css?v=1.2">
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
 
@@ -100,7 +100,7 @@ $result = $conn->query("SELECT * FROM venue_category ORDER BY category_name ASC"
                             <tr class="hover:bg-slate-50 transition-colors">
                                 <td class="px-6 py-4 font-bold text-slate-700"><?php echo htmlspecialchars($row['category_name']); ?></td>
                                 <td class="px-6 py-4 text-right">
-                                    <form method="POST" onsubmit="return confirm('Execute deletion protocol for this category?');">
+                                    <form method="POST" onsubmit="return confirm('Delete this category?');">
                                         <input type="hidden" name="action" value="delete">
                                         <input type="hidden" name="category_name" value="<?php echo htmlspecialchars($row['category_name']); ?>">
                                         <button type="submit" class="text-red-500 hover:text-red-700 font-bold text-xs uppercase tracking-wider transition">
