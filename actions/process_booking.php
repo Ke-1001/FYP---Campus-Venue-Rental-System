@@ -73,7 +73,7 @@ try {
 
     echo json_encode([
         'status' => 'success',
-        'redirect_url' => "../mock_payment.php?bid={$new_bid}&amount={$deposit}"
+        'redirect_url' => "../User/mock_payment.php?bid={$new_bid}&amount={$deposit}"
     ]);
 
 } catch (Exception $e) {
