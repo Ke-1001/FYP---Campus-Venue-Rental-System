@@ -72,6 +72,9 @@
                     Don't have an account? 
                     <a href="user_register.php" class="text-mmu-glow font-bold hover:text-white transition-colors">Sign up</a>
                 </p>
+                <p class="mt-2 text-sm">
+                    <a href="forgot_password.php" class="text-mmu-glow font-bold hover:text-white transition-colors">Forgot password?</a>
+                </p>
             </div>
         </div>
     </div>

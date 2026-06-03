@@ -29,6 +29,7 @@
         .rule-item { display: flex; align-items: center; font-size: 11px; font-weight: 600; }
         .rule-invalid { color: #94a3b8; } .rule-valid { color: #34d399; }
         .rule-icon { margin-right: 6px; width: 14px; text-align: center; }
+        .validation-error { color: #ef4444; font-size: 14px; font-weight: 700; display: none; }
     </style>
 </head>
 <body class="font-sans antialiased min-h-screen relative overflow-y-auto">
@@ -39,7 +40,8 @@
     </div>
     <script>
         setTimeout(() => { 
-            document.getElementById('toast').style.display = 'none'; 
+            const toast = document.getElementById('toast');
+            toast.style.display = 'none'; 
             <?php if ($_GET['status'] == 'success') echo "window.location.href = 'user_login.php';"; ?>
         }, 3000);
     </script>
@@ -54,11 +56,17 @@
     <div class="w-full max-w-lg glass-panel rounded-2xl p-8 shadow-2xl">
         <form action="../User/user_register_process.php" method="POST" id="regForm" class="space-y-4">
             <div>
-                <label class="block text-[14px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">Student ID</label>
-                <input type="text" name="uid" placeholder="e.g. 242DT2430C" required class="input-glass w-full px-4 py-3 rounded-xl text-slate-800 font-semibold text-sm">
+                <div class="flex justify-between items-center mb-1.5">
+                    <label class="block text-[14px] font-bold text-slate-300 uppercase tracking-wider">Student ID</label>
+                    <span id="uid-error" class="validation-error">Invalid Student ID</span>
+                </div>
+                <input type="text" name="uid" id="uid" placeholder="e.g. 242DT2430C" required class="input-glass w-full px-4 py-3 rounded-xl text-slate-800 font-semibold text-sm">
             </div>
             <div>
-                <label class="block text-[14px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">Email Address</label>
+                <div class="flex justify-between items-center mb-1.5">
+                    <label class="block text-[14px] font-bold text-slate-300 uppercase tracking-wider">Email Address</label>
+                    <span id="email-error" class="validation-error">Invalid Email Format</span>
+                </div>
                 <input type="email" name="email" id="email" placeholder="student@student.mmu.edu.my" required class="input-glass w-full px-4 py-3 rounded-xl text-slate-800 font-semibold text-sm">
             </div>
             <div class="grid grid-cols-2 gap-4">
@@ -75,27 +83,35 @@
                 </div>
                 <div class="entropy-container"><div id="entropy-bar" class="entropy-bar entropy-weak"></div></div>
                 <div class="rule-grid bg-black/20 p-3.5 rounded-xl border border-white/5">
-                    <div id="rule-length" class="rule-item rule-invalid"><span class="rule-icon"></span> 8+ Chars</div>
-                    <div id="rule-upper" class="rule-item rule-invalid"><span class="rule-icon"></span> 1 Upper</div>
-                    <div id="rule-lower" class="rule-item rule-invalid"><span class="rule-icon"></span> 1 Lower</div>
+                    <div id="rule-length" class="rule-item rule-invalid"><span class="rule-icon"></span> 8+ Characters</div>
+                    <div id="rule-upper" class="rule-item rule-invalid"><span class="rule-icon"></span> 1 Upper Case</div>
+                    <div id="rule-lower" class="rule-item rule-invalid"><span class="rule-icon"></span> 1 Lower Case</div>
                     <div id="rule-number" class="rule-item rule-invalid"><span class="rule-icon"></span> 1 Number</div>
-                    <div id="rule-special" class="rule-item rule-invalid"><span class="rule-icon"></span> 1 Special</div>
+                    <div id="rule-special" class="rule-item rule-invalid"><span class="rule-icon"></span> 1 Special Character</div>
                 </div>
             </div>
             <button type="submit" id="submitBtn" class="w-full mt-6 bg-mmu-core hover:bg-blue-800 text-white font-bold py-3.5 rounded-xl transition-all">Create Account</button>
         </form>
-
-        <div class="mt-6 text-center">
-            <p class="text-slate-300 text-[14px]">
-                Already authorized? 
-                <a href="user_login.php" class="text-mmu-glow font-bold hover:text-white transition-colors">Access Dashboard</a>
-            </p>
-        </div>
     </div>
 </div>
 
 <script>
     lucide.createIcons();
+    const uidInput = document.getElementById('uid');
+    const emailInput = document.getElementById('email');
+
+    uidInput.addEventListener('input', () => {
+        const regex = /^[0-9]{3}[A-Za-z]{2}[A-Za-z0-9]{5}$/;
+        const errorEl = document.getElementById('uid-error');
+        errorEl.style.display = (uidInput.value.length === 0) ? 'none' : (regex.test(uidInput.value) ? 'none' : 'block');
+    });
+
+    emailInput.addEventListener('input', () => {
+        const regex = /@student\.mmu\.edu\.my$/;
+        const errorEl = document.getElementById('email-error');
+        errorEl.style.display = (emailInput.value.length === 0) ? 'none' : (regex.test(emailInput.value) ? 'none' : 'block');
+    });
+
     function togglePasswordVisibility() {
         const p = document.getElementById('password');
         const eye = document.getElementById('eyeIcon');
@@ -103,6 +119,7 @@
         else { p.type = 'password'; eye.setAttribute('data-lucide', 'eye'); }
         lucide.createIcons();
     }
+    
     function evaluateEntropy() {
         const p = document.getElementById('password').value;
         const v = { length: p.length >= 8, upper: /[A-Z]/.test(p), lower: /[a-z]/.test(p), number: /\d/.test(p), special: /[@$!%*?&]/.test(p) };
