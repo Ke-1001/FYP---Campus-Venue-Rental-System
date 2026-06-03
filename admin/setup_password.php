@@ -43,8 +43,8 @@ if (!empty($token)) {
 
     <div class="max-w-md w-full mx-4">
         <div class="text-center mb-8">
-            <h1 class="text-3xl font-black text-indigo-700 tracking-tight">MMU System</h1>
-            <p class="text-sm font-bold text-slate-500 uppercase tracking-widest mt-2">Credential Initialization</p>
+            <h1 class="text-3xl font-black text-indigo-700 tracking-tight">CVBMS Management</h1>
+            <p class="text-sm font-bold text-slate-500 uppercase tracking-widest mt-2">Set New Password</p>
         </div>
 
         <div class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
@@ -54,25 +54,25 @@ if (!empty($token)) {
                     <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
                         <i data-lucide="shield-alert" class="w-8 h-8"></i>
                     </div>
-                    <h2 class="text-xl font-bold text-slate-800 mb-2">Cryptographic Token Invalid</h2>
+                    <h2 class="text-xl font-bold text-slate-800 mb-2">Link Invalid</h2>
                     <p class="text-sm text-slate-500 mb-6 leading-relaxed">
                         The initialization link provided is either malformed, already consumed, or has exceeded its structural TTL (Time-To-Live) of 1 hour.
                     </p>
                     <a href="../login.php" class="inline-block px-6 py-2.5 bg-slate-100 text-slate-700 text-sm font-bold rounded-lg hover:bg-slate-200 transition">
-                        Return to Authentication Portal
+                        Return to login page
                     </a>
                 </div>
             <?php else: ?>
                 <div class="px-8 py-6 border-b border-slate-100 bg-slate-50">
                     <h2 class="text-lg font-bold text-slate-800">Secure Your Identity</h2>
-                    <p class="text-xs text-slate-500 font-mono mt-1">Target Entity: <?php echo htmlspecialchars($email); ?></p>
+                    <p class="text-xs text-slate-500 font-mono mt-1">Target Email: <?php echo htmlspecialchars($email); ?></p>
                 </div>
 
                 <form action="../actions/process_setup_password.php" method="POST" id="setupForm" class="p-8 space-y-5">
                     <input type="hidden" name="token" value="<?php echo htmlspecialchars($token); ?>">
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">New Password Vector</label>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">New Password</label>
                         <div class="relative">
                             <input type="password" name="password" id="password" required onkeyup="validateComplexity()" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:border-indigo-500 outline-none text-sm font-mono transition-all pr-10">
                             <i data-lucide="key" class="w-4 h-4 text-slate-400 absolute right-3 top-3.5 pointer-events-none"></i>
@@ -80,7 +80,7 @@ if (!empty($token)) {
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Confirm Password Vector</label>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Confirm Password</label>
                         <div class="relative">
                             <input type="password" name="confirm_password" id="confirm_password" required onkeyup="validateComplexity()" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:border-indigo-500 outline-none text-sm font-mono transition-all pr-10">
                             <i data-lucide="shield-check" class="w-4 h-4 text-slate-400 absolute right-3 top-3.5 pointer-events-none"></i>
@@ -97,7 +97,7 @@ if (!empty($token)) {
                     </div>
 
                     <button type="submit" id="submitBtn" disabled class="w-full py-3 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-700 transition opacity-50 cursor-not-allowed flex justify-center items-center mt-4">
-                        Inject Cryptographic Key
+                        Create New Password
                     </button>
                 </form>
             <?php endif; ?>
