@@ -62,14 +62,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $expires_at = date("Y-m-d H:i:s", time() + 3600); // 1 小時後過期
 
         // 寫入密碼重置矩陣
-        $stmt_token = $conn->prepare("INSERT INTO password_resets (email, token_hash, expires_at) VALUES (?, ?, ?)");
-        $stmt_token->bind_param("sss", $email, $token_hash, $expires_at);
+        $stmt_token = $conn->prepare("INSERT INTO password_resets (email, token_hash, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 1 HOUR))");
+        $stmt_token->bind_param("ss", $email, $token_hash);
         $stmt_token->execute();
         $stmt_token->close();
 
         // 💡 5. SMTP 發送協議 (Email Dispatch)
         // 注意：這裡必須替換為你實際系統的 URL Domain
-        $app_domain = "http://localhost/mmu_system"; 
+        $app_domain = "http://localhost/FYP---Campus-Venue-Rental-System"; 
         $reset_link = $app_domain . "/admin/setup_password.php?token=" . $token;
 
         $subject = "Action Required: Complete Your MMU System Configuration";
