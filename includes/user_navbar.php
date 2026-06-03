@@ -9,11 +9,11 @@
     </div>
 
     <div class="nav-links flex items-center gap-6">
-        <a href="/FYP/User/homepage.php" class="text-slate-300 hover:text-white font-medium transition-colors">Home</a>
-        <a href="/FYP/User/venues.php" class="text-slate-300 hover:text-white font-medium transition-colors">Venues</a>
-        <a href="/FYP/User/my_bookings.php" class="text-slate-300 hover:text-white font-medium transition-colors">My Bookings</a>
+        <a href="../User/homepage.php" class="text-slate-300 hover:text-white font-medium transition-colors">Home</a>
+        <a href="../User/venues.php" class="text-slate-300 hover:text-white font-medium transition-colors">Venues</a>
+        <a href="../User/my_bookings.php" class="text-slate-300 hover:text-white font-medium transition-colors">My Bookings</a>
         <a href="../User/profile.php" class="text-slate-300 hover:text-white font-medium transition-colors">Profile</a>
-        <a href="/FYP/User/user_logout.php" class="bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white px-4 py-2 rounded-lg font-bold transition-all">Logout</a>
+        <a href="../User/user_logout.php" class="bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white px-4 py-2 rounded-lg font-bold transition-all">Logout</a>
     </div>
 </div>
 
