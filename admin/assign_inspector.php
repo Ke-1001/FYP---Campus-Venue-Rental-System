@@ -3,6 +3,9 @@
 session_start();
 require_once '../config/db.php';
 require_once('../includes/admin_auth.php');
+require_once('../includes/booking_functions.php');
+
+expireUnpaidBookings($conn);
 
 // 💡 1. 接收多維度過濾參數
 $filter_bid = trim($_GET['f_bid'] ?? '');
