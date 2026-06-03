@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 02, 2026 at 03:24 PM
+-- Generation Time: Jun 03, 2026 at 07:54 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -99,8 +99,11 @@ CREATE TABLE `booking` (
   `date_booked` date NOT NULL,
   `time_start` time NOT NULL,
   `time_end` time NOT NULL,
-  `status` enum('pending','approved','rejected','completed') NOT NULL DEFAULT 'pending',
+  `status` enum('pending','approved','rejected','completed','cancelled') NOT NULL DEFAULT 'pending',
   `payment_status` enum('unpaid','paid','refunded') NOT NULL DEFAULT 'unpaid',
+  `payment_due_at` datetime DEFAULT NULL,
+  `cancelled_at` datetime DEFAULT NULL,
+  `cancel_reason` varchar(255) DEFAULT NULL,
   `transaction_ref` varchar(50) DEFAULT NULL,
   `purpose` varchar(100) NOT NULL,
   `aid` int(10) UNSIGNED DEFAULT NULL,
@@ -112,25 +115,27 @@ CREATE TABLE `booking` (
 -- Dumping data for table `booking`
 --
 
-INSERT INTO `booking` (`bid`, `uid`, `vid`, `date_booked`, `time_start`, `time_end`, `status`, `payment_status`, `transaction_ref`, `purpose`, `aid`, `approve_date`, `created_at`) VALUES
-(20000014, '242DT2430C', 'MSMR2016', '2026-04-29', '13:30:00', '14:30:00', 'completed', 'paid', 'TXN-9203A980', 'test', 8002, '2026-04-29 12:44:41', '2026-04-28 17:31:13'),
-(20000015, '242DT2429C', 'MSMR2016', '2026-07-02', '11:00:00', '14:30:00', 'pending', '', NULL, 'test', NULL, NULL, '2026-05-06 02:33:41'),
-(20000016, '242DT2429C', 'MSMR2016', '2026-05-08', '09:30:00', '10:30:00', 'pending', '', NULL, 'test', NULL, NULL, '2026-05-06 02:33:52'),
-(20000017, '242DT2421C', 'MSMR2016', '2026-05-06', '16:30:00', '18:30:00', 'completed', 'paid', 'TXN-C80129AA', 'Discussion', 8000, '2026-05-06 14:47:59', '2026-05-06 06:33:38'),
-(20000018, '242DT2429C', 'MSMR2016', '2026-05-07', '16:30:00', '17:30:00', 'rejected', 'paid', 'TXN-7538644A', 'teae', NULL, NULL, '2026-05-06 06:45:07'),
-(20000019, '242DT2429C', 'MSMX0003', '2026-05-13', '12:30:00', '18:30:00', 'rejected', 'paid', 'TXN-WO89K1Z6', 'For large event\'s discussion', NULL, NULL, '2026-05-11 10:42:36'),
-(20000020, '242DT2429C', 'MSMX2001', '2026-05-16', '09:00:00', '10:30:00', 'completed', 'paid', 'TXN-D5TU789Q', 'For project video recording', 8002, '2026-05-12 08:37:40', '2026-05-11 10:44:26'),
-(20000021, '242DT2431X', 'MSMR2012', '2026-05-19', '18:30:00', '19:30:00', 'completed', 'paid', 'TXN-156FD6DE', 'test semester', NULL, NULL, '2026-05-19 10:38:54'),
-(20000022, '242DT2431X', 'MSMR2012', '2026-05-19', '20:00:00', '21:00:00', 'pending', '', NULL, 'test123', NULL, NULL, '2026-05-19 11:56:40'),
-(20000023, '242DT2431X', 'MSMR2012', '2026-05-19', '21:00:00', '22:00:00', 'pending', '', NULL, 'test123', NULL, NULL, '2026-05-19 11:57:29'),
-(20000024, '242DT2431X', 'MSMR2012', '2026-05-19', '22:00:00', '22:30:00', 'pending', '', NULL, 'test123', NULL, NULL, '2026-05-19 11:58:43'),
-(20000025, '242DT2431X', 'MSMR2012', '2026-05-19', '22:30:00', '23:00:00', 'pending', '', NULL, 'test123', NULL, NULL, '2026-05-19 11:59:14'),
-(20000026, '242DT2431X', 'MSMR2012', '2026-05-19', '23:00:00', '23:30:00', 'pending', '', NULL, 'test123', NULL, NULL, '2026-05-19 12:01:59'),
-(20000027, '242DT2431X', 'MSMR2012', '2026-05-19', '23:30:00', '00:00:00', 'pending', 'paid', 'TXN-72711AB7', 'test123', NULL, NULL, '2026-05-19 12:02:44'),
-(20000028, '242DT2431X', 'MSMR2013', '2026-05-19', '20:00:00', '20:30:00', 'pending', '', NULL, 'test123', NULL, NULL, '2026-05-19 12:03:13'),
-(20000029, '242DT2431X', 'MSMR2013', '2026-05-19', '20:30:00', '21:00:00', 'pending', '', NULL, 'test123', NULL, NULL, '2026-05-19 12:04:08'),
-(20000030, '242DT2431X', 'MSMX0001', '2026-05-20', '14:30:00', '15:30:00', 'pending', '', NULL, 'ter', NULL, NULL, '2026-05-20 06:33:59'),
-(20000031, '242DT2431X', 'MSMX0001', '2026-05-20', '15:30:00', '16:00:00', 'pending', '', NULL, 'ter', NULL, NULL, '2026-05-20 06:35:07');
+INSERT INTO `booking` (`bid`, `uid`, `vid`, `date_booked`, `time_start`, `time_end`, `status`, `payment_status`, `payment_due_at`, `cancelled_at`, `cancel_reason`, `transaction_ref`, `purpose`, `aid`, `approve_date`, `created_at`) VALUES
+(20000014, '242DT2430C', 'MSMR2016', '2026-04-29', '13:30:00', '14:30:00', 'completed', 'paid', NULL, NULL, NULL, 'TXN-9203A980', 'test', 8002, '2026-04-29 12:44:41', '2026-04-28 17:31:13'),
+(20000015, '242DT2429C', 'MSMR2016', '2026-07-02', '11:00:00', '14:30:00', 'cancelled', 'unpaid', '2026-05-06 10:48:41', '2026-06-03 10:21:14', 'Payment deadline expired', NULL, 'test', NULL, NULL, '2026-05-06 02:33:41'),
+(20000016, '242DT2429C', 'MSMR2016', '2026-05-08', '09:30:00', '10:30:00', 'cancelled', 'unpaid', '2026-05-06 10:48:52', '2026-06-03 10:21:14', 'Payment deadline expired', NULL, 'test', NULL, NULL, '2026-05-06 02:33:52'),
+(20000017, '242DT2421C', 'MSMR2016', '2026-05-06', '16:30:00', '18:30:00', 'completed', 'paid', NULL, NULL, NULL, 'TXN-C80129AA', 'Discussion', 8000, '2026-05-06 14:47:59', '2026-05-06 06:33:38'),
+(20000018, '242DT2429C', 'MSMR2016', '2026-05-07', '16:30:00', '17:30:00', 'rejected', 'paid', NULL, NULL, NULL, 'TXN-7538644A', 'teae', NULL, NULL, '2026-05-06 06:45:07'),
+(20000019, '242DT2429C', 'MSMX0003', '2026-05-13', '12:30:00', '18:30:00', 'rejected', 'paid', NULL, NULL, NULL, 'TXN-WO89K1Z6', 'For large event\'s discussion', NULL, NULL, '2026-05-11 10:42:36'),
+(20000020, '242DT2429C', 'MSMX2001', '2026-05-16', '09:00:00', '10:30:00', 'completed', 'paid', NULL, NULL, NULL, 'TXN-D5TU789Q', 'For project video recording', 8002, '2026-05-12 08:37:40', '2026-05-11 10:44:26'),
+(20000021, '242DT2431X', 'MSMR2012', '2026-05-19', '18:30:00', '19:30:00', 'completed', 'paid', NULL, NULL, NULL, 'TXN-156FD6DE', 'test semester', NULL, NULL, '2026-05-19 10:38:54'),
+(20000022, '242DT2431X', 'MSMR2012', '2026-05-19', '20:00:00', '21:00:00', 'rejected', 'paid', NULL, NULL, NULL, NULL, 'test123', NULL, NULL, '2026-05-19 11:56:40'),
+(20000023, '242DT2431X', 'MSMR2012', '2026-05-19', '21:00:00', '22:00:00', 'cancelled', 'unpaid', '2026-05-19 20:12:29', '2026-06-03 10:21:14', 'Payment deadline expired', NULL, 'test123', NULL, NULL, '2026-05-19 11:57:29'),
+(20000024, '242DT2431X', 'MSMR2012', '2026-05-19', '22:00:00', '22:30:00', 'cancelled', 'unpaid', '2026-05-19 20:13:43', '2026-06-03 10:21:14', 'Payment deadline expired', NULL, 'test123', NULL, NULL, '2026-05-19 11:58:43'),
+(20000025, '242DT2431X', 'MSMR2012', '2026-05-19', '22:30:00', '23:00:00', 'cancelled', 'unpaid', '2026-05-19 20:14:14', '2026-06-03 10:21:14', 'Payment deadline expired', NULL, 'test123', NULL, NULL, '2026-05-19 11:59:14'),
+(20000026, '242DT2431X', 'MSMR2012', '2026-05-19', '23:00:00', '23:30:00', 'cancelled', 'unpaid', '2026-05-19 20:16:59', '2026-06-03 10:21:14', 'Payment deadline expired', NULL, 'test123', NULL, NULL, '2026-05-19 12:01:59'),
+(20000027, '242DT2431X', 'MSMR2012', '2026-05-19', '23:30:00', '00:00:00', 'rejected', 'paid', NULL, NULL, NULL, 'TXN-72711AB7', 'test123', NULL, NULL, '2026-05-19 12:02:44'),
+(20000028, '242DT2431X', 'MSMR2013', '2026-05-19', '20:00:00', '20:30:00', 'cancelled', 'unpaid', '2026-05-19 20:18:13', '2026-06-03 10:21:14', 'Payment deadline expired', NULL, 'test123', NULL, NULL, '2026-05-19 12:03:13'),
+(20000029, '242DT2431X', 'MSMR2013', '2026-05-19', '20:30:00', '21:00:00', 'cancelled', 'unpaid', '2026-05-19 20:19:08', '2026-06-03 10:21:14', 'Payment deadline expired', NULL, 'test123', NULL, NULL, '2026-05-19 12:04:08'),
+(20000030, '242DT2431X', 'MSMX0001', '2026-05-20', '14:30:00', '15:30:00', 'completed', 'paid', NULL, NULL, NULL, NULL, 'ter', NULL, NULL, '2026-05-20 06:33:59'),
+(20000031, '242DT2431X', 'MSMX0001', '2026-05-20', '15:30:00', '16:00:00', 'pending', '', NULL, NULL, NULL, NULL, 'ter', NULL, NULL, '2026-05-20 06:35:07'),
+(20000032, '242DT2429C', 'MSMX0001', '2026-06-17', '10:30:00', '12:00:00', 'pending', '', NULL, NULL, NULL, NULL, 'test', NULL, NULL, '2026-06-03 02:02:21'),
+(20000033, '242DT2429C', 'MSMX0001', '2026-06-17', '13:30:00', '15:00:00', 'cancelled', 'unpaid', '2026-06-03 10:23:05', '2026-06-03 10:23:09', 'Payment deadline expired', NULL, 'test', NULL, NULL, '2026-06-03 02:08:05');
 
 -- --------------------------------------------------------
 
@@ -338,23 +343,23 @@ CREATE TABLE `venue` (
 --
 
 INSERT INTO `venue` (`vid`, `vname`, `vcid`, `max_cap`, `deposit`, `status`, `description`) VALUES
-('MSMR2012', 'Tutorial Room B5', 1, 25, 20.00, 'available', 'A small room which is good for small group discussion.'),
-('MSMR2013', 'Tutorial Room B4', 1, 40, 20.00, 'available', 'A small room which is good for small group discussion.'),
-('MSMR2014', 'Tutorial Room B3', 1, 35, 20.00, 'available', 'A small room which is good for small group discussion.'),
-('MSMR2015', 'Tutorial Room B2', 1, 30, 20.00, 'maintenance', 'A small room which is good for small group discussion.'),
-('MSMR2016', 'Tutorial Room B1', 1, 30, 20.00, 'available', 'A room with 30 person of capacity.'),
-('MSMR3012', 'Tutorial Room A8', 1, 25, 20.00, 'available', 'A room with 25 person of capacity.'),
-('MSMR3013', 'Tutorial Room A9', 1, 40, 20.00, 'available', 'Small room with full equipment used for discussion.'),
-('MSMR3014', 'Tutorial Room A10', 1, 35, 20.00, 'available', 'Small room with full equipment used for discussion.'),
-('MSMR3015', 'Tutorial Room A11', 1, 40, 20.00, 'available', 'Small room with full equipment used for discussion.'),
-('MSMR3016', 'Tutorial Room A12', 1, 20, 20.00, 'available', 'Small room with full equipment for discussion.'),
-('MSMX0001', 'Lecture Hall A1', 1, 380, 120.00, 'available', 'A large hall for large events and exams.'),
-('MSMX0002', 'Lecture Hall A2', 3, 380, 120.00, 'available', 'A large hall for large events and exams.'),
-('MSMX0003', 'Lecture Hall A3', 3, 380, 120.00, 'available', 'A large hall for large events and exams.'),
-('MSMX0004', 'Lecture Hall A4', 3, 380, 120.00, 'maintenance', 'A large hall for large events and exams.'),
-('MSMX2001', 'Lecture Hall B1', 2, 100, 40.00, 'maintenance', 'Lecture hall that can accommodate 100 people.'),
-('MSMX2002', 'Lecture Hall B2', 2, 90, 45.00, 'available', 'Lecture hall that can accommodate 90 people.'),
-('MSMX2003', 'Lecture Hall B3', 2, 100, 40.00, 'available', 'A lecture hall with 100 person of capacity.');
+('MSMR2012', 'Tutorial Room B5', 1, 25, 5.00, 'available', 'A small room which is good for small group discussion.'),
+('MSMR2013', 'Tutorial Room B4', 1, 40, 5.00, 'available', 'A small room which is good for small group discussion.'),
+('MSMR2014', 'Tutorial Room B3', 1, 35, 5.00, 'available', 'A small room which is good for small group discussion.'),
+('MSMR2015', 'Tutorial Room B2', 1, 30, 5.00, 'maintenance', 'A small room which is good for small group discussion.'),
+('MSMR2016', 'Tutorial Room B1', 1, 30, 5.00, 'available', 'A room with 30 person of capacity.'),
+('MSMR3012', 'Tutorial Room A8', 1, 25, 5.00, 'available', 'A room with 25 person of capacity.'),
+('MSMR3013', 'Tutorial Room A9', 1, 35, 5.00, 'available', 'Small room with full equipment used for discussion.'),
+('MSMR3014', 'Tutorial Room A10', 1, 35, 5.00, 'available', 'Small room with full equipment used for discussion.'),
+('MSMR3015', 'Tutorial Room A11', 1, 40, 5.00, 'available', 'Small room with full equipment used for discussion.'),
+('MSMR3016', 'Tutorial Room A12', 1, 20, 5.00, 'available', 'Small room with full equipment for discussion.'),
+('MSMX0001', 'Lecture Hall A1', 3, 380, 20.00, 'available', 'A large hall for large events and exams.'),
+('MSMX0002', 'Lecture Hall A2', 3, 380, 20.00, 'available', 'A large hall for large events and exams.'),
+('MSMX0003', 'Lecture Hall A3', 3, 380, 20.00, 'available', 'A large hall for large events and exams.'),
+('MSMX0004', 'Lecture Hall A4', 3, 380, 20.00, 'maintenance', 'A large hall for large events and exams.'),
+('MSMX2001', 'Lecture Hall B1', 2, 100, 10.00, 'maintenance', 'Lecture hall that can accommodate 100 people.'),
+('MSMX2002', 'Lecture Hall B2', 2, 90, 10.00, 'available', 'Lecture hall that can accommodate 90 people.'),
+('MSMX2003', 'Lecture Hall B3', 2, 100, 10.00, 'available', 'A lecture hall with 100 person of capacity.');
 
 -- --------------------------------------------------------
 
@@ -368,6 +373,67 @@ CREATE TABLE `vpic` (
   `vid` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `vpic`
+--
+
+INSERT INTO `vpic` (`pic_id`, `pic`, `vid`, `description`) VALUES
+(1, 'MSMX0001_1780464958_4360.jpg', 'MSMX0001', 'Gallery asset for node MSMX0001'),
+(2, 'MSMX0001_1780464958_8527.jpg', 'MSMX0001', 'Gallery asset for node MSMX0001'),
+(3, 'MSMX0001_1780464958_8488.jpg', 'MSMX0001', 'Gallery asset for node MSMX0001'),
+(4, 'MSMX0001_1780464958_3918.jpg', 'MSMX0001', 'Gallery asset for node MSMX0001'),
+(5, 'MSMX0002_1780465025_3559.jpg', 'MSMX0002', 'Gallery asset for node MSMX0002'),
+(6, 'MSMX0002_1780465025_3022.jpg', 'MSMX0002', 'Gallery asset for node MSMX0002'),
+(7, 'MSMX0002_1780465025_2012.jpg', 'MSMX0002', 'Gallery asset for node MSMX0002'),
+(8, 'MSMX0002_1780465025_2706.jpg', 'MSMX0002', 'Gallery asset for node MSMX0002'),
+(9, 'MSMX0003_1780465216_7946.jpg', 'MSMX0003', 'Gallery asset for node MSMX0003'),
+(10, 'MSMX0003_1780465216_5052.jpg', 'MSMX0003', 'Gallery asset for node MSMX0003'),
+(11, 'MSMX0003_1780465216_3114.jpg', 'MSMX0003', 'Gallery asset for node MSMX0003'),
+(12, 'MSMX0003_1780465216_3854.jpg', 'MSMX0003', 'Gallery asset for node MSMX0003'),
+(13, 'MSMX0004_1780465248_1719.jpg', 'MSMX0004', 'Gallery asset for node MSMX0004'),
+(14, 'MSMX0004_1780465248_2421.jpg', 'MSMX0004', 'Gallery asset for node MSMX0004'),
+(15, 'MSMX0004_1780465248_2714.jpg', 'MSMX0004', 'Gallery asset for node MSMX0004'),
+(16, 'MSMX0004_1780465248_5113.jpg', 'MSMX0004', 'Gallery asset for node MSMX0004'),
+(17, 'MSMX2001_1780465275_3756.jpg', 'MSMX2001', 'Gallery asset for node MSMX2001'),
+(18, 'MSMX2001_1780465275_3446.jpg', 'MSMX2001', 'Gallery asset for node MSMX2001'),
+(19, 'MSMX2001_1780465275_7540.jpg', 'MSMX2001', 'Gallery asset for node MSMX2001'),
+(20, 'MSMX2002_1780465291_9599.jpg', 'MSMX2002', 'Gallery asset for node MSMX2002'),
+(21, 'MSMX2002_1780465291_5831.jpg', 'MSMX2002', 'Gallery asset for node MSMX2002'),
+(22, 'MSMX2002_1780465291_6747.jpg', 'MSMX2002', 'Gallery asset for node MSMX2002'),
+(23, 'MSMX2003_1780465328_7857.jpg', 'MSMX2003', 'Gallery asset for node MSMX2003'),
+(24, 'MSMX2003_1780465328_8241.jpg', 'MSMX2003', 'Gallery asset for node MSMX2003'),
+(25, 'MSMX2003_1780465328_2701.jpg', 'MSMX2003', 'Gallery asset for node MSMX2003'),
+(26, 'MSMR3014_1780465483_7692.jpg', 'MSMR3014', 'Gallery asset for node MSMR3014'),
+(27, 'MSMR3014_1780465483_4708.jpg', 'MSMR3014', 'Gallery asset for node MSMR3014'),
+(28, 'MSMR3014_1780465483_2706.jpg', 'MSMR3014', 'Gallery asset for node MSMR3014'),
+(29, 'MSMR3015_1780465564_3831.jpg', 'MSMR3015', 'Gallery asset for node MSMR3015'),
+(30, 'MSMR3015_1780465564_4869.jpg', 'MSMR3015', 'Gallery asset for node MSMR3015'),
+(31, 'MSMR3015_1780465564_3632.jpg', 'MSMR3015', 'Gallery asset for node MSMR3015'),
+(32, 'MSMR3016_1780465585_2349.jpg', 'MSMR3016', 'Gallery asset for node MSMR3016'),
+(33, 'MSMR3016_1780465585_3184.jpg', 'MSMR3016', 'Gallery asset for node MSMR3016'),
+(34, 'MSMR3016_1780465585_1777.jpg', 'MSMR3016', 'Gallery asset for node MSMR3016'),
+(35, 'MSMR3012_1780465642_6542.jpg', 'MSMR3012', 'Gallery asset for node MSMR3012'),
+(36, 'MSMR3012_1780465642_2909.jpg', 'MSMR3012', 'Gallery asset for node MSMR3012'),
+(37, 'MSMR3012_1780465642_6101.jpg', 'MSMR3012', 'Gallery asset for node MSMR3012'),
+(38, 'MSMR3013_1780465681_5160.jpg', 'MSMR3013', 'Gallery asset for node MSMR3013'),
+(39, 'MSMR3013_1780465681_2764.jpg', 'MSMR3013', 'Gallery asset for node MSMR3013'),
+(40, 'MSMR3013_1780465681_2557.jpg', 'MSMR3013', 'Gallery asset for node MSMR3013'),
+(41, 'MSMR2016_1780465725_7090.jpg', 'MSMR2016', 'Gallery asset for node MSMR2016'),
+(42, 'MSMR2016_1780465725_5607.jpg', 'MSMR2016', 'Gallery asset for node MSMR2016'),
+(43, 'MSMR2016_1780465725_4717.jpg', 'MSMR2016', 'Gallery asset for node MSMR2016'),
+(44, 'MSMR2015_1780465749_7454.jpg', 'MSMR2015', 'Gallery asset for node MSMR2015'),
+(45, 'MSMR2015_1780465749_9489.jpg', 'MSMR2015', 'Gallery asset for node MSMR2015'),
+(46, 'MSMR2015_1780465749_2679.jpg', 'MSMR2015', 'Gallery asset for node MSMR2015'),
+(47, 'MSMR2014_1780465777_6769.jpg', 'MSMR2014', 'Gallery asset for node MSMR2014'),
+(48, 'MSMR2014_1780465777_4607.jpg', 'MSMR2014', 'Gallery asset for node MSMR2014'),
+(49, 'MSMR2014_1780465777_7713.jpg', 'MSMR2014', 'Gallery asset for node MSMR2014'),
+(50, 'MSMR2013_1780465802_7723.jpg', 'MSMR2013', 'Gallery asset for node MSMR2013'),
+(51, 'MSMR2013_1780465802_3911.jpg', 'MSMR2013', 'Gallery asset for node MSMR2013'),
+(52, 'MSMR2013_1780465802_3431.jpg', 'MSMR2013', 'Gallery asset for node MSMR2013'),
+(53, 'MSMR2012_1780465826_2206.jpg', 'MSMR2012', 'Gallery asset for node MSMR2012'),
+(54, 'MSMR2012_1780465826_8273.jpg', 'MSMR2012', 'Gallery asset for node MSMR2012'),
+(55, 'MSMR2012_1780465826_3027.jpg', 'MSMR2012', 'Gallery asset for node MSMR2012');
 
 --
 -- Indexes for dumped tables
@@ -490,7 +556,7 @@ ALTER TABLE `admin`
 -- AUTO_INCREMENT for table `booking`
 --
 ALTER TABLE `booking`
-  MODIFY `bid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20000032;
+  MODIFY `bid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20000034;
 
 --
 -- AUTO_INCREMENT for table `inspection`
@@ -532,7 +598,7 @@ ALTER TABLE `vcategory`
 -- AUTO_INCREMENT for table `vpic`
 --
 ALTER TABLE `vpic`
-  MODIFY `pic_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `pic_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=56;
 
 --
 -- Constraints for dumped tables

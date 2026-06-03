@@ -35,16 +35,21 @@ if (!$data) {
     die("Database Anomaly: Target booking entity not found.");
 }
 
-$is_rejected = ($data['status'] === 'rejected');
+$status = strtolower((string)$data['status']);
+$payment_status = strtolower((string)$data['payment_status']);
+
+$is_rejected = ($status === 'rejected');
+$is_cancelled = ($status === 'cancelled');
+$is_completed = ($status === 'completed');
 
 // 💡 2. 狀態機引擎
 $flow_states = [
     'Request'  => true,
-    'Payment'  => ($data['payment_status'] === 'paid' || $data['payment_status'] === 'refunded'),
-    'Approval' => ($data['status'] === 'approved' || $data['status'] === 'completed'),
-    'Assign'   => ($data['inspector_name'] !== null),
-    'Inspect'  => ($data['ins_status'] !== null && $data['ins_status'] !== 'pending'),
-    'Settle'   => ($data['status'] === 'completed' && ($data['ins_status'] === 'passed' || $data['ins_status'] === 'failed'))
+    'Payment'  => ($payment_status === 'paid' || $payment_status === 'refunded'),
+    'Approval' => ($status === 'approved' || $status === 'completed'),
+    'Assign'   => (!$is_cancelled && !$is_rejected && $data['inspector_name'] !== null),
+    'Inspect'  => (!$is_cancelled && !$is_rejected && $data['ins_status'] !== null && $data['ins_status'] !== 'pending'),
+    'Settle'   => (!$is_cancelled && !$is_rejected && $status === 'completed' && ($data['ins_status'] === 'passed' || $data['ins_status'] === 'failed'))
 ];
 ?>
 <!DOCTYPE html>
@@ -93,10 +98,22 @@ $flow_states = [
                         <p class="text-sm text-slate-500 font-medium mt-1">Requested by <span class="font-bold text-slate-700"><?php echo htmlspecialchars($data['username']); ?></span> on <?php echo date('M d, Y', strtotime($data['created_at'])); ?></p>
                     </div>
                     <div>
-                        <?php if($is_rejected): ?>
-                            <span class="px-4 py-2 bg-red-100 text-red-700 rounded-lg text-xs font-black uppercase tracking-widest border border-red-200 shadow-sm block text-center">Execution Terminated</span>
+                        <?php if($is_cancelled): ?>
+                            <span class="px-4 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-black uppercase tracking-widest border border-slate-300 shadow-sm block text-center">
+                                Cancelled
+                            </span>
+                        <?php elseif($is_rejected): ?>
+                            <span class="px-4 py-2 bg-red-100 text-red-700 rounded-lg text-xs font-black uppercase tracking-widest border border-red-200 shadow-sm block text-center">
+                                Execution Terminated
+                            </span>
+                        <?php elseif($is_completed): ?>
+                            <span class="px-4 py-2 bg-emerald-100 text-emerald-700 rounded-lg text-xs font-black uppercase tracking-widest border border-emerald-200 shadow-sm block text-center">
+                                Completed
+                            </span>
                         <?php else: ?>
-                            <span class="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg text-xs font-black uppercase tracking-widest border border-indigo-200 shadow-sm block text-center">Active Pipeline</span>
+                            <span class="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg text-xs font-black uppercase tracking-widest border border-indigo-200 shadow-sm block text-center">
+                                Active Pipeline
+                            </span>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -104,7 +121,20 @@ $flow_states = [
                 <div class="bg-white p-8 rounded-lg shadow-sm border border-slate-200 mb-8 overflow-x-auto">
                     <h3 class="text-xs font-bold text-slate-800 mb-8">Process Pipeline Tracker</h3>
                     
-                    <?php if($is_rejected): ?>
+                    <?php if($is_cancelled): ?>
+                        <div class="p-4 bg-slate-50 border border-slate-200 rounded text-slate-700 text-sm font-bold">
+                            Process Cancelled:
+                            <?php echo htmlspecialchars($data['cancel_reason'] ?? 'Payment deadline expired'); ?>
+
+                            <div class="mt-2 text-xs text-slate-500 font-semibold">
+                                Cancelled At:
+                                <?php echo !empty($data['cancelled_at']) ? date('Y-m-d H:i', strtotime($data['cancelled_at'])) : '-'; ?>
+                                <br>
+                                Payment Due:
+                                <?php echo !empty($data['payment_due_at']) ? date('Y-m-d H:i', strtotime($data['payment_due_at'])) : '-'; ?>
+                            </div>
+                        </div>
+                    <?php elseif($is_rejected): ?>
                         <div class="p-4 bg-red-50 border border-red-200 rounded text-red-700 text-sm font-bold">
                             Process Terminated: Request was rejected. Financial layer reverted.
                         </div>
@@ -183,10 +213,46 @@ $flow_states = [
                                 <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Base Deposit</p>
                                 <p class="font-mono font-bold text-emerald-600">RM <?php echo number_format($data['deposit'], 2); ?></p>
                             </div>
+
+                            <?php if($is_cancelled): ?>
+                                <div class="pt-4 border-t border-slate-100">
+                                    <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">
+                                        Cancellation Status
+                                    </p>
+
+                                    <p class="font-black text-slate-700 uppercase tracking-widest text-xs">
+                                        Cancelled
+                                    </p>
+
+                                    <div class="mt-3 space-y-2 text-xs text-slate-600">
+                                        <p>
+                                            <span class="font-bold text-slate-500 uppercase">Cancelled At:</span>
+                                            <?php echo !empty($data['cancelled_at']) ? date('Y-m-d H:i', strtotime($data['cancelled_at'])) : '-'; ?>
+                                        </p>
+
+                                        <p>
+                                            <span class="font-bold text-slate-500 uppercase">Payment Due:</span>
+                                            <?php echo !empty($data['payment_due_at']) ? date('Y-m-d H:i', strtotime($data['payment_due_at'])) : '-'; ?>
+                                        </p>
+
+                                        <p class="text-red-600 font-semibold">
+                                            <span class="font-bold uppercase">Reason:</span>
+                                            <?php echo htmlspecialchars($data['cancel_reason'] ?? 'Payment deadline expired'); ?>
+                                        </p>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+
                             <div>
                                 <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Delegated Inspector</p>
                                 <p class="font-bold text-slate-800">
-                                    <?php echo $data['inspector_name'] ?? '<span class="text-amber-500 font-bold text-xs uppercase tracking-widest">Pending Assignment</span>'; ?>
+                                    <?php 
+                                        if ($is_cancelled) {
+                                            echo '<span class="text-slate-400 font-bold text-xs uppercase tracking-widest">Not Required</span>';
+                                        } else {
+                                            echo $data['inspector_name'] ?? '<span class="text-amber-500 font-bold text-xs uppercase tracking-widest">Pending Assignment</span>';
+                                        }
+                                    ?>
                                 </p>
                             </div>
                             

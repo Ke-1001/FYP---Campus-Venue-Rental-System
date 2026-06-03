@@ -3,7 +3,18 @@
 session_start();
 
 require_once("../config/db.php");
-require_once('../includes/admin_auth.php');
+require_once("../includes/admin_auth.php");
+require_once("../includes/booking_functions.php");
+
+/*
+|--------------------------------------------------------------------------
+| Auto-expire unpaid bookings
+|--------------------------------------------------------------------------
+| When admin opens this booking management page, expired unpaid bookings
+| will be marked as cancelled automatically.
+*/
+
+expireUnpaidBookings($conn);
 
 /*
 |--------------------------------------------------------------------------
@@ -85,7 +96,7 @@ ob_start();
         </div>
 
         <p class="fiori-tile-desc">
-            Review and approve new venue booking requests.
+            Review and approve paid venue booking requests.
         </p>
 
         <div class="fiori-tile-kpi">
@@ -108,6 +119,9 @@ ob_start();
             <h3 class="fiori-tile-title">
                 Assign Inspector
             </h3>
+
+            <i data-lucide="users"
+               class="w-5 h-5 fiori-tile-icon"></i>
         </div>
 
         <p class="fiori-tile-desc">
@@ -115,9 +129,6 @@ ob_start();
         </p>
 
         <div class="fiori-tile-kpi">
-            <i data-lucide="users"
-               class="w-5 h-5 fiori-tile-icon"></i>
-
             <?php echo $kpi_assign; ?>
         </div>
 
@@ -143,7 +154,7 @@ ob_start();
         </div>
 
         <p class="fiori-tile-desc">
-            Monitor ongoing bookings and view past records.
+            Monitor ongoing bookings and view completed records.
         </p>
 
         <div class="fiori-tile-kpi">
