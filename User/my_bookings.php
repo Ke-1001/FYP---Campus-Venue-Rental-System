@@ -7,7 +7,7 @@ include("../config/db.php");
 $user_id = $_SESSION['uid'];
 
 $stmt = $conn->prepare("
-    SELECT b.bid, b.date_booked, b.status, b.payment_status,
+    SELECT b.bid, b.date_booked, b.status, b.payment_status, b.payment_due_at,
            v.vname, v.vcid, v.max_cap, vc.category
     FROM booking b
     JOIN venue v ON b.vid = v.vid
@@ -32,6 +32,10 @@ function bookingStatusBadgeClass($status) {
 
     if ($status === "completed") {
         return "bg-blue-100 text-blue-700 border-blue-200";
+    }
+
+    if ($status === "cancelled") {
+    return "bg-slate-100 text-slate-600 border-slate-200";
     }
 
     return "bg-yellow-100 text-yellow-700 border-yellow-200";
@@ -171,11 +175,20 @@ function formatBookingDate($date) {
                                     </td>
 
                                     <td class="px-6 py-5 align-middle text-right">
-                                        <a href="booking_details.php?bid=<?php echo urlencode($row['bid']); ?>"
-                                           class="inline-flex items-center justify-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow-sm transition">
-                                            View Progress
-                                            <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
-                                        </a>
+                                        <div class="flex items-center justify-end gap-2">
+                                            <a href="booking_details.php?bid=<?php echo urlencode($row['bid']); ?>"
+                                            class="inline-flex items-center justify-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow-sm transition">
+                                                Progress
+                                                <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
+                                            </a>
+
+                                            <a href="booking_print.php?bid=<?php echo urlencode($row['bid']); ?>"
+                                            target="_blank"
+                                            class="inline-flex items-center justify-center px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-xs font-bold rounded-lg shadow-sm transition">
+                                                View Report
+                                                <i data-lucide="file-text" class="w-4 h-4 ml-2"></i>
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
 
@@ -244,11 +257,33 @@ function formatBookingDate($date) {
                         </div>
 
                         <div class="p-4 border-t border-slate-100 bg-slate-50">
-                            <a href="booking_details.php?bid=<?php echo urlencode($row['bid']); ?>"
-                               class="flex items-center justify-center w-full px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-lg shadow-sm transition">
-                                View Progress
-                                <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
-                            </a>
+                            <?php if ($bookingStatus === "pending" && $paymentStatus === "unpaid"): ?>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <a href="booking_details.php?bid=<?php echo urlencode($row['bid']); ?>"
+                                    class="flex items-center justify-center w-full px-3 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-lg shadow-sm transition">
+                                        Progress
+                                    </a>
+                                    
+                                    <a href="booking_print.php?bid=<?php echo urlencode($row['bid']); ?>"
+                                    target="_blank"
+                                    class="flex items-center justify-center w-full px-3 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-sm font-bold rounded-lg shadow-sm transition">
+                                        Report
+                                    </a>
+                                </div>
+                            <?php else: ?>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <a href="booking_details.php?bid=<?php echo urlencode($row['bid']); ?>"
+                                    class="flex items-center justify-center w-full px-3 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-lg shadow-sm transition">
+                                        Progress
+                                    </a>
+
+                                    <a href="booking_print.php?bid=<?php echo urlencode($row['bid']); ?>"
+                                    target="_blank"
+                                    class="flex items-center justify-center w-full px-3 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-sm font-bold rounded-lg shadow-sm transition">
+                                        Report
+                                    </a>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 <?php endwhile; ?>

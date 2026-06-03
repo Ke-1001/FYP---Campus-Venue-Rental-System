@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 19, 2026 at 12:35 PM
+-- Generation Time: Jun 02, 2026 at 03:24 PM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.0.30
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -37,6 +37,28 @@ CREATE TABLE `academic_schedule` (
   `subject_name` varchar(100) DEFAULT 'Academic Class'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `academic_schedule`
+--
+
+INSERT INTO `academic_schedule` (`sch_id`, `sem_id`, `vid`, `day_of_week`, `start_time`, `end_time`, `subject_name`) VALUES
+(16, 2610, 'MSMR2012', 'Monday', '08:00:00', '10:00:00', 'TCC 4223'),
+(17, 2610, 'MSMX0001', 'Monday', '08:00:00', '10:00:00', 'Data Structures'),
+(18, 2610, 'MSMX0001', 'Monday', '10:00:00', '12:00:00', 'Algorithms'),
+(19, 2610, 'MSMR2016', 'Tuesday', '14:00:00', '16:00:00', 'Database Systems'),
+(20, 2610, 'MSMR2012', 'Wednesday', '09:00:00', '11:00:00', 'Software Engineering'),
+(21, 2610, 'MSMX0002', 'Thursday', '10:00:00', '13:00:00', 'Operating Systems'),
+(22, 2610, 'MSMX0003', 'Friday', '08:00:00', '10:00:00', 'Computer Networks'),
+(23, 2610, 'MSMR3012', 'Monday', '14:00:00', '16:00:00', 'AI Fundamentals'),
+(24, 2610, 'MSMR3013', 'Tuesday', '10:00:00', '12:00:00', 'Machine Learning'),
+(25, 2610, 'MSMR3014', 'Wednesday', '14:00:00', '17:00:00', 'Deep Learning'),
+(26, 2610, 'MSMR3015', 'Thursday', '08:00:00', '10:00:00', 'Cloud Computing'),
+(27, 2610, 'MSMX2001', 'Friday', '14:00:00', '16:00:00', 'Cyber Security'),
+(28, 2610, 'MSMX2002', 'Monday', '16:00:00', '18:00:00', 'Web Development'),
+(29, 2610, 'MSMX0003', 'Saturday', '09:00:00', '12:00:00', 'Weekend Workshop'),
+(30, 2610, 'MSMR2016', 'Monday', '08:00:00', '10:00:00', 'Calculus I'),
+(31, 2610, 'MSMX2003', 'Wednesday', '12:00:00', '14:00:00', 'Ethics in IT');
+
 -- --------------------------------------------------------
 
 --
@@ -61,7 +83,8 @@ CREATE TABLE `admin` (
 
 INSERT INTO `admin` (`aid`, `admin_name`, `email`, `password`, `phone_num`, `profile_pic`, `role`, `status`, `created_at`) VALUES
 (8000, 'SuperAdmin', 'SA@mmu.edu.my', '$2y$10$0av5Zh5QYMrLJyALrb8O5u60U292chJEz7SdcwfkthLTmx0j1RCw2', '06123456789', '', 'super_admin', 'active', '2026-04-28 09:43:39'),
-(8002, 'Siti', 'Siti@mmu.edu.my', '$2y$10$Q3kh7pg/gGCiw.JnpGremOrH26gnUTq.y3LZohGD9qpaPt/k4YZyu', '0122233456', '', 'admin', 'active', '2026-04-28 15:55:39');
+(8002, 'Siti', 'Siti@mmu.edu.my', '$2y$10$Q3kh7pg/gGCiw.JnpGremOrH26gnUTq.y3LZohGD9qpaPt/k4YZyu', '0122233456', '', 'admin', 'active', '2026-04-28 15:55:39'),
+(8009, 'testLim', 'LIM.LI.GUAN@student.mmu.edu.my', '$2y$10$e7zgRGN9UdAGmSLemLKK5Or8isHMrcQ0WzC3YDFVJblxK5iY.sAyK', '0122233456', '', 'admin', 'active', '2026-06-02 13:02:45');
 
 -- --------------------------------------------------------
 
@@ -94,9 +117,20 @@ INSERT INTO `booking` (`bid`, `uid`, `vid`, `date_booked`, `time_start`, `time_e
 (20000015, '242DT2429C', 'MSMR2016', '2026-07-02', '11:00:00', '14:30:00', 'pending', '', NULL, 'test', NULL, NULL, '2026-05-06 02:33:41'),
 (20000016, '242DT2429C', 'MSMR2016', '2026-05-08', '09:30:00', '10:30:00', 'pending', '', NULL, 'test', NULL, NULL, '2026-05-06 02:33:52'),
 (20000017, '242DT2421C', 'MSMR2016', '2026-05-06', '16:30:00', '18:30:00', 'completed', 'paid', 'TXN-C80129AA', 'Discussion', 8000, '2026-05-06 14:47:59', '2026-05-06 06:33:38'),
-(20000018, '242DT2429C', 'MSMR2016', '2026-05-07', '16:30:00', '17:30:00', 'pending', 'paid', 'TXN-7538644A', 'teae', NULL, NULL, '2026-05-06 06:45:07'),
-(20000019, '242DT2429C', 'MSMX0003', '2026-05-13', '12:30:00', '18:30:00', 'pending', 'paid', 'TXN-WO89K1Z6', 'For large event\'s discussion', NULL, NULL, '2026-05-11 10:42:36'),
-(20000020, '242DT2429C', 'MSMX2001', '2026-05-16', '09:00:00', '10:30:00', 'completed', 'paid', 'TXN-D5TU789Q', 'For project video recording', 8002, '2026-05-12 08:37:40', '2026-05-11 10:44:26');
+(20000018, '242DT2429C', 'MSMR2016', '2026-05-07', '16:30:00', '17:30:00', 'rejected', 'paid', 'TXN-7538644A', 'teae', NULL, NULL, '2026-05-06 06:45:07'),
+(20000019, '242DT2429C', 'MSMX0003', '2026-05-13', '12:30:00', '18:30:00', 'rejected', 'paid', 'TXN-WO89K1Z6', 'For large event\'s discussion', NULL, NULL, '2026-05-11 10:42:36'),
+(20000020, '242DT2429C', 'MSMX2001', '2026-05-16', '09:00:00', '10:30:00', 'completed', 'paid', 'TXN-D5TU789Q', 'For project video recording', 8002, '2026-05-12 08:37:40', '2026-05-11 10:44:26'),
+(20000021, '242DT2431X', 'MSMR2012', '2026-05-19', '18:30:00', '19:30:00', 'completed', 'paid', 'TXN-156FD6DE', 'test semester', NULL, NULL, '2026-05-19 10:38:54'),
+(20000022, '242DT2431X', 'MSMR2012', '2026-05-19', '20:00:00', '21:00:00', 'pending', '', NULL, 'test123', NULL, NULL, '2026-05-19 11:56:40'),
+(20000023, '242DT2431X', 'MSMR2012', '2026-05-19', '21:00:00', '22:00:00', 'pending', '', NULL, 'test123', NULL, NULL, '2026-05-19 11:57:29'),
+(20000024, '242DT2431X', 'MSMR2012', '2026-05-19', '22:00:00', '22:30:00', 'pending', '', NULL, 'test123', NULL, NULL, '2026-05-19 11:58:43'),
+(20000025, '242DT2431X', 'MSMR2012', '2026-05-19', '22:30:00', '23:00:00', 'pending', '', NULL, 'test123', NULL, NULL, '2026-05-19 11:59:14'),
+(20000026, '242DT2431X', 'MSMR2012', '2026-05-19', '23:00:00', '23:30:00', 'pending', '', NULL, 'test123', NULL, NULL, '2026-05-19 12:01:59'),
+(20000027, '242DT2431X', 'MSMR2012', '2026-05-19', '23:30:00', '00:00:00', 'pending', 'paid', 'TXN-72711AB7', 'test123', NULL, NULL, '2026-05-19 12:02:44'),
+(20000028, '242DT2431X', 'MSMR2013', '2026-05-19', '20:00:00', '20:30:00', 'pending', '', NULL, 'test123', NULL, NULL, '2026-05-19 12:03:13'),
+(20000029, '242DT2431X', 'MSMR2013', '2026-05-19', '20:30:00', '21:00:00', 'pending', '', NULL, 'test123', NULL, NULL, '2026-05-19 12:04:08'),
+(20000030, '242DT2431X', 'MSMX0001', '2026-05-20', '14:30:00', '15:30:00', 'pending', '', NULL, 'ter', NULL, NULL, '2026-05-20 06:33:59'),
+(20000031, '242DT2431X', 'MSMX0001', '2026-05-20', '15:30:00', '16:00:00', 'pending', '', NULL, 'ter', NULL, NULL, '2026-05-20 06:35:07');
 
 -- --------------------------------------------------------
 
@@ -121,7 +155,7 @@ CREATE TABLE `inspection` (
 
 INSERT INTO `inspection` (`ins_id`, `bid`, `sid`, `ins_status`, `damage_desc`, `damage_cost`, `penalty`, `inspected_at`) VALUES
 (30000009, 20000014, 9000, 'failed', '', 0.00, 0.00, NULL),
-(30000010, 20000017, 9000, 'pending', NULL, 0.00, 0.00, NULL);
+(30000012, 20000021, 9000, 'pending', NULL, 0.00, 0.00, NULL);
 
 -- --------------------------------------------------------
 
@@ -135,6 +169,32 @@ CREATE TABLE `inspic` (
   `ins_id` int(10) UNSIGNED NOT NULL,
   `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `password_resets`
+--
+
+CREATE TABLE `password_resets` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `token_hash` varchar(64) NOT NULL,
+  `expires_at` datetime NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `password_resets`
+--
+
+INSERT INTO `password_resets` (`id`, `email`, `token_hash`, `expires_at`, `created_at`) VALUES
+(1, 'LIM.LI.GUAN@student.mmu.edu.my', '677530785bd3ba7e88139db31a496d5182f0023c446b1607954fc59b41c7add6', '2026-06-02 15:30:36', '2026-06-02 12:30:36'),
+(2, 'LIM.LI.GUAN@student.mmu.edu.my', 'f81fd734f7636cfe63354d02cb14c831b92df122a6b17ac253dc5fce6de98a4c', '2026-06-02 15:39:40', '2026-06-02 12:39:40'),
+(3, 'LIM.LI.GUAN@student.mmu.edu.my', '10e575daba5adaaf497e7e9d42b62e3ea6d7209089265e0fc20b8f62d5363146', '2026-06-02 15:46:25', '2026-06-02 12:46:25'),
+(4, 'LIM.LI.GUAN@student.mmu.edu.my', 'e514242ab64de08b0f721070a6055d542f1e8d874947001def602aafc18fd284', '2026-06-02 15:46:45', '2026-06-02 12:46:45'),
+(6, 'LIM.LI.GUAN@student.mmu.edu.my', '3fc9278fb637d746f0f6c855fc45b00d1b3b11de38e624098e3f32ffdb76323c', '2026-06-02 16:02:19', '2026-06-02 13:02:19'),
+(7, 'LIM.LI.GUAN@student.mmu.edu.my', '967dbf77994d3375ee6a8a7fcca440838938e6f6ded7ab487021c858b1ddbdd3', '2026-06-02 16:02:45', '2026-06-02 13:02:45');
 
 -- --------------------------------------------------------
 
@@ -231,6 +291,7 @@ INSERT INTO `user` (`uid`, `username`, `email`, `password`, `phone_num`, `profil
 ('242DT2421C', 'test', 'test@gmail.com', '$2y$10$TjGMkbwlVVQO.fRym2HgAOWAv3yrUL3/a0GyZjYu5LwPZZjRg6wmm', '01241241124', '', 0.00, 'active', '2026-05-06 06:21:11'),
 ('242DT2429C', 'KamJS', 'kam@gmail.com', '$2y$10$b9IdO4GLAwsebemQD0x1Q.MKQL1UlyAn6ZhVyKtRkbYRghAbt4VMC', '01156811078', '', 0.00, 'active', '2026-05-05 02:46:08'),
 ('242DT2430C', 'LIM', 'Lim@gmail.com', '$2y$10$7sFovpK/duwjvV1jbwrfROmzxvURhuIXPJfEj5t3ePzg3j4vmqnOO', '0122233456', '', 0.00, 'active', '2026-04-28 14:04:09'),
+('242DT2431X', 'TestLim', 'TestLim@gmail.com', '$2y$10$IHgP9mcLA6Rc0Akf5rVUC.ZHUO2rYaNemocPx75QsXLtntTZXJDSG', '01223456789', '', 0.00, 'active', '2026-05-19 10:37:54'),
 ('242DT245Y6', 'Frank', 'kai@student.mmu.edu.my', '$2y$10$aM1vOkGZ/5mKORZGGsxWCOfWYZkoOhDDbQV.gyBZa5m/lH9u1Lt5C', '0112334456', '', 0.00, 'active', '2026-05-06 06:17:40'),
 ('242DT267S4', 'Adam', 'yai@student.mmu.edu.my', '$2y$10$7Ph4jv5qNttlbv3xFlEYDOjQ8RI/7u/F5YTmzF7WSdiMYeL353lW2', '0111232455', '', 0.00, 'active', '2026-05-06 06:19:43');
 
@@ -287,7 +348,7 @@ INSERT INTO `venue` (`vid`, `vname`, `vcid`, `max_cap`, `deposit`, `status`, `de
 ('MSMR3014', 'Tutorial Room A10', 1, 35, 20.00, 'available', 'Small room with full equipment used for discussion.'),
 ('MSMR3015', 'Tutorial Room A11', 1, 40, 20.00, 'available', 'Small room with full equipment used for discussion.'),
 ('MSMR3016', 'Tutorial Room A12', 1, 20, 20.00, 'available', 'Small room with full equipment for discussion.'),
-('MSMX0001', 'Lecture Hall A1', 3, 380, 120.00, 'available', 'A large hall for large events and exams.'),
+('MSMX0001', 'Lecture Hall A1', 1, 380, 120.00, 'available', 'A large hall for large events and exams.'),
 ('MSMX0002', 'Lecture Hall A2', 3, 380, 120.00, 'available', 'A large hall for large events and exams.'),
 ('MSMX0003', 'Lecture Hall A3', 3, 380, 120.00, 'available', 'A large hall for large events and exams.'),
 ('MSMX0004', 'Lecture Hall A4', 3, 380, 120.00, 'maintenance', 'A large hall for large events and exams.'),
@@ -354,6 +415,13 @@ ALTER TABLE `inspic`
   ADD KEY `fk_inspic_inspection` (`ins_id`);
 
 --
+-- Indexes for table `password_resets`
+--
+ALTER TABLE `password_resets`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_email` (`email`);
+
+--
 -- Indexes for table `report`
 --
 ALTER TABLE `report`
@@ -410,31 +478,37 @@ ALTER TABLE `vpic`
 -- AUTO_INCREMENT for table `academic_schedule`
 --
 ALTER TABLE `academic_schedule`
-  MODIFY `sch_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `sch_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
 -- AUTO_INCREMENT for table `admin`
 --
 ALTER TABLE `admin`
-  MODIFY `aid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8003;
+  MODIFY `aid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8010;
 
 --
 -- AUTO_INCREMENT for table `booking`
 --
 ALTER TABLE `booking`
-  MODIFY `bid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20000021;
+  MODIFY `bid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20000032;
 
 --
 -- AUTO_INCREMENT for table `inspection`
 --
 ALTER TABLE `inspection`
-  MODIFY `ins_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30000011;
+  MODIFY `ins_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30000013;
 
 --
 -- AUTO_INCREMENT for table `inspic`
 --
 ALTER TABLE `inspic`
   MODIFY `pic_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `password_resets`
+--
+ALTER TABLE `password_resets`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `report`

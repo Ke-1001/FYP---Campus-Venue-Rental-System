@@ -59,8 +59,8 @@ $conn->begin_transaction();
 
 try {
     $sql = "INSERT INTO booking 
-            (uid, vid, date_booked, time_start, time_end, purpose, status, payment_status)
-            VALUES (?, ?, ?, ?, ?, ?, 'pending', 'pending')";
+        (uid, vid, date_booked, time_start, time_end, purpose, status, payment_status, payment_due_at)
+        VALUES (?, ?, ?, ?, ?, ?, 'pending', 'unpaid', DATE_ADD(NOW(), INTERVAL 15 MINUTE))";
 
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("ssssss", $uid, $vid, $date_booked, $start_time, $end_time, $purpose);
@@ -73,7 +73,7 @@ try {
 
     echo json_encode([
         'status' => 'success',
-        'redirect_url' => "../User/mock_payment.php?bid={$new_bid}&amount={$deposit}"
+        'redirect_url' => "../User/mock_payment.php?bid={$new_bid}"
     ]);
 
 } catch (Exception $e) {

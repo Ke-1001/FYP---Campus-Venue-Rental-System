@@ -1,63 +1,108 @@
 <?php
-// File: actions/process_mock_payment.php
 session_start();
 require_once '../config/db.php';
+require_once '../includes/booking_functions.php';
 
-// 💡 1. 降維打擊：全域接收 GET 與 POST 參數，相容各種前端命名
-$raw_input = $_REQUEST['bid'] ?? $_REQUEST['booking_ref'] ?? $_REQUEST['booking_id'] ?? $_REQUEST['id'] ?? 0;
+$uid = $_SESSION['uid'] ?? null;
 
-// 強制過濾並轉為整數 (相容 BKG- 前綴或純數字)
-$bid = (int)str_ireplace('BKG-', '', $raw_input);
-
-if ($bid === 0) {
-    die("<div style='font-family:sans-serif; padding:20px; color:#ef4444;'>
-         <h3>Fatal: Parameter Missing</h3>
-         <p>No valid Booking ID was received by the payment processor.</p>
-         <pre>Received Payload: " . print_r($_REQUEST, true) . "</pre>
-         </div>");
+if (!$uid) {
+    header("Location: ../User/user_login.php");
+    exit;
 }
 
-// 模擬金流延遲與生成交易號
-sleep(1); 
-$transaction_id = 'TXN-' . strtoupper(substr(md5(uniqid(rand(), true)), 0, 8));
+expireUnpaidBookings($conn);
+
+$bid = intval($_POST['bid'] ?? 0);
+
+if ($bid === 0) {
+    die("Invalid Booking ID.");
+}
 
 $conn->begin_transaction();
 
 try {
-    // 💡 2. 狀態機檢查：先確認訂單是否存在以及當前狀態
-    $check_sql = "SELECT payment_status FROM booking WHERE bid = ?";
-    $stmt_check = $conn->prepare($check_sql);
-    $stmt_check->bind_param("i", $bid);
-    $stmt_check->execute();
-    $result = $stmt_check->get_result();
+    $stmt = $conn->prepare("
+        SELECT 
+            bid,
+            uid,
+            status,
+            payment_status,
+            payment_due_at
+        FROM booking
+        WHERE bid = ?
+          AND uid = ?
+        FOR UPDATE
+    ");
 
-    if ($result->num_rows === 0) {
-        throw new Exception("Target bid [{$bid}] does not exist in the database. Are you sure the booking was successfully created?");
+    $stmt->bind_param("is", $bid, $uid);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $booking = $result->fetch_assoc();
+    $stmt->close();
+
+    if (!$booking) {
+        throw new Exception("Booking not found or access denied.");
     }
 
-    $current_status = $result->fetch_assoc()['payment_status'];
-    $stmt_check->close();
+    if ($booking['status'] === 'cancelled') {
+        throw new Exception("This booking has been cancelled.");
+    }
 
-    if ($current_status === 'paid') {
-        // 已經付款，視為成功，不報錯
-        $conn->rollback(); // 撤銷無意義的交易
-        $message = "Payment already processed for this booking.";
-    } else {
-        // 💡 3. 執行原子更新
-        $sql_booking = "UPDATE booking SET payment_status = 'paid', transaction_ref = ? WHERE bid = ?";
-        $stmt_booking = $conn->prepare($sql_booking);
-        $stmt_booking->bind_param("si", $transaction_id, $bid);
-        $stmt_booking->execute();
-        
-        if ($stmt_booking->affected_rows === 0) {
-            throw new Exception("State Mutation Failed: Could not update the payment status.");
-        }
-        $stmt_booking->close();
+    if ($booking['payment_status'] === 'paid') {
+        $conn->rollback();
+        header("Location: ../User/booking_details.php?bid=" . urlencode($bid));
+        exit;
+    }
+
+    if (empty($booking['payment_due_at']) || strtotime($booking['payment_due_at']) < time()) {
+        $cancel_stmt = $conn->prepare("
+            UPDATE booking
+            SET 
+                status = 'cancelled',
+                cancelled_at = NOW(),
+                cancel_reason = 'Payment deadline expired'
+            WHERE bid = ?
+              AND uid = ?
+        ");
+
+        $cancel_stmt->bind_param("is", $bid, $uid);
+        $cancel_stmt->execute();
+        $cancel_stmt->close();
+
         $conn->commit();
-        $message = "Payment Verified Successfully.";
+
+        die("<div style='font-family:sans-serif; text-align:center; margin-top:50px; color:#ef4444;'>
+                <h2>Payment Deadline Expired</h2>
+                <p>This booking has been cancelled because payment was not completed in time.</p>
+                <p><a href='../User/venues.php'>Book another venue</a></p>
+             </div>");
     }
 
-    // 💡 4. 成功畫面與自動跳轉 (不依賴外部視圖，直接在這裡渲染企業級介面)
+    sleep(1);
+
+    $transaction_id = 'TXN-' . strtoupper(substr(md5(uniqid(rand(), true)), 0, 8));
+
+    $stmt_update = $conn->prepare("
+        UPDATE booking
+        SET 
+            payment_status = 'paid',
+            transaction_ref = ?
+        WHERE bid = ?
+          AND uid = ?
+          AND status = 'pending'
+          AND payment_status = 'unpaid'
+    ");
+
+    $stmt_update->bind_param("sis", $transaction_id, $bid, $uid);
+    $stmt_update->execute();
+
+    if ($stmt_update->affected_rows === 0) {
+        throw new Exception("Payment could not be processed.");
+    }
+
+    $stmt_update->close();
+    $conn->commit();
+
     echo '<!DOCTYPE html>
     <html lang="en">
     <head>
@@ -68,24 +113,40 @@ try {
     <body class="bg-slate-50 flex items-center justify-center min-h-screen font-sans">
         <div class="bg-white p-10 rounded-2xl shadow-lg border border-slate-200 text-center max-w-sm w-full">
             <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                </svg>
             </div>
-            <h2 class="text-2xl font-extrabold text-slate-800 mb-2">' . $message . '</h2>
+
+            <h2 class="text-2xl font-extrabold text-slate-800 mb-2">
+                Payment Verified Successfully
+            </h2>
+
             <div class="bg-slate-50 p-3 rounded-lg font-mono text-xs text-slate-600 font-bold mb-6 mt-4 border border-slate-100">
-                REF: ' . $transaction_id . ' <br> BID: ' . $bid . '
+                REF: ' . htmlspecialchars($transaction_id) . ' <br>
+                BID: ' . htmlspecialchars($bid) . '
             </div>
-            <p class="text-xs text-slate-400 font-bold uppercase tracking-widest">Redirecting to dashboard...</p>
-            <script>setTimeout(() => { window.location.href = "../user/homepage.php"; }, 2500);</script>
+
+            <p class="text-xs text-slate-400 font-bold uppercase tracking-widest">
+                Redirecting to booking details...
+            </p>
+
+            <script>
+                setTimeout(() => {
+                    window.location.href = "../User/booking_details.php?bid=' . urlencode($bid) . '";
+                }, 2000);
+            </script>
         </div>
-    </body></html>';
+    </body>
+    </html>';
 
 } catch (Exception $e) {
     $conn->rollback();
-    die("<div style='font-family:sans-serif; padding:20px; color:#ef4444; background:#fef2f2; border:1px solid #f87171; border-radius:8px; max-w:600px; margin:40px auto;'>
-         <h3 style='margin-top:0;'>Transaction Fault</h3>
-         <p><b>Error:</b> " . $e->getMessage() . "</p>
-         <p style='font-size:12px; color:#7f1d1d; margin-top:20px;'>Please check if the booking ID ($bid) actually exists in your `booking` table.</p>
-         <a href='../user/homepage.php' style='display:inline-block; margin-top:10px; padding:8px 16px; background:#ef4444; color:white; text-decoration:none; border-radius:4px; font-weight:bold; font-size:14px;'>Return to Home</a>
+
+    die("<div style='font-family:sans-serif; padding:20px; color:#ef4444; background:#fef2f2; border:1px solid #f87171; border-radius:8px; max-width:600px; margin:40px auto;'>
+            <h3 style='margin-top:0;'>Transaction Fault</h3>
+            <p><b>Error:</b> " . htmlspecialchars($e->getMessage()) . "</p>
+            <p><a href='../User/my_bookings.php'>Back to My Bookings</a></p>
          </div>");
 }
 

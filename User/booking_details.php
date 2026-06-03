@@ -23,6 +23,9 @@ $stmt = $conn->prepare("
         b.time_end,
         b.status,
         b.payment_status,
+        b.payment_due_at,
+        b.cancelled_at,
+        b.cancel_reason,
         b.transaction_ref,
         b.purpose,
         b.approve_date,
@@ -100,6 +103,8 @@ function statusBadgeClass($status) {
             return 'bg-red-100 text-red-700 border-red-200';
         case 'completed':
             return 'bg-blue-100 text-blue-700 border-blue-200';
+        case 'cancelled':
+            return 'bg-slate-100 text-slate-600 border-slate-200';
         default:
             return 'bg-yellow-100 text-yellow-700 border-yellow-200';
     }
@@ -153,6 +158,7 @@ function flowStepClass($state) {
 }
 
 $bookingRejected = ($status === 'rejected');
+$bookingCancelled = ($status === 'cancelled');
 $bookingApprovedOrDone = in_array($status, ['approved', 'completed'], true);
 $bookingCompleted = ($status === 'completed');
 $paymentDone = in_array($paymentStatus, ['paid', 'refunded'], true);
@@ -175,7 +181,11 @@ $flowSteps[] = [
     'icon' => 'credit-card'
 ];
 
-if ($bookingRejected) {
+if ($bookingCancelled) {
+    $reviewState = 'danger';
+    $reviewTitle = 'Booking Cancelled';
+    $reviewDesc = 'This booking was cancelled before admin review.';
+} elseif ($bookingRejected) {
     $reviewState = 'danger';
     $reviewTitle = 'Booking Rejected';
     $reviewDesc = 'Admin has rejected this booking request.';
@@ -201,7 +211,11 @@ $flowSteps[] = [
     'icon' => 'shield-check'
 ];
 
-if ($bookingRejected) {
+if ($bookingCancelled) {
+    $usageState = 'locked';
+    $usageTitle = 'Venue Usage Cancelled';
+    $usageDesc = 'This booking cannot continue because the payment deadline expired.';
+} elseif ($bookingRejected) {
     $usageState = 'locked';
     $usageTitle = 'Venue Usage Cancelled';
     $usageDesc = 'This booking cannot continue because it was rejected.';
@@ -227,7 +241,11 @@ $flowSteps[] = [
     'icon' => 'calendar-check'
 ];
 
-if ($bookingRejected) {
+if ($bookingCancelled) {
+    $inspectionState = 'locked';
+    $inspectionTitle = 'Inspection Not Required';
+    $inspectionDesc = 'Cancelled bookings do not require inspection.';
+} elseif ($bookingRejected) {
     $inspectionState = 'locked';
     $inspectionTitle = 'Inspection Not Required';
     $inspectionDesc = 'Rejected bookings do not require inspection.';
@@ -257,7 +275,12 @@ $flowSteps[] = [
     'icon' => 'clipboard-check'
 ];
 
-if ($bookingRejected) {
+if ($bookingCancelled) {
+    $settlementState = 'locked';
+    $settlementTitle = 'No Settlement Required';
+    $settlementDesc = 'This booking was cancelled before payment was completed.';
+    $settlementMeta = !empty($booking['cancel_reason']) ? $booking['cancel_reason'] : 'Payment deadline expired';
+} elseif ($bookingRejected) {
     $settlementState = $paymentStatus === 'refunded' ? 'done' : ($paymentDone ? 'current' : 'locked');
     $settlementTitle = $paymentStatus === 'refunded' ? 'Refund Completed' : 'Refund Pending';
     $settlementDesc = $paymentDone ? 'Rejected paid booking should be handled for refund by admin.' : 'No payment was completed, so no refund is required.';
@@ -294,7 +317,6 @@ $flowSteps[] = [
 
 <div class="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
     <div class="max-w-5xl mx-auto">
-
         <div class="mb-8">
             <a href="my_bookings.php" class="inline-flex items-center text-sm text-indigo-600 font-bold hover:underline">
                 <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i>
@@ -306,18 +328,40 @@ $flowSteps[] = [
                     <p class="text-xs text-slate-400 uppercase font-black tracking-widest">
                         Booking #<?php echo htmlspecialchars($booking['bid']); ?>
                     </p>
+
                     <h1 class="text-3xl font-extrabold text-slate-800 mt-1">
                         Booking Details & Progress
                     </h1>
+
                     <p class="text-sm text-slate-500 mt-1">
                         Track your booking status from request submission until final settlement.
                     </p>
                 </div>
 
-                <div class="flex flex-wrap gap-2">
+                <div class="flex flex-wrap items-center gap-2">
+                    <a 
+                        href="booking_print.php?bid=<?php echo urlencode($booking['bid']); ?>"
+                        target="_blank"
+                        class="inline-flex items-center justify-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm transition"
+                    >
+                        <i data-lucide="file-text" class="w-4 h-4 mr-2"></i>
+                        View Report
+                    </a>
+
+                    <?php if ($status === "pending" && $paymentStatus === "unpaid"): ?>
+                        <a 
+                            href="mock_payment.php?bid=<?php echo urlencode($booking['bid']); ?>"
+                            class="inline-flex items-center justify-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-sm transition"
+                        >
+                            <i data-lucide="credit-card" class="w-4 h-4 mr-2"></i>
+                            Pay Now
+                        </a>
+                    <?php endif; ?>
+
                     <span class="px-3 py-1.5 text-xs font-black uppercase rounded-full border <?php echo statusBadgeClass($status); ?>">
                         <?php echo htmlspecialchars($status); ?>
                     </span>
+
                     <span class="px-3 py-1.5 text-xs font-black uppercase rounded-full border <?php echo paymentBadgeClass($paymentStatus); ?>">
                         <?php echo htmlspecialchars($paymentStatus ?: 'unpaid'); ?>
                     </span>
@@ -461,6 +505,29 @@ $flowSteps[] = [
                                 <?php echo formatDateTimeSafe($booking['approve_date']); ?>
                             </p>
                         </div>
+
+                        <?php if ($status === 'cancelled'): ?>
+                            <div class="border-t pt-4">
+                                <p class="text-xs text-slate-400 font-black uppercase tracking-widest">Cancellation</p>
+
+                                <p class="text-sm text-slate-700 font-semibold mt-1">
+                                    Cancelled At:
+                                    <?php echo formatDateTimeSafe($booking['cancelled_at']); ?>
+                                </p>
+
+                                <p class="text-xs text-slate-500 mt-1">
+                                    Reason:
+                                    <?php echo htmlspecialchars($booking['cancel_reason'] ?? 'Payment deadline expired'); ?>
+                                </p>
+
+                                <?php if (!empty($booking['payment_due_at'])): ?>
+                                    <p class="text-xs text-slate-500 mt-1">
+                                        Payment Due:
+                                        <?php echo formatDateTimeSafe($booking['payment_due_at']); ?>
+                                    </p>
+                                <?php endif; ?>
+                            </div>
+                        <?php endif; ?>
 
                         <div class="border-t pt-4">
                             <p class="text-xs text-slate-400 font-black uppercase tracking-widest">Inspection</p>
