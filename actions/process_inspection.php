@@ -34,22 +34,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $stmt_ins->close();
 
-        // 💡 步驟 B：生成結算 Report (修復 Enum 崩潰漏洞)
-        $res = $conn->query("SELECT ins_id FROM inspection WHERE bid = $bid");
-        if ($res && $res->num_rows > 0) {
-            $ins_id = $res->fetch_assoc()['ins_id'];
+        // 💡 步驟 B：生成結算 Report 與更新用戶債務 (對齊超額罰款邏輯)
+        $sql_fetch = "SELECT i.ins_id, b.uid, v.deposit 
+                      FROM inspection i
+                      JOIN booking b ON i.bid = b.bid
+                      JOIN venue v ON b.vid = v.vid
+                      WHERE i.bid = ?";
+        $stmt_fetch = $conn->prepare($sql_fetch);
+        $stmt_fetch->bind_param("i", $bid);
+        $stmt_fetch->execute();
+        $meta = $stmt_fetch->get_result()->fetch_assoc();
+        $stmt_fetch->close();
+
+        if ($meta) {
+            $ins_id = $meta['ins_id'];
+            $uid = $meta['uid'];
+            $deposit = floatval($meta['deposit']);
             
-            // 嚴格對齊 rental_venue (4).sql 的 Enum: 'none','pending','processed'
-            // 檢驗完成後，退款狀態一律進入 'pending' 讓財務去處理。
-            $refund_status = 'pending'; 
+            // 數學演算與增量定義
+            $excess = $penalty - $deposit;
+            $delta_debt = ($excess > 0) ? $excess : 0.00;
+            
+            // 動態狀態轉移：若罰款 >= 押金，則無剩餘金額可退 (refund_status = 'none')
+            $refund_status = ($penalty >= $deposit) ? 'none' : 'pending'; 
             $penalty_status = ($penalty > 0) ? 'pending' : 'none';
             
-            // 加入 CURDATE() 解決 created_at 變成 0000-00-00 的問題
+            // 1. 寫入 Report 結算節點
             $sql_rpt = "INSERT IGNORE INTO report (ins_id, final_deduct, refund_status, penalty_status, created_at) VALUES (?, ?, ?, ?, CURDATE())";
             $stmt_rpt = $conn->prepare($sql_rpt);
             $stmt_rpt->bind_param("idss", $ins_id, $penalty, $refund_status, $penalty_status);
             $stmt_rpt->execute();
             $stmt_rpt->close();
+            
+            // 2. 執行資料庫級別原子化債務累加，防止 Race Condition
+            if ($delta_debt > 0) {
+                $sql_user = "UPDATE user SET outstanding_debt = outstanding_debt + ? WHERE uid = ?";
+                $stmt_user = $conn->prepare($sql_user);
+                $stmt_user->bind_param("ds", $delta_debt, $uid);
+                $stmt_user->execute();
+                $stmt_user->close();
+            }
         }
 
         $conn->commit();

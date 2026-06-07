@@ -7,17 +7,19 @@ require_once '../includes/admin_auth.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
+    // 啟動資料庫原子交易
     $conn->begin_transaction();
 
     try {
         if ($action === 'create' || $action === 'update') {
             
-            // 💡 嚴格擷取 4 位數業務鍵與時間向量
+            // 💡 1. 嚴格擷取 6 維度特徵向量 (包含 is_booking_open)
             $sem_id = intval($_POST['sem_id'] ?? 0);
             $sem_name = htmlspecialchars(trim($_POST['sem_name'] ?? ''));
             $start_date = $_POST['start_date'] ?? '';
             $end_date = $_POST['end_date'] ?? '';
             $is_active = isset($_POST['is_active']) ? 1 : 0;
+            $is_booking_open = isset($_POST['is_booking_open']) ? 1 : 0; 
 
             // 邊界防呆
             if ($sem_id < 1000 || $sem_id > 9999) {
@@ -30,8 +32,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception("Logical Fault: End date must strictly succeed start date.");
             }
 
-            // 💡 新增：時間軸重疊防護 (Temporal Overlap Detection)
-            // 數學條件: S_ex <= E_new AND E_ex >= S_new
+            // 💡 2. 時間軸重疊防護 (Temporal Overlap Detection)
+            // 數學條件: S_ex <= E_new ∧ E_ex >= S_new
             $sql_overlap = "SELECT sem_name FROM semester_config WHERE start_date <= ? AND end_date >= ?";
             
             if ($action === 'update') {
@@ -51,13 +53,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception("Temporal Collision: The specified dates overlap with an existing academic term [{$overlap_res['sem_name']}].");
             }
 
-            // 若設為 Active，將其他所有學期降階為 Inactive (互斥鎖)
+            // 💡 3. 系統狀態防護：強制約束 Σ is_active ≥ 1
+            if ($action === 'update' && $is_active === 0) {
+                $stmt_check_active = $conn->prepare("SELECT COUNT(*) as active_count FROM semester_config WHERE is_active = 1 AND sem_id != ?");
+                $stmt_check_active->bind_param("i", $sem_id);
+                $stmt_check_active->execute();
+                $active_res = $stmt_check_active->get_result()->fetch_assoc();
+                $stmt_check_active->close();
+                
+                if ($active_res['active_count'] == 0) {
+                    throw new Exception("State Collapse Prevented: System requires Σ is_active ≥ 1. You cannot deactivate the only active semester.");
+                }
+            }
+
+            // 互斥鎖：若設為 Active，將其他所有學期降階為 Inactive
             if ($is_active === 1) {
                 $conn->query("UPDATE semester_config SET is_active = 0");
             }
 
+            // 💡 4. 資料庫映射與執行
             if ($action === 'create') {
-                // 💡 主鍵防護：防止手動輸入的 ID 重複
                 $check = $conn->prepare("SELECT sem_id FROM semester_config WHERE sem_id = ?");
                 $check->bind_param("i", $sem_id);
                 $check->execute();
@@ -66,12 +81,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 $check->close();
 
-                $stmt = $conn->prepare("INSERT INTO semester_config (sem_id, sem_name, start_date, end_date, is_active) VALUES (?, ?, ?, ?, ?)");
-                $stmt->bind_param("isssi", $sem_id, $sem_name, $start_date, $end_date, $is_active);
+                $stmt = $conn->prepare("INSERT INTO semester_config (sem_id, sem_name, start_date, end_date, is_active, is_booking_open) VALUES (?, ?, ?, ?, ?, ?)");
+                $stmt->bind_param("isssii", $sem_id, $sem_name, $start_date, $end_date, $is_active, $is_booking_open);
             } else {
-                // 編輯模式：主鍵不變
-                $stmt = $conn->prepare("UPDATE semester_config SET sem_name = ?, start_date = ?, end_date = ?, is_active = ? WHERE sem_id = ?");
-                $stmt->bind_param("sssii", $sem_name, $start_date, $end_date, $is_active, $sem_id);
+                $stmt = $conn->prepare("UPDATE semester_config SET sem_name = ?, start_date = ?, end_date = ?, is_active = ?, is_booking_open = ? WHERE sem_id = ?");
+                $stmt->bind_param("sssiii", $sem_name, $start_date, $end_date, $is_active, $is_booking_open, $sem_id);
             }
             
             $stmt->execute();
@@ -84,6 +98,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $ids = $_POST['selected_ids'] ?? [];
             if (!is_array($ids) || empty($ids)) throw new Exception("Execution Fault: Null vector array provided for deletion.");
             
+            // 💡 5. 刪除防護：禁止刪除當前 Active 的學期
+            $placeholders = implode(',', array_fill(0, count($ids), '?'));
+            $types = str_repeat('i', count($ids));
+            $stmt_check_del = $conn->prepare("SELECT COUNT(*) as active_in_del FROM semester_config WHERE is_active = 1 AND sem_id IN ($placeholders)");
+            $stmt_check_del->bind_param($types, ...$ids);
+            $stmt_check_del->execute();
+            $del_res = $stmt_check_del->get_result()->fetch_assoc();
+            $stmt_check_del->close();
+
+            if ($del_res['active_in_del'] > 0) {
+                throw new Exception("State Constraint Fault: Cannot purge an active semester. Deactivate it first.");
+            }
+
             $success = 0;
             $stmt = $conn->prepare("DELETE FROM semester_config WHERE sem_id = ?");
             foreach ($ids as $id) {
