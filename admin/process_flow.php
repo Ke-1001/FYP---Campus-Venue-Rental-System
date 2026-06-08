@@ -51,6 +51,27 @@ $flow_states = [
     'Inspect'  => (!$is_cancelled && !$is_rejected && $data['ins_status'] !== null && $data['ins_status'] !== 'pending'),
     'Settle'   => (!$is_cancelled && !$is_rejected && $status === 'completed' && ($data['ins_status'] === 'passed' || $data['ins_status'] === 'failed'))
 ];
+
+// 💡 [NEW] 系統代碼字典映射矩陣 (具備防碰撞宣告機制)
+if (!function_exists('translateSystemText')) {
+    function translateSystemText($text) {
+        if (empty($text)) return '';
+        
+        $dictionary = [
+            'SYS_TIMEOUT_ADMIN' => 'Admin failed to approve the request within the functional timeframe.',
+            'SYS_TIMEOUT_24H_RELEASE' => 'SLA Absolute Timeout: Auto-released after 24 hours of inactivity without consecutive bookings.',
+            'SYS_TIMEOUT_30M_LOCK' => 'SLA Violation: Inspection delayed. Deposit temporarily frozen for maximum 24h.',
+            '[SYSTEM ABSORBED]' => 'Chain of Custody Fault: Damage was detected, but a preceding SLA violation exists for this venue.'
+        ];
+
+        foreach ($dictionary as $code => $translation) {
+            if (stripos($text, $code) !== false) {
+                return str_ireplace($code, $translation, $text);
+            }
+        }
+        return $text;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -121,46 +142,51 @@ $flow_states = [
                 <div class="bg-white p-8 rounded-lg shadow-sm border border-slate-200 mb-8 overflow-x-auto">
                     <h3 class="text-xs font-bold text-slate-800 mb-8">Process Pipeline Tracker</h3>
                     
-                    <?php if($is_cancelled): ?>
-                        <div class="p-4 bg-slate-50 border border-slate-200 rounded text-slate-700 text-sm font-bold">
-                            Process Cancelled:
-                            <?php echo htmlspecialchars($data['cancel_reason'] ?? 'Payment deadline expired'); ?>
-
-                            <div class="mt-2 text-xs text-slate-500 font-semibold">
-                                Cancelled At:
-                                <?php echo !empty($data['cancelled_at']) ? date('Y-m-d H:i', strtotime($data['cancelled_at'])) : '-'; ?>
-                                <br>
-                                Payment Due:
-                                <?php echo !empty($data['payment_due_at']) ? date('Y-m-d H:i', strtotime($data['payment_due_at'])) : '-'; ?>
-                            </div>
-                        </div>
-                    <?php elseif($is_rejected): ?>
-                        <div class="p-4 bg-red-50 border border-red-200 rounded text-red-700 text-sm font-bold">
-                            Process Terminated: Request was rejected. Financial layer reverted.
-                        </div>
-                    <?php else: ?>
+                    
                     <div class="flex justify-between relative z-10 w-full min-w-[600px]">
                         <?php 
                         $steps = ['Request', 'Payment', 'Approval', 'Assign', 'Inspect', 'Settle'];
+                        $interrupt_found = false; // 邏輯閂鎖：用於鎖定第一個失敗的節點
+                        
                         foreach($steps as $index => $label): 
                             
                             $isActive = $flow_states[$label];
                             $nextLabel = $steps[$index + 1] ?? null;
                             $isNextActive = $nextLabel ? $flow_states[$nextLabel] : false;
                             
-                            $nodeClass = $isActive ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-300 border-slate-300';
-                            $lineClass = ($isActive && $isNextActive) ? 'step-active' : 'step-inactive';
-                            $labelClass = $isActive ? 'text-indigo-600 font-bold' : 'text-slate-400 font-medium';
+                            // 異常中斷點偵測邏輯 (Interrupt Detection)
+                            $isFailedNode = false;
+                            if (!$isActive && !$interrupt_found && ($is_cancelled || $is_rejected)) {
+                                $isFailedNode = true;
+                                $interrupt_found = true; // 鎖定，確保只有一個節點顯示為錯誤
+                            }
+                            
+                            // 視覺狀態映射矩陣
+                            if ($isFailedNode) {
+                                $nodeClass = 'bg-red-50 text-red-600 border-red-600';
+                                $lineClass = 'step-inactive';
+                                $labelClass = 'text-red-600 font-bold';
+                                $iconHtml = '<i data-lucide="x" class="w-3 h-3 text-red-600"></i>';
+                            } elseif ($isActive) {
+                                $nodeClass = 'bg-indigo-600 text-white border-indigo-600';
+                                $lineClass = ($isActive && $isNextActive) ? 'step-active' : 'step-inactive';
+                                $labelClass = 'text-indigo-600 font-bold';
+                                $iconHtml = '<i data-lucide="check" class="w-3 h-3 text-white"></i>';
+                            } else {
+                                $nodeClass = 'bg-white text-slate-300 border-slate-300';
+                                $lineClass = 'step-inactive';
+                                $labelClass = 'text-slate-400 font-medium';
+                                $iconHtml = ($index + 1);
+                            }
                         ?>
                         <div class="flex-1 text-center relative step-item <?php echo $lineClass; ?>">
                             <div class="w-6 h-6 mx-auto rounded-full border-2 flex items-center justify-center text-[10px] font-bold <?php echo $nodeClass; ?>">
-                                <?php echo $isActive ? '<i data-lucide="check" class="w-3 h-3"></i>' : ($index + 1); ?>
+                                <?php echo $iconHtml; ?>
                             </div>
                             <p class="mt-3 text-[11px] uppercase tracking-wider <?php echo $labelClass; ?>"><?php echo $label; ?></p>
                         </div>
                         <?php endforeach; ?>
                     </div>
-                    <?php endif; ?>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -237,7 +263,10 @@ $flow_states = [
 
                                         <p class="text-red-600 font-semibold">
                                             <span class="font-bold uppercase">Reason:</span>
-                                            <?php echo htmlspecialchars($data['cancel_reason'] ?? 'Payment deadline expired'); ?>
+                                            <?php 
+                                                $reason = $data['cancel_reason'] ?? 'Payment deadline expired';
+                                                echo htmlspecialchars(translateSystemText($reason)); 
+                                            ?>
                                         </p>
                                     </div>
                                 </div>
@@ -264,7 +293,7 @@ $flow_states = [
                                 <?php else: ?>
                                     <p class="font-black text-red-600 uppercase tracking-widest text-xs mb-1">FAILED</p>
                                     <p class="text-xs text-slate-600 bg-red-50 border border-red-100 p-2 rounded italic">
-                                        <?php echo htmlspecialchars($data['damage_desc']); ?>
+                                        <?php echo nl2br(htmlspecialchars(translateSystemText($data['damage_desc']))); ?>
                                     </p>
                                     <div class="flex justify-between items-center mt-3 bg-slate-50 p-2 rounded">
                                         <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Penalty Applied</span>

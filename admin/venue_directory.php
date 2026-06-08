@@ -95,41 +95,35 @@ if ($cat_dict_result && $cat_dict_result->num_rows > 0) {
     }
 }
 
-// ∴ 定义 Filter Schema
-$filter_schema = [
-    'action' => 'venue_directory.php',
-    'show_submit_btn' => true,
-    'fields' => [
-        [
-            'type' => 'text',
-            'name' => 'f_name',
-            'label' => 'Venue',
-            'value' => $filter_name,
-            'placeholder' => 'Search name...'
-        ],
-        [
-            'type' => 'datalist',
-            'name' => 'f_cat',
-            'label' => 'Category',
-            'value' => $filter_cat,
-            'placeholder' => 'Keyword...',
-            'options' => $cat_options
-        ],
-        [
-            'type' => 'select',
-            'name' => 'f_status',
-            'label' => 'State',
-            'value' => $filter_status,
-            'placeholder' => 'All States',
-            'auto_submit' => false,
-            'options' => [
-                'available' => 'Available',
-                'maintenance' => 'Maintenance',
-                'booked' => 'Booked'
-            ]
-        ]
-    ]
-];
+/*
+|--------------------------------------------------------------------------
+| C: Configuration & Filter Schema Generation
+|--------------------------------------------------------------------------
+*/
+// 引入 Builder 核心 (請確保路徑正確)
+require_once __DIR__ . '/../core/components/FilterBuilder.php';
+use Core\Components\FilterBuilder;
+
+// 提取 Datalist 選項陣列
+$cat_options = [];
+if ($cat_dict_result && $cat_dict_result->num_rows > 0) {
+    while ($dict = $cat_dict_result->fetch_assoc()) {
+        $cat_options[] = $dict['category_name'];
+    }
+}
+
+// ∴ 實例化並建構 Filter Schema
+$filterBuilder = new FilterBuilder('venue_directory.php', true);
+$filter_schema = $filterBuilder
+    ->addText('f_name', 'Venue', $filter_name, 'Search name...')
+    ->addDatalist('f_cat', 'Category', $cat_options, $filter_cat, 'Keyword...')
+    ->addSelect('f_status', 'State', [
+        'available' => 'Available',
+        'maintenance' => 'Maintenance',
+        'booked' => 'Booked'
+    ], $filter_status, 'All States', false)
+    ->build();
+    
 
 /*
 |--------------------------------------------------------------------------

@@ -157,7 +157,7 @@ function flowStepClass($state) {
     ];
 }
 
-// 💡 [NEW] 系統代碼字典映射矩陣 (System Code Dictionary Matrix)
+
 function translateSystemText($text) {
     if (empty($text)) return '';
     
@@ -168,10 +168,10 @@ function translateSystemText($text) {
         '[SYSTEM ABSORBED]' => 'Chain of Custody Fault: Damage was detected, but a preceding SLA violation exists for this venue.'
     ];
 
-    // 若文本命中字典鍵值，則輸出最新文案；否則輸出原始文本 (兼容使用者自己輸入的內容)
+    // 💡 升級：使用 stripos 達成 O(1) 的大小寫免疫，無懼髒數據
     foreach ($dictionary as $code => $translation) {
-        if (strpos($text, $code) !== false) {
-            return str_replace($code, $translation, $text);
+        if (stripos($text, $code) !== false) {
+            return str_ireplace($code, $translation, $text);
         }
     }
     return $text;
@@ -580,11 +580,11 @@ $flowSteps[] = [
                                 </p>
 
                                 <?php if (!empty($booking['damage_desc'])): ?>
-                                    <p class="text-xs text-slate-500 mt-2">
-                                        <?php echo nl2br(htmlspecialchars($booking['damage_desc'])); ?>
-
-                                        <?php echo nl2br(htmlspecialchars(translateSystemText($booking['damage_desc']))); ?>
-                                    </p>
+                                    <div class="border-t pt-4">
+                                        <p class="text-xs text-slate-500 mt-2">
+                                            <?php echo nl2br(htmlspecialchars(translateSystemText($booking['damage_desc']))); ?>
+                                        </p>
+                                    </div>
                                 <?php endif; ?>
                             </div>
                         <?php endif; ?>
