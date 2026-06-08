@@ -16,14 +16,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $new_status = ($action === 'approve') ? 'approved' : 'rejected';
-    
-    // 💡 [NEW] 資金流狀態向量同步
+    // 資金流狀態向量同步
     $new_payment_status = ($action === 'reject') ? 'refunded' : 'paid';
 
     $conn->begin_transaction();
 
     try {
-        // 💡 [NEW] 提取時空向量並施加排他鎖 (FOR UPDATE) 阻斷併發競爭
+        // 💡 1. 提取時空向量並施加排他鎖 (FOR UPDATE) 阻斷併發競爭
         $stmt_target = $conn->prepare("SELECT vid, date_booked, time_start, time_end FROM booking WHERE bid = ? AND status = 'pending' AND payment_status = 'paid' FOR UPDATE");
         $stmt_target->bind_param("i", $bid);
         $stmt_target->execute();
@@ -34,7 +33,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception("State Mutation Failed: Booking record either non-existent, unpaid, or already processed.");
         }
 
-        // 💡 [NEW] 時空防撞校驗 (Spatiotemporal Collision Detection)
+        // 💡 2. SLA 臨界時間防護 (T_curr < T_end - 5min)
+        $end_timestamp = strtotime($target_booking['date_booked'] . ' ' . $target_booking['time_end']);
+        $critical_timestamp = $end_timestamp - 300; // 提前 5 分鐘
+
+        if (time() >= $critical_timestamp) {
+            throw new Exception("SLA Violation: The threshold for manual intervention has expired (T < 5 mins to completion). The system has locked this vector for auto-cancellation.");
+        }
+
+        // 💡 3. 時空防撞校驗 (Spatiotemporal Collision Detection)
         if ($action === 'approve') {
             $sql_conflict = "
                 SELECT bid FROM booking 
@@ -46,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 LIMIT 1
             ";
             $stmt_conflict = $conn->prepare($sql_conflict);
-            // $time_end < target_start OR $time_start > target_end 的補集即為重疊
+            // $time_end < target_start ∪ $time_start > target_end 的補集即為重疊
             $stmt_conflict->bind_param(
                 "ssss", 
                 $target_booking['vid'], 
@@ -63,12 +70,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        // 💡 [UPDATE] 執行業務狀態與資金流狀態的原子化寫入
-        $sql = "
-            UPDATE booking
-            SET status = ?, payment_status = ?, aid = ?, approve_date = NOW()
-            WHERE bid = ?
-        ";
+        // 💡 4. 執行狀態與資金流的原子化寫入
+        $sql = "UPDATE booking SET status = ?, payment_status = ?, aid = ?, approve_date = NOW() WHERE bid = ?";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("ssii", $new_status, $new_payment_status, $admin_id, $bid);
         $stmt->execute();
@@ -80,17 +83,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->close();
         $conn->commit();
 
-        $_SESSION['toast'] = [
-            'type' => 'success',
-            'msg' => "Execution Success: Booking #{$bid} has been " . strtoupper($new_status) . "."
-        ];
+        $_SESSION['toast'] = ['type' => 'success', 'msg' => "Execution Success: Booking #{$bid} has been " . strtoupper($new_status) . "."];
 
     } catch (Exception $e) {
         $conn->rollback();
         $_SESSION['toast'] = ['type' => 'error', 'msg' => 'Transaction Fault: ' . $e->getMessage()];
     }
 
-    $conn->close();
     header("Location: ../admin/pending_requests.php");
     exit;
 }
