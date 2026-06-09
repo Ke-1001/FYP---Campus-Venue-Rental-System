@@ -1,224 +1,222 @@
 <?php
 // File: admin/staff_directory.php
 session_start();
-require_once '../config/db.php';
-require_once '../includes/admin_auth.php';
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/admin_auth.php';
+require_once __DIR__ . '/../core/components/datagrid.php'; 
 
-$filter_query = trim($_GET['f_query'] ?? '');
-$filter_role = trim($_GET['f_role'] ?? '');
+// ∴ 引入核心組件與全新倉儲
+require_once __DIR__ . '/../core/components/FilterBuilder.php';
+require_once __DIR__ . '/../core/repositories/PersonnelRepository.php';
 
-$base_sql = "
-    SELECT * FROM (
-        SELECT 
-            'Admin' AS entity_type,
-            aid AS entity_id,
-            admin_name AS name,
-            email,
-            phone_num,
-            role AS access_level,
-            created_at,
-            status
-        FROM admin
-        
-        UNION ALL
-        
-        SELECT 
-            'Staff' AS entity_type,
-            sid AS entity_id,
-            staff_name AS name,
-            email,
-            phone_num,
-            position AS access_level,
-            created_at,
-            status
-        FROM staff
-    ) AS unified_directory
-    WHERE 1=1
-";
+use Core\Components\FilterBuilder;
+use Core\Repositories\PersonnelRepository;
 
-if (!empty($filter_query)) {
-    $safe_query = $conn->real_escape_string($filter_query);
-    $base_sql .= " AND (name LIKE '%$safe_query%' OR entity_id LIKE '%$safe_query%' OR email LIKE '%$safe_query%')";
+/*
+|--------------------------------------------------------------------------
+| I: Repository Initialization & System Protocol
+|--------------------------------------------------------------------------
+*/
+// ∴ 1. 實例化身分管理倉儲
+$personnelRepo = new PersonnelRepository($conn);
+
+// ∴ 2. 建構過濾器矩陣 (Filter Topology)
+$filterBuilder = new FilterBuilder('staff_directory.php', true);
+$filterBuilder
+    ->addField('text', 'f_query', 'Identity', [], 'Search ID, Name, Email...', 'CONCAT(entity_id, " ", name, " ", email)', 'LIKE')
+    ->addField('select', 'f_role', 'Access Privilege', [
+        'super_admin' => 'Super Admin',
+        'admin'       => 'Standard Admin',
+        'inspector'   => 'Inspector'
+    ], 'All Roles', 'access_level', '=');
+
+/*
+|--------------------------------------------------------------------------
+| D: Abstracted Data Execution & View Reshaping
+|--------------------------------------------------------------------------
+*/
+// ∴ 3. 委託倉儲獲取結果集
+$result = $personnelRepo->getUnifiedDirectory($filterBuilder);
+
+// ∴ 4. 提取資料列並執行 Data Flattening (資料展平與組合鍵生成)
+$records = [];
+if ($result && $result->num_rows > 0) {
+    while($row = $result->fetch_assoc()) {
+        // 生成多型態路由的組合鍵 (e.g., "Admin|A001")
+        $row['compound_id'] = $row['entity_type'] . '|' . $row['entity_id'];
+        $row['joined_fmt'] = 'Joined: ' . date('M Y', strtotime($row['created_at']));
+        $records[] = $row;
+    }
 }
-if (!empty($filter_role)) {
-    $base_sql .= " AND access_level = '" . $conn->real_escape_string($filter_role) . "'";
-}
 
-$base_sql .= " ORDER BY entity_type ASC, access_level ASC, name ASC";
-$result = $conn->query($base_sql);
+/*
+|--------------------------------------------------------------------------
+| C: Configuration & Schema Definitions
+|--------------------------------------------------------------------------
+*/
+$page_title = "Manage Existing Staff";
+$page_description = "Manage existing personnel details, cross-entity permissions, and access status.";
+$topbar_content = '
+<div class="flex items-center">
+    <a href="manage_admins.php" class="text-sm font-bold text-[#004aad] hover:text-[#003882] flex items-center mr-4 transition-colors">
+        <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i> Back
+    </a>
+    <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Identity Management / Staff Directory</h2>
+</div>';
+$extra_css = ["../assets/css/fiori_forms.css", "../assets/css/table.css"];
+
+// ∴ 核心拓撲：DataGrid Schema 配置字典
+$datagrid_schema = [
+    'enable_checkbox' => true,
+    'primary_key' => 'compound_id',
+    'checkbox_name' => 'personnel_refs',
+    'columns' => [
+        ['key' => 'entity_id', 'label' => 'Reference ID', 'type' => 'text_mono', 'width' => 'w-28 text-center'],
+        ['key' => 'name', 'label' => 'Personnel Name', 'type' => 'text_bold', 'width' => 'w-48'],
+        ['key' => 'entity_type', 'label' => 'Entity', 'type' => 'badge', 'width' => 'w-24 text-center'],
+        ['key' => 'email', 'label' => 'Contact Vector', 'type' => 'text_mono', 'width' => 'w-56'],
+        ['key' => 'access_level', 'label' => 'Privilege', 'type' => 'map_badge', 'width' => 'w-32 text-center', 'map' => [
+            'super_admin' => ['label' => 'Super Admin', 'class' => 'bg-purple-50 text-purple-700 border-purple-200'],
+            'admin'       => ['label' => 'Admin', 'class' => 'bg-indigo-50 text-indigo-700 border-indigo-200'],
+            'inspector'   => ['label' => 'Inspector', 'class' => 'bg-amber-50 text-amber-700 border-amber-200']
+        ]],
+        ['key' => 'status', 'label' => 'Status', 'type' => 'map_badge', 'width' => 'w-24 text-center', 'map' => [
+            'active' => ['label' => 'Active', 'class' => 'bg-emerald-50 text-emerald-700 border-emerald-200'],
+            'inactive' => ['label' => 'Inactive', 'class' => 'bg-slate-100 text-slate-500 border-slate-300']
+        ]],
+        ['key' => 'joined_fmt', 'label' => 'Record', 'type' => 'text_muted_mono', 'width' => 'w-32']
+    ]
+];
+
+/*
+|--------------------------------------------------------------------------
+| V: View Rendering (Output Buffer)
+|--------------------------------------------------------------------------
+*/
+ob_start();
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>MMU Admin | Unified Staff Directory</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script>
-        tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b' } } } } }
-    </script>
-    <link rel="stylesheet" href="../assets/css/layout.css?v=1.2">
-    <link rel="stylesheet" href="../assets/css/fiori_forms.css">
-</head>
-<body class="bg-[#f4f4f4] text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
 
-    <?php include('../includes/admin_sidebar.php'); ?>
+<?php echo $filterBuilder->render(); ?>
 
-    <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
-        
-        <header class="h-16 glass-panel border-b border-slate-200 flex items-center justify-between px-6 z-10 shrink-0 bg-white">
-            <?php 
-            $topbar_content = '
-            <div class="flex items-center">
-                <a href="manage_admins.php" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 flex items-center mr-4 transition-colors">
-                    <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i> Back
-                </a>
-                <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Identity Management / Staff Directory</h2>
-            </div>';
-            include('../includes/admin_topbar.php'); 
-            ?>
-        </header>
+<div class="mb-4 bg-white p-3 rounded-md border border-slate-200 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] shrink-0 flex justify-between items-center">
+    <div class="text-xs font-bold text-slate-500 pl-2">
+        <span id="cb-counter">0</span> selected
+    </div>
+    <div class="flex space-x-2">
+        <a href="add_staff.php" class="px-4 py-2 text-xs font-semibold text-white bg-[#004aad] hover:bg-[#003882] rounded-md shadow-sm transition border border-[#004aad]">
+            <i data-lucide="user-plus" class="w-3.5 h-3.5 inline mr-1"></i> Register New Staff
+        </a>
+        <button id="btn-edit" disabled onclick="executeAction('edit')" class="px-4 py-2 text-xs font-semibold text-slate-400 bg-slate-100 rounded-md transition cursor-not-allowed border border-slate-200">
+            <i data-lucide="settings-2" class="w-3.5 h-3.5 inline mr-1"></i> Modify Access
+        </button>
+        <button id="btn-delete" disabled onclick="executeAction('delete')" class="px-4 py-2 text-xs font-semibold text-slate-400 bg-slate-100 rounded-md transition cursor-not-allowed border border-slate-200">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5 inline mr-1"></i> Deactivate / Purge
+        </button>
+    </div>
+</div>
 
-        <div class="flex-1 overflow-y-auto p-8 scroll-smooth">
-            
-            <div class="mb-6 flex justify-between items-end">
-                <div>
-                    <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Manage Existing Staff</h1>
-                    <p class="text-xs text-slate-500 mt-1">Manage existing staff details and status.</p>
-                </div>
-                <a href="add_staff.php" class="px-5 py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-lg shadow-sm hover:bg-indigo-700 transition flex items-center">
-                    Register New Staff
-                </a>
-            </div>
-
-            <div class="bg-white p-5 rounded-lg shadow-sm border border-slate-200 mb-6">
-                <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                    
-                    <div class="md:col-span-2">
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Identity</label>
-                        <input type="text" name="f_query" value="<?php echo htmlspecialchars($filter_query); ?>" placeholder="Search ID, Name, or Email..." class="fiori-input w-full">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Access Privilege</label>
-                        <div class="relative">
-                            <select name="f_role" class="fiori-input w-full appearance-none pr-8 bg-white cursor-pointer font-bold text-slate-700">
-                                <option value="">All Roles</option>
-                                <optgroup label="System Core">
-                                    <option value="super_admin" <?php if($filter_role==='super_admin') echo 'selected'; ?>>Super Admin</option>
-                                    <option value="admin" <?php if($filter_role==='admin') echo 'selected'; ?>>Standard Admin</option>
-                                </optgroup>
-                                <optgroup label="Operations">
-                                    <option value="inspector" <?php if($filter_role==='inspector') echo 'selected'; ?>>Inspector</option>
-                                </optgroup>
-                            </select>
-                            <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 absolute right-3 top-2.5 pointer-events-none"></i>
-                        </div>
-                    </div>
-
-                    <div class="flex space-x-2">
-                        <button type="submit" class="w-full px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-700 transition flex items-center justify-center shadow-sm">
-                            Apply
-                        </button>
-                        <a href="staff_directory.php" class="px-4 py-2 bg-slate-100 text-slate-600 text-sm font-bold rounded-lg hover:bg-slate-200 transition flex items-center justify-center" title="Reset Filters">
-                            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
-                        </a>
-                    </div>
-                </form>
-            </div>
-
-            <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-                    <h3 class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Personnel (<?php echo $result->num_rows; ?>)</h3>
-                </div>
-                <table class="w-full text-left border-collapse">
-                    <thead class="bg-white text-[10px] text-slate-400 font-black uppercase tracking-widest border-b border-slate-100">
-                        <tr>
-                            <th class="px-6 py-3">Reference ID</th>
-                            <th class="px-6 py-3">Personnel Profile</th>
-                            <th class="px-6 py-3">Contact Vectors</th>
-                            <th class="px-6 py-3">Authorization Level</th>
-                            <th class="px-6 py-3 text-right">Execution</th>
-                        </tr>
-                    </thead>
-                    <tbody class="text-sm divide-y divide-slate-50">
-                        <?php if ($result && $result->num_rows > 0): ?>
-                            <?php while($row = $result->fetch_assoc()): 
-                                $is_admin = ($row['entity_type'] === 'Admin');
-                                $id_prefix = $is_admin ? 'aid=' : 'sid=';
-                                $edit_target = $is_admin ? 'edit_admin.php' : 'edit_staff.php';
-                            ?>
-                            <tr class="hover:bg-slate-50 transition-colors <?php echo ($row['status'] === 'inactive') ? 'bg-slate-50/50 opacity-60' : ''; ?>">
-                                <td class="px-6 py-4 font-mono font-bold text-slate-500"><?php echo htmlspecialchars($row['entity_id']); ?></td>
-                                <td class="px-6 py-4">
-                                    <span class="font-bold text-slate-800 block"><?php echo htmlspecialchars($row['name']); ?></span>
-                                    <span class="text-[9px] text-slate-400 font-mono uppercase mt-1 block">Joined: <?php echo date('M Y', strtotime($row['created_at'])); ?></span>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <a href="mailto:<?php echo htmlspecialchars($row['email']); ?>" class="text-xs text-indigo-600 hover:underline block font-medium">
-                                        <?php echo htmlspecialchars($row['email']); ?>
-                                    </a>
-                                    <span class="text-xs text-slate-500 font-mono mt-1 block">
-                                        <?php echo htmlspecialchars($row['phone_num']); ?>
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <?php 
-                                    $role_ui = match($row['access_level']) {
-                                        'super_admin' => ['bg-purple-50 text-purple-700 border-purple-200', 'Super Admin'],
-                                        'admin'       => ['bg-indigo-50 text-indigo-700 border-indigo-200', 'Admin'],
-                                        'inspector'   => ['bg-amber-50 text-amber-700 border-amber-200', 'Inspector'],
-                                        default       => ['bg-slate-100 text-slate-600 border-slate-200', 'Unknown']
-                                    };
-                                    ?>
-                                    <div class="flex items-center space-x-2">
-                                        <span class="px-2.5 py-1 border <?php echo $role_ui[0]; ?> rounded text-[10px] font-black uppercase tracking-widest">
-                                            <?php echo $role_ui[1]; ?>
-                                        </span>
-                                        
-                                        <?php if ($row['status'] === 'inactive') :?>
-                                            <span class="px-2 py-1 bg-slate-200 text-slate-500 border border-slate-300 rounded text-[9px] font-black uppercase tracking-widest">
-                                                Inactive
-                                            </span>
-                                        <?php endif;?>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 text-right">
-                                    <div class="flex items-center justify-end space-x-2">
-                                        <a href="<?php echo $edit_target . '?' . $id_prefix . $row['entity_id']; ?>" class="p-2 text-indigo-500 hover:bg-indigo-50 rounded transition" title="Modify Privilege">
-                                            <i data-lucide="settings-2" class="w-4 h-4"></i>
-                                        </a>
-                                        
-                                        <?php if ($row['status'] === 'active'): ?>
-                                            <a href="../actions/process_personnel_deletion.php?type=<?php echo strtolower($row['entity_type']); ?>&id=<?php echo $row['entity_id']; ?>" 
-                                                class="p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded transition" 
-                                                onclick="return confirm('CRITICAL WARNING: Executing conditional deletion. If traces exist, entity will be deactivated. Proceed?');" title="Deactivate / Purge">
-                                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                            </a>
-                                        <?php else: ?>
-                                            <button disabled class="p-2 text-slate-300 cursor-not-allowed" title="Account already inactive">
-                                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                                            </button>
-                                        <?php endif; ?>
-                                    </div>
-                                </td>
-                            </tr>
-                            <?php endwhile; ?>
-                        <?php else: ?>
-                            <tr><td colspan="5" class="px-6 py-12 text-center text-slate-400 font-medium"><i data-lucide="users" class="w-8 h-8 mx-auto text-slate-300 mb-3 opacity-50"></i>No personnel match the selected criteria.</td></tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-
+<div class="custom-table-container flex-1 overflow-hidden flex flex-col relative">
+    <form id="bulkActionForm" action="../actions/process_personnel_action.php" method="POST" class="flex-1 overflow-hidden flex flex-col">
+        <input type="hidden" name="action_type" id="bulk_action_type" value="">
+        <div class="flex-1 overflow-y-auto">
+            <?php echo render_datagrid($datagrid_schema, $records); ?>
         </div>
-    </main>
+    </form>
+</div>
 
-    <?php include('../includes/ui_components.php'); ?>
+<div id="decision-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center transition-opacity opacity-0">
+    <div class="bg-white rounded-md shadow-lg border border-slate-200 w-full max-w-sm p-6 transform scale-95 transition-transform" id="decision-panel">
+        <h3 class="text-lg font-bold text-slate-800 mb-2">System Confirmation</h3>
+        <p class="text-sm text-slate-600 font-medium leading-relaxed mb-6" id="modal-msg"></p>
+        <div class="flex justify-end space-x-3">
+            <button type="button" onclick="closeDecisionModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 bg-transparent hover:bg-slate-100 rounded-md transition-colors">Cancel</button>
+            <button type="button" id="modal-confirm-btn" class="px-4 py-2 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-md shadow-sm transition-colors border border-red-600">Proceed</button>
+        </div>
+    </div>
+</div>
 
-    <script>
-        lucide.createIcons();
-        function toggleSidebar() { document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed'); }
-    </script>
-</body>
-</html>
+<script>
+    // ∴ 嚴格對接 checkbox 狀態與智慧型按鈕控制器
+    const toggleAll = (source) => {
+        document.querySelectorAll('.row-cb').forEach(cb => { cb.checked = source.checked; });
+        updateButtonStates();
+    };
+
+    const updateButtonStates = () => {
+        const selectedCount = document.querySelectorAll('.row-cb:checked').length;
+        const btnEdit = document.getElementById('btn-edit');
+        const btnDelete = document.getElementById('btn-delete');
+        const cbCounter = document.getElementById('cb-counter');
+        
+        if (cbCounter) cbCounter.innerText = selectedCount;
+
+        const isSingle = selectedCount === 1;
+        const isMultiple = selectedCount > 0;
+
+        if (btnEdit) {
+            btnEdit.disabled = !isSingle;
+            btnEdit.className = isSingle 
+                ? "px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-md shadow-sm transition cursor-pointer"
+                : "px-4 py-2 text-xs font-semibold text-slate-400 bg-slate-100 rounded-md transition cursor-not-allowed border border-slate-200";
+        }
+
+        if (btnDelete) {
+            btnDelete.disabled = !isMultiple;
+            btnDelete.className = isMultiple 
+                ? "px-4 py-2 text-xs font-semibold text-red-600 bg-white hover:bg-red-50 border border-red-200 rounded-md shadow-sm transition cursor-pointer"
+                : "px-4 py-2 text-xs font-semibold text-slate-400 bg-slate-100 rounded-md transition cursor-not-allowed border border-slate-200";
+        }
+    };
+
+    document.addEventListener('change', function(e) {
+        if(e.target && e.target.classList.contains('row-cb')) updateButtonStates();
+    });
+
+    const executeAction = (type) => {
+        const selected = document.querySelectorAll('.row-cb:checked');
+        if (selected.length === 0) return;
+
+        if (type === 'edit' && selected.length === 1) {
+            // ∴ 多型態路由推演 (Polymorphic Routing)
+            // 將 Compound ID 分拆為 EntityType 與 EntityID
+            const [etype, eid] = selected[0].value.split('|');
+            const url = etype === 'Admin' ? 'edit_admin.php?aid=' : 'edit_staff.php?sid=';
+            window.location.href = url + encodeURIComponent(eid);
+        } else if (type === 'delete') {
+            document.getElementById('bulk_action_type').value = 'delete';
+            document.getElementById('modal-msg').innerText = `CRITICAL WARNING: Executing conditional deletion on ${selected.length} entity(ies). If relational traces exist, the entity will be deactivated instead of purged. Proceed?`;
+            
+            const modal = document.getElementById('decision-modal');
+            const panel = document.getElementById('decision-panel');
+            modal.classList.remove('hidden');
+            void modal.offsetWidth;
+            modal.classList.remove('opacity-0');
+            panel.classList.remove('scale-95');
+        }
+    };
+
+    const closeDecisionModal = () => {
+        const modal = document.getElementById('decision-modal');
+        const panel = document.getElementById('decision-panel');
+        modal.classList.add('opacity-0');
+        panel.classList.add('scale-95');
+        setTimeout(() => { modal.classList.add('hidden'); }, 200);
+    };
+
+    document.getElementById('modal-confirm-btn').addEventListener('click', function() {
+        this.innerHTML = 'Executing...';
+        this.classList.add('opacity-70', 'cursor-not-allowed');
+        document.getElementById('bulkActionForm').submit();
+    });
+</script>
+
+<?php
+$page_content = ob_get_clean();
+
+/*
+|--------------------------------------------------------------------------
+| L: Global Layout Engine
+|--------------------------------------------------------------------------
+*/
+require_once __DIR__ . '/../core/layout.php';
+?>

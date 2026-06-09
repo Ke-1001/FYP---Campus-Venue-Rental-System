@@ -157,6 +157,26 @@ function flowStepClass($state) {
     ];
 }
 
+
+function translateSystemText($text) {
+    if (empty($text)) return '';
+    
+    $dictionary = [
+        'SYS_TIMEOUT_ADMIN' => 'Admin failed to approve the request within the functional timeframe.',
+        'SYS_TIMEOUT_24H_RELEASE' => 'SLA Absolute Timeout: Auto-released after 24 hours of inactivity without consecutive bookings.',
+        'SYS_TIMEOUT_30M_LOCK' => 'SLA Violation: Inspection delayed. Deposit temporarily frozen for maximum 24h.',
+        '[SYSTEM ABSORBED]' => 'Chain of Custody Fault: Damage was detected, but a preceding SLA violation exists for this venue.'
+    ];
+
+    // 💡 升級：使用 stripos 達成 O(1) 的大小寫免疫，無懼髒數據
+    foreach ($dictionary as $code => $translation) {
+        if (stripos($text, $code) !== false) {
+            return str_ireplace($code, $translation, $text);
+        }
+    }
+    return $text;
+}
+
 $bookingRejected = ($status === 'rejected');
 $bookingCancelled = ($status === 'cancelled');
 $bookingApprovedOrDone = in_array($status, ['approved', 'completed'], true);
@@ -279,7 +299,8 @@ if ($bookingCancelled) {
     $settlementState = 'locked';
     $settlementTitle = 'No Settlement Required';
     $settlementDesc = 'This booking was cancelled before payment was completed.';
-    $settlementMeta = !empty($booking['cancel_reason']) ? $booking['cancel_reason'] : 'Payment deadline expired';
+    $isSystemTimeout = strpos($booking['cancel_reason'] ?? '', 'SYS_TIMEOUT') !== false;
+    $settlementMeta = $isSystemTimeout ? 'System Auto-Cancellation' : 'Payment deadline expired';
 } elseif ($bookingRejected) {
     $settlementState = $paymentStatus === 'refunded' ? 'done' : ($paymentDone ? 'current' : 'locked');
     $settlementTitle = $paymentStatus === 'refunded' ? 'Refund Completed' : 'Refund Pending';
@@ -516,8 +537,12 @@ $flowSteps[] = [
                                 </p>
 
                                 <p class="text-xs text-slate-500 mt-1">
-                                    Reason:
-                                    <?php echo htmlspecialchars($booking['cancel_reason'] ?? 'Payment deadline expired'); ?>
+                                    Reason: 
+                                    <?php 
+                                        $reason = $booking['cancel_reason'] ?? 'Payment deadline expired';
+                                        // 💡 只進行一次輸出，避免雙重印出
+                                        echo htmlspecialchars(translateSystemText($reason)); 
+                                    ?>
                                 </p>
 
                                 <?php if (!empty($booking['payment_due_at'])): ?>
@@ -555,9 +580,11 @@ $flowSteps[] = [
                                 </p>
 
                                 <?php if (!empty($booking['damage_desc'])): ?>
-                                    <p class="text-xs text-slate-500 mt-2">
-                                        <?php echo nl2br(htmlspecialchars($booking['damage_desc'])); ?>
-                                    </p>
+                                    <div class="border-t pt-4">
+                                        <p class="text-xs text-slate-500 mt-2">
+                                            <?php echo nl2br(htmlspecialchars(translateSystemText($booking['damage_desc']))); ?>
+                                        </p>
+                                    </div>
                                 <?php endif; ?>
                             </div>
                         <?php endif; ?>

@@ -2,6 +2,10 @@
 // File: core/components/filter_engine.php
 
 function render_filter_engine(array $schema) {
+    $theme = $schema['theme'] ?? [];
+    $btn_primary = ($theme['btn_primary_bg'] ?? '') . ' ' . ($theme['btn_primary_text'] ?? '');
+    $label_class = $theme['label_text'] ?? '';
+    
     $action_url = htmlspecialchars($schema['action'] ?? '');
     $form_id = htmlspecialchars($schema['id'] ?? 'filterForm');
     
@@ -10,8 +14,8 @@ function render_filter_engine(array $schema) {
 
     foreach ($schema['fields'] as $field) {
         $html .= '<div class="flex items-center space-x-2">';
-        $html .= '<label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">' . htmlspecialchars($field['label']) . ':</label>';
-
+        $html .= '<label class="' . htmlspecialchars($label_class) . '">' . htmlspecialchars($field['label']) . ':</label>';
+        
         $name = htmlspecialchars($field['name']);
         $value = htmlspecialchars($field['value'] ?? '');
         $placeholder = htmlspecialchars($field['placeholder'] ?? '');
@@ -52,7 +56,7 @@ function render_filter_engine(array $schema) {
     // 渲染动作按钮组 (Action Button Matrix)
     $html .= '<div class="flex space-x-2 ml-auto">';
     if (!empty($schema['show_submit_btn'])) {
-        $html .= '<button type="submit" class="px-4 py-1.5 bg-slate-800 text-white text-xs font-bold rounded hover:bg-slate-900 transition shadow-sm">Filter</button>';
+        $html .= '<button type="submit" class="px-4 py-1.5 rounded transition shadow-sm ' . htmlspecialchars($btn_primary) . '">Filter</button>';
     }
     $html .= '<a href="' . $action_url . '" class="px-3 py-1.5 bg-transparent text-slate-500 text-xs font-bold rounded hover:bg-slate-100 transition border border-transparent flex items-center">Reset</a>';
     $html .= '</div>';

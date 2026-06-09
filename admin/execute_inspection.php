@@ -64,6 +64,9 @@ if (!$data) {
         </header>
 
         <form action="../actions/process_inspection.php" method="POST" id="inspectionForm" onsubmit="return validateInspectionForm()" class="flex-1 flex flex-col overflow-hidden">
+            <input type="hidden" name="bid" value="<?php echo htmlspecialchars($bid); ?>">
+
+            <div class="flex-1 overflow-y-auto p-4 md:p-8">
 
             <div class="flex-1 overflow-y-auto p-4 md:p-8">
                 <div class="bg-white border border-slate-200 rounded-lg shadow-sm">
@@ -129,10 +132,10 @@ if (!$data) {
                             </div>
 
                             <div class="grid grid-cols-3 gap-4 items-center">
-                                <label class="col-span-1 text-sm text-fiori-label leading-tight">Assessed Penalty<br><span class="text-[10px] font-normal opacity-70">(Max: <?php echo number_format($data['deposit'], 2); ?>)</span></label>
+                                <label class="col-span-1 text-sm text-fiori-label leading-tight">Assessed Penalty<br><span class="text-[10px] font-normal opacity-70">(Held Deposit: RM <?php echo number_format($data['deposit'], 2); ?>)</span></label>
                                 <div class="col-span-2 relative">
                                     <span class="absolute left-3 top-2.5 text-sm text-slate-400 font-bold">RM</span>
-                                    <input type="number" name="penalty" id="penalty" step="0.01" min="0" max="<?php echo $data['deposit']; ?>" value="0.00" class="fiori-input font-mono pl-10 text-red-600 font-bold">
+                                    <input type="number" name="penalty" id="penalty" step="0.01" min="0" value="0.00" class="fiori-input font-mono pl-10 text-red-600 font-bold">
                                 </div>
                             </div>
 
@@ -175,6 +178,37 @@ if (!$data) {
         lucide.createIcons();
         function toggleSidebar() { document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed'); }
 
+        // 💡 1. 主動式按鈕狀態機 (Proactive Button State Machine)
+        function evaluateButtonState() {
+            const status = document.getElementById('ins_status').value;
+            const desc = document.getElementById('damage_desc').value.trim();
+            const penalty = parseFloat(document.getElementById('penalty').value);
+            const submitBtn = document.getElementById('submit-btn');
+
+            let isValid = false;
+
+            if (status === 'passed') {
+                isValid = true;
+            } else if (status === 'failed') {
+                // 滿足條件：文本不為空 且 罰款數字合法且大於0
+                if (desc !== "" && !isNaN(penalty) && penalty > 0) {
+                    isValid = true;
+                }
+            }
+
+            // 動態映射 DOM 狀態
+            if (isValid) {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-slate-400');
+                submitBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed', 'bg-slate-400');
+                submitBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
+            }
+        }
+
+        // 💡 2. 欄位鎖定同步 (維持原有的安全邏輯)
         function syncPenaltyFields() {
             const status = document.getElementById('ins_status').value;
             const desc = document.getElementById('damage_desc');
@@ -197,55 +231,32 @@ if (!$data) {
                 penalty.readOnly = false;
                 penalty.classList.remove('fiori-readonly');
             }
+            
+            // 每次狀態改變時，強制重新評估按鈕合法性
+            evaluateButtonState();
         }
 
-        // 💡 驗證視窗控制器
-        function triggerValidationModal(msg) {
-            document.getElementById('validation-msg').innerText = msg;
-            const m = document.getElementById('validation-modal');
-            const p = document.getElementById('validation-panel');
-            m.classList.remove('hidden');
-            setTimeout(() => { m.classList.remove('opacity-0'); p.classList.remove('scale-95'); }, 10);
-        }
-
-        function closeValidationModal() {
-            const m = document.getElementById('validation-modal');
-            const p = document.getElementById('validation-panel');
-            m.classList.add('opacity-0'); p.classList.add('scale-95');
-            setTimeout(() => { m.classList.add('hidden'); }, 200);
-        }
-
-        // 💡 升級版表單驗證 (無 Alert 版)
-        // 💡 升級版表單驗證 (修復 Loading 卡死 Bug)
+        // 💡 3. 提交過渡狀態 (防止重複提交)
         function validateInspectionForm() {
-            const status = document.getElementById('ins_status').value;
-            const desc = document.getElementById('damage_desc').value.trim();
-            const penalty = parseFloat(document.getElementById('penalty').value);
-
-            if (status === 'failed') {
-                if (desc === "") {
-                    triggerValidationModal("Please provide detailed observations in the text box for the failed assessment.");
-                    return false; // 阻斷提交，按鈕狀態不會改變
-                }
-
-                if (isNaN(penalty) || penalty <= 0) {
-                    triggerValidationModal("For a 'Failed' status, you must apply a penalty amount greater than RM 0.00.");
-                    return false; // 阻斷提交，按鈕狀態不會改變
-                }
-            }
-
-            // 💡 只有在所有驗證都通過後，才將按鈕切換為 Processing 狀態
             const submitBtn = document.getElementById('submit-btn');
             if (submitBtn) {
                 submitBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin mr-2 inline"></i> Processing...';
                 submitBtn.classList.add('opacity-70', 'cursor-not-allowed', 'pointer-events-none');
                 lucide.createIcons();
             }
-            
-            return true; // 允許提交
+            return true;
         }
         
-        window.onload = syncPenaltyFields;
+        // 💡 4. 註冊實時監聽矩陣
+        window.addEventListener('DOMContentLoaded', () => {
+            // 綁定狀態機
+            document.getElementById('ins_status').addEventListener('change', syncPenaltyFields);
+            document.getElementById('damage_desc').addEventListener('input', evaluateButtonState);
+            document.getElementById('penalty').addEventListener('input', evaluateButtonState);
+            
+            // 初始化同步
+            syncPenaltyFields();
+        });
     </script>
 </body>
 </html>

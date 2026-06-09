@@ -95,12 +95,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $valid_pool = [];
             $conflict_log = [];
 
+            // 💡 [NEW] 預驗證映射層 (Pre-validation Mapping Layer)
+            // 提取 V_whitelist 以供 O(1) 空間查詢
+            $v_whitelist = [];
+            $stmt_v = $conn->prepare("SELECT vid FROM venue");
+            $stmt_v->execute();
+            $res_v = $stmt_v->get_result();
+            while ($r = $res_v->fetch_assoc()) {
+                $v_whitelist[] = strtoupper($r['vid']);
+            }
+            $stmt_v->close();
+
             // 💡 動態白名單碰撞演算法
             foreach ($csv_data as $current) {
+                // [NEW] A0. 空間拓撲連續性驗證: ∀ v_i ∈ CSV, v_i ∈ V_{whitelist}
+                if (!in_array($current['vid'], $v_whitelist)) {
+                    $conflict_log[] = array_merge($current, ['reason' => "Topology Constraint Fault: Venue ID [{$current['vid']}] ∉ V_{valid}."]);
+                    continue; // 丟棄畸形向量，推進至下一個迭代
+                }
+
+                // [NEW] A1. 時序標量語法與邏輯校驗
+                if (!preg_match('/^(?:2[0-3]|[01][0-9]):[0-5][0-9](?::[0-5][0-9])?$/', $current['start']) ||
+                    !preg_match('/^(?:2[0-3]|[01][0-9]):[0-5][0-9](?::[0-5][0-9])?$/', $current['end'])) {
+                    $conflict_log[] = array_merge($current, ['reason' => "Temporal Syntax Fault: Malformed HH:MM(:SS) format."]);
+                    continue;
+                }
+                if (strtotime($current['end']) <= strtotime($current['start'])) {
+                    $conflict_log[] = array_merge($current, ['reason' => "Vector Direction Fault: End time ≤ Start time."]);
+                    continue;
+                }
+
                 $has_conflict = false;
                 $reason = "";
 
-                // A. 外部檢查 (Database 碰撞，嚴格綁定 sem_id)
+                // A2. 外部檢查 (Database 碰撞，嚴格綁定 sem_id)
                 $stmt_check = $conn->prepare("SELECT subject_name FROM academic_schedule WHERE vid = ? AND sem_id = ? AND day_of_week = ? AND start_time < ? AND end_time > ? LIMIT 1");
                 $stmt_check->bind_param("sisss", $current['vid'], $sem_id, $current['day'], $current['end'], $current['start']);
                 $stmt_check->execute();
