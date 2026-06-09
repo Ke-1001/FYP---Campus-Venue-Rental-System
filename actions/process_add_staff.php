@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // 💡 5. SMTP 發送協議 (Email Dispatch)
         // 注意：這裡必須替換為你實際系統的 URL Domain
-        $app_domain = "http://localhost/FYP---Campus-Venue-Rental-System"; 
+        $app_domain = "http://localhost/FYP"; 
         $reset_link = $app_domain . "/admin/setup_password.php?token=" . $token;
 
         $subject = "Action Required: Complete Your MMU System Configuration";
