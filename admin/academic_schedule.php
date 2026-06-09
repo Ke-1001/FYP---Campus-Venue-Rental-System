@@ -4,46 +4,66 @@ session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 require_once __DIR__ . '/../core/components/datagrid.php'; 
-require_once __DIR__ . '/../core/components/filter_engine.php'; // ∴ 引入过滤器引擎
+
+// ∴ 引入核心架構
+require_once __DIR__ . '/../core/components/FilterBuilder.php';
+require_once __DIR__ . '/../core/repositories/ScheduleRepository.php';
+
+use Core\Components\FilterBuilder;
+use Core\Repositories\ScheduleRepository;
 
 /*
 |--------------------------------------------------------------------------
-| D: Data Retrieval & Logic
+| I: Repository Initialization & Dictionary Extraction
 |--------------------------------------------------------------------------
 */
-$f_sem = isset($_GET['filter_sem']) ? intval($_GET['filter_sem']) : 0;
-$f_vid = isset($_GET['filter_vid']) ? trim($_GET['filter_vid']) : '';
-$f_day = isset($_GET['filter_day']) ? trim($_GET['filter_day']) : '';
+// ∴ 1. 實例化倉儲
+$scheduleRepo = new ScheduleRepository($conn);
 
-$venues = $conn->query("SELECT vid, vname FROM venue ORDER BY vid ASC");
-$semesters = $conn->query("SELECT sem_id, sem_name, is_active FROM semester_config ORDER BY start_date DESC");
+// ∴ 2. 透過 Repository 獲取乾淨的資料字典 (Zero-SQL)
+$sem_options = $scheduleRepo->getSemesterOptions();
+$vid_options = $scheduleRepo->getVenueOptions();
 
-$sql = "SELECT s.*, v.vname, sem.sem_name 
-        FROM academic_schedule s 
-        JOIN venue v ON s.vid = v.vid 
-        JOIN semester_config sem ON s.sem_id = sem.sem_id
-        WHERE 1=1";
+// ∴ 3. 建構過濾器矩陣
+$filterBuilder = new FilterBuilder('academic_schedule.php', true);
+$filterBuilder
+    ->addField('select', 'filter_sem', 'Semester', $sem_options, 'All Semesters', 's.sem_id', '=')
+    ->addField('select', 'filter_vid', 'Venue', $vid_options, 'All Venues', 's.vid', '=')
+    ->addField('select', 'filter_day', 'Day', [
+        'Monday' => 'Monday',
+        'Tuesday' => 'Tuesday',
+        'Wednesday' => 'Wednesday',
+        'Thursday' => 'Thursday',
+        'Friday' => 'Friday',
+        'Saturday' => 'Saturday',
+        'Sunday' => 'Sunday'
+    ], 'All Days', 's.day_of_week', '=');
 
-if ($f_sem > 0) $sql .= " AND s.sem_id = " . $f_sem;
-if (!empty($f_vid)) $sql .= " AND s.vid = '" . $conn->real_escape_string($f_vid) . "'";
-if (!empty($f_day)) $sql .= " AND s.day_of_week = '" . $conn->real_escape_string($f_day) . "'";
+/*
+|--------------------------------------------------------------------------
+| D: Abstracted Data Execution & View Reshaping
+|--------------------------------------------------------------------------
+*/
+// ∴ 4. 委託倉儲獲取結果集
+$result = $scheduleRepo->getAllWithFilters($filterBuilder);
 
-$sql .= " ORDER BY sem.start_date DESC, FIELD(s.day_of_week, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'), s.start_time ASC";
-$result = $conn->query($sql);
-
+// ∴ 5. 提取並重塑為 Calendar JSON 拓撲 (保留於控制器中)
 $calendar_events = [];
-while($row = $result->fetch_assoc()) {
-    $calendar_events[] = [
-        'id' => $row['sch_id'],
-        'venue' => $row['vid'],
-        'semester' => $row['sem_name'],
-        'day' => $row['day_of_week'],
-        'start' => substr($row['start_time'], 0, 5),
-        'end' => substr($row['end_time'], 0, 5),
-        'subject' => $row['subject_name']
-    ];
+if ($result && $result->num_rows > 0) {
+    while($row = $result->fetch_assoc()) {
+        $calendar_events[] = [
+            'id' => $row['sch_id'],
+            'venue' => $row['vid'],
+            'semester' => $row['sem_name'],
+            'day' => $row['day_of_week'],
+            'start' => substr($row['start_time'], 0, 5),
+            'end' => substr($row['end_time'], 0, 5),
+            'subject' => $row['subject_name']
+        ];
+    }
+    // 游標重置，供下方的 DataGrid 使用
+    $result->data_seek(0); 
 }
-$result->data_seek(0); 
 
 /*
 |--------------------------------------------------------------------------
@@ -60,67 +80,6 @@ $topbar_content = '
     <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Academic / Class Schedule</h2>
 </div>';
 $extra_css = ["../assets/css/fiori_forms.css", "../assets/css/table.css"];
-
-// ∴ 数据集降维转换 (Dataset Dimensionality Reduction)
-$sem_options = [];
-if ($semesters && $semesters->num_rows > 0) {
-    while($sem = $semesters->fetch_assoc()) {
-        $sem_options[$sem['sem_id']] = $sem['sem_name'];
-    }
-}
-
-$vid_options = [];
-if ($venues && $venues->num_rows > 0) {
-    while($v = $venues->fetch_assoc()) {
-        $vid_options[$v['vid']] = '[' . $v['vid'] . '] ' . $v['vname'];
-    }
-}
-
-// ∴ 核心拓扑一：Filter Schema 配置字典
-$filter_schema = [
-    'action' => 'academic_schedule.php',
-    'show_submit_btn' => false, // 禁用提交按钮，依赖 auto_submit
-    'fields' => [
-        [
-            'type' => 'select',
-            'name' => 'filter_sem',
-            'label' => 'Semester',
-            'value' => ($f_sem > 0) ? (string)$f_sem : '',
-            'placeholder' => 'All Semesters',
-            'auto_submit' => true,
-            'options' => $sem_options,
-            'width' => 'w-56' // 增加宽度以适配长学期名
-        ],
-        [
-            'type' => 'select',
-            'name' => 'filter_vid',
-            'label' => 'Venue',
-            'value' => $f_vid,
-            'placeholder' => 'All Venues',
-            'auto_submit' => true,
-            'options' => $vid_options,
-            'width' => 'w-48'
-        ],
-        [
-            'type' => 'select',
-            'name' => 'filter_day',
-            'label' => 'Day',
-            'value' => $f_day,
-            'placeholder' => 'All Days',
-            'auto_submit' => true,
-            'options' => [
-                'Monday' => 'Monday',
-                'Tuesday' => 'Tuesday',
-                'Wednesday' => 'Wednesday',
-                'Thursday' => 'Thursday',
-                'Friday' => 'Friday',
-                'Saturday' => 'Saturday',
-                'Sunday' => 'Sunday'
-            ],
-            'width' => 'w-36'
-        ]
-    ]
-];
 
 // ∴ 核心拓扑二：DataGrid Schema 配置字典
 $datagrid_schema = [
@@ -151,7 +110,7 @@ require_once __DIR__ . '/../core/components/datagrid_controller.php';
 ob_start();
 ?>
 
-<?php echo render_filter_engine($filter_schema); ?>
+<?php echo $filterBuilder->render(); ?>
 
 <div class="flex items-center justify-between mb-4 bg-white p-3 rounded-md border border-slate-200 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] shrink-0">
     <div class="flex space-x-1 border-r border-slate-200 pr-4 mr-4">

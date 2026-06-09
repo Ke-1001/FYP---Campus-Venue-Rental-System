@@ -20,26 +20,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // 启动独立原子交易以保障批量删除的数据一致性
             $conn->begin_transaction();
             try {
-                $stmt = $conn->prepare("DELETE FROM venue WHERE vid = ?");
+                // ∴ 預編譯 SQL 語句 (移除 UPDATE 邏輯，確立嚴格刪除約束)
+                $stmt_check = $conn->prepare("SELECT COUNT(*) FROM booking WHERE vid = ?");
+                $stmt_del = $conn->prepare("DELETE FROM venue WHERE vid = ?");
+                
+                $count_purged = 0;
+
                 foreach ($vids as $del_vid) {
-                    $stmt->bind_param("s", $del_vid);
-                    $stmt->execute();
+                    // 1. 檢驗歷史交易依賴
+                    $stmt_check->bind_param("s", $del_vid);
+                    $stmt_check->execute();
+                    $result = $stmt_check->get_result();
+                    $row = $result->fetch_row();
+                    $booking_count = intval($row[0]);
+                    
+                    if ($booking_count > 0) {
+                        // 2a. 存在關聯數據 ⇒ 觸發強中斷與全盤回滾 (Strict Constraint Violation)
+                        throw new Exception("Deletion denied. Node [$del_vid] possesses historical transaction records. Referential integrity protocol forbids erasure.");
+                    } else {
+                        // 2b. 數據淨空 ⇒ 執行物理湮滅 (Physical Purge)
+                        $stmt_del->bind_param("s", $del_vid);
+                        $stmt_del->execute();
+                        $count_purged++;
+                    }
                 }
-                $stmt->close();
+                
+                $stmt_check->close();
+                $stmt_del->close();
                 $conn->commit();
                 
-                $count = count($vids);
-                $_SESSION['toast'] = ['type' => 'success', 'msg' => "Deleted: $count node(s) purged from the system."];
+                // 綜合輸出狀態報告 (僅在全數通過校驗時觸發)
+                $op_msg = "Batch Execution Complete. Purged $count_purged node(s) successfully.";
+                $_SESSION['toast'] = ['type' => 'success', 'msg' => $op_msg];
             } catch (Exception $e) {
+                // ⚡ 異常攔截：觸發紅色 Toast 提示與數據回滾
                 $conn->rollback();
-                $_SESSION['toast'] = ['type' => 'error', 'msg' => "Deletion Aborted: " . $e->getMessage()];
+                $_SESSION['toast'] = ['type' => 'error', 'msg' => "Operation Aborted: " . $e->getMessage()];
             }
+            
+            // 💡 修正點：交易完成後必須立即重定向並中斷程序，防止洩漏至分支 β
+            header("Location: ../admin/venue_directory.php");
+            exit;
+            
         } else {
-            $_SESSION['toast'] = ['type' => 'error', 'msg' => "Validation Fault: No vectors selected for deletion."];
-        }
-        
-        header("Location: ../admin/venue_directory.php");
-        exit; // ⚡ 强制挂起后续管线
+            header("Location: ../admin/venue_directory.php");
+            exit; 
+        } // ⚡ 强制挂起后续管线
     }
 
     // =========================================================================

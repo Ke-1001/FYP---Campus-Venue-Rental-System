@@ -2,75 +2,118 @@
 // File: core/components/FilterBuilder.php
 
 namespace Core\Components;
+use mysqli;
 
 class FilterBuilder {
-    private array $schema;
+    private array $fields = [];
+    private string $action_url;
+    private string $form_id;
+    private bool $show_submit_btn;
+    
+    // 全局設計語義矩陣 (Global Design Token Matrix)
+    // ∴ 嚴格控制全局視覺，修改此處即可改變所有頁面的過濾器外觀
+    private array $layout_config = [
+        'container_class' => 'mb-6 bg-white border border-slate-200 rounded-lg p-4 shadow-sm shrink-0',
+        'form_class'      => 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end',
+        'label_class'     => 'block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5',
+        'input_class'     => 'w-full border border-slate-200 rounded-md px-3 py-2 text-xs font-semibold focus:outline-none focus:border-[#004aad] transition-colors bg-slate-50/50 focus:bg-white',
+        'select_class'    => 'w-full border border-slate-200 rounded-md px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:border-[#004aad] cursor-pointer bg-slate-50/50 transition-colors',
+        'btn_container'   => 'col-span-full flex space-x-2 justify-end mt-2',
+        'btn_submit'      => 'px-5 py-2 bg-slate-900 text-white text-xs font-bold rounded-md hover:bg-slate-800 transition shadow-sm h-[36px]',
+        'btn_reset'       => 'px-4 py-2 bg-transparent text-slate-500 text-xs font-bold rounded-md hover:bg-slate-100 transition border border-transparent flex items-center h-[36px]'
+    ];
 
-    /**
-     * 初始化過濾器配置
-     */
     public function __construct(string $action_url, bool $show_submit_btn = true, string $form_id = 'filterForm') {
-        $this->schema = [
-            'id' => $form_id,
-            'action' => $action_url,
-            'show_submit_btn' => $show_submit_btn,
-            'fields' => []
-        ];
+        $this->action_url = $action_url;
+        $this->show_submit_btn = $show_submit_btn;
+        $this->form_id = $form_id;
     }
 
     /**
-     * 附加文字輸入框
+     * 動態註冊過濾物件 (已補回 auto_submit 參數支持)
      */
-    public function addText(string $name, string $label, string $value = '', string $placeholder = '', string $width = 'w-40'): self {
-        $this->schema['fields'][] = [
-            'type' => 'text',
-            'name' => $name,
-            'label' => $label,
-            'value' => $value,
-            'placeholder' => $placeholder,
-            'width' => $width
-        ];
-        return $this; // 支援鏈式調用 (Method Chaining)
-    }
-
-    /**
-     * 附加下拉式選單
-     */
-    public function addSelect(string $name, string $label, array $options, string $value = '', string $placeholder = '', bool $auto_submit = false, string $width = 'w-40'): self {
-        $this->schema['fields'][] = [
-            'type' => 'select',
-            'name' => $name,
-            'label' => $label,
-            'options' => $options,
-            'value' => $value,
-            'placeholder' => $placeholder,
-            'auto_submit' => $auto_submit,
-            'width' => $width
+    public function addField(string $type, string $name, string $label, array $options = [], string $placeholder = '', string $db_column = '', string $operator = '=', bool $auto_submit = false): self {
+        $value = isset($_GET[$name]) ? trim($_GET[$name]) : '';
+        $this->fields[] = [
+            'type' => $type, 'name' => $name, 'label' => $label,
+            'options' => $options, 'placeholder' => $placeholder,
+            'db_column' => $db_column, 'operator' => $operator, 
+            'value' => $value, 'auto_submit' => $auto_submit
         ];
         return $this;
     }
 
-    /**
-     * 附加 Datalist 數據列表
-     */
-    public function addDatalist(string $name, string $label, array $options, string $value = '', string $placeholder = '', string $width = 'w-40'): self {
-        $this->schema['fields'][] = [
-            'type' => 'datalist',
-            'name' => $name,
-            'label' => $label,
-            'options' => $options,
-            'value' => $value,
-            'placeholder' => $placeholder,
-            'width' => $width
-        ];
-        return $this;
+    public function buildSqlWhere(mysqli $conn): string {
+        $sql = "";
+        foreach ($this->fields as $field) {
+            if ($field['value'] !== '' && !empty($field['db_column'])) {
+                $sanitized = $conn->real_escape_string($field['value']);
+                $col = $field['db_column'];
+                switch (strtoupper($field['operator'])) {
+                    case 'LIKE': $sql .= " AND {$col} LIKE '%{$sanitized}%'"; break;
+                    case 'LIKE_UPPER': $sql .= " AND UPPER({$col}) LIKE UPPER('%{$sanitized}%')"; break;
+                    case '=': default: $sql .= " AND {$col} = '{$sanitized}'"; break;
+                }
+            }
+        }
+        return $sql;
     }
 
-    /**
-     * 輸出最終編譯之 Schema
-     */
-    public function build(): array {
-        return $this->schema;
+    public function render(): string {
+        $html = '<div class="' . $this->layout_config['container_class'] . '">';
+        $html .= '<form method="GET" action="' . htmlspecialchars($this->action_url) . '" id="' . htmlspecialchars($this->form_id) . '" class="' . $this->layout_config['form_class'] . '">';
+
+        foreach ($this->fields as $field) {
+            $name = htmlspecialchars($field['name']);
+            $value = htmlspecialchars($field['value']);
+            $placeholder = htmlspecialchars($field['placeholder']);
+            
+            $html .= '<div class="flex flex-col">';
+            $html .= '<label class="' . $this->layout_config['label_class'] . '">' . htmlspecialchars($field['label']) . '</label>';
+
+            switch ($field['type']) {
+                case 'text':
+                case 'date':    // ∴ 新增支援 date
+                case 'number':  // ∴ 新增支援 number
+                    $html .= '<input type="'.$field['type'].'" name="'.$name.'" value="'.$value.'" placeholder="'.$placeholder.'" class="'.$this->layout_config['input_class'].'">';
+                    break;
+
+                case 'select':
+                    // ∴ 嚴格執行狀態判定，注入 auto_submit 行為
+                    $auto_attr = $field['auto_submit'] ? 'onchange="this.form.submit()"' : '';
+                    $html .= '<select name="'.$name.'" '.$auto_attr.' class="'.$this->layout_config['select_class'].'">';
+                    if (!empty($field['placeholder'])) {
+                        $html .= '<option value="">' . $placeholder . '</option>';
+                    }
+                    foreach ($field['options'] as $opt_val => $opt_label) {
+                        $selected = ((string)$value === (string)$opt_val) ? 'selected' : '';
+                        $html .= '<option value="'.htmlspecialchars($opt_val).'" '.$selected.'>'.htmlspecialchars($opt_label).'</option>';
+                    }
+                    $html .= '</select>';
+                    break;
+
+                case 'datalist':
+                    $list_id = 'list_' . $name;
+                    $html .= '<input list="'.$list_id.'" name="'.$name.'" value="'.$value.'" oninput="this.value = this.value.toUpperCase()" placeholder="'.$placeholder.'" class="'.$this->layout_config['input_class'].'">';
+                    $html .= '<datalist id="'.$list_id.'">';
+                    foreach ($field['options'] as $opt_val) {
+                        $html .= '<option value="' . htmlspecialchars($opt_val) . '"></option>';
+                    }
+                    $html .= '</datalist>';
+                    break;
+            }
+            $html .= '</div>';
+        }
+
+        $html .= '<div class="' . $this->layout_config['btn_container'] . '">';
+        if ($this->show_submit_btn) {
+            $html .= '<button type="submit" class="' . $this->layout_config['btn_submit'] . '">Filter</button>';
+        }
+        $html .= '<a href="' . htmlspecialchars($this->action_url) . '" class="' . $this->layout_config['btn_reset'] . '">Reset</a>';
+        $html .= '</div>';
+
+        $html .= '</form></div>';
+        return $html;
     }
 }
 ?>

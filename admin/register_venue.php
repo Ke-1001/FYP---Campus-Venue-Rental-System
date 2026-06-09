@@ -131,14 +131,24 @@ $cat_res = $conn->query("SELECT * FROM vcategory ORDER BY category ASC");
                             <div class="grid grid-cols-3 gap-4 items-center border-t border-slate-100 pt-4 mt-2">
                                 <label class="col-span-1 text-sm text-fiori-label">Operational State:</label>
                                 <div class="col-span-2 relative">
-                                    <select name="status" class="fiori-input appearance-none pr-8 bg-white cursor-pointer font-bold <?php echo ($venue && $venue['status'] === 'maintenance') ? 'text-red-600' : 'text-emerald-600'; ?>" onchange="this.className = this.value === 'maintenance' ? 'fiori-input appearance-none pr-8 bg-white cursor-pointer font-bold text-red-600' : 'fiori-input appearance-none pr-8 bg-white cursor-pointer font-bold text-emerald-600'">
+                                    <?php
+                                        // 動態配置字體顏色類別
+                                        $status_color = 'text-emerald-600';
+                                        if ($venue) {
+                                            if ($venue['status'] === 'maintenance') $status_color = 'text-red-600';
+                                            elseif ($venue['status'] === 'closed') $status_color = 'text-slate-600';
+                                        }
+                                    ?>
+                                    <select name="status" class="fiori-input appearance-none pr-8 bg-white cursor-pointer font-bold <?php echo $status_color; ?>" onchange="this.className = this.value === 'maintenance' ? 'fiori-input appearance-none pr-8 bg-white cursor-pointer font-bold text-red-600' : (this.value === 'closed' ? 'fiori-input appearance-none pr-8 bg-white cursor-pointer font-bold text-slate-600' : 'fiori-input appearance-none pr-8 bg-white cursor-pointer font-bold text-emerald-600')">
                                         <option value="available" <?php echo ($venue && $venue['status'] === 'available') ? 'selected' : ''; ?>>Available</option>
                                         <option value="maintenance" <?php echo ($venue && $venue['status'] === 'maintenance') ? 'selected' : ''; ?>>Maintenance</option>
-                                        <option value="booked" <?php echo ($venue && $venue['status'] === 'booked') ? 'selected' : ''; ?>>Booked</option>
+                                        <option value="closed" <?php echo ($venue && $venue['status'] === 'closed') ? 'selected' : ''; ?>>Closed</option>
                                     </select>
                                     <i data-lucide="chevron-down" class="w-4 h-4 text-fiori-label absolute right-2 top-2 pointer-events-none"></i>
                                 </div>
                             </div>
+
+
                         </div>
                     </div>
 
