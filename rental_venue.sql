@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 10, 2026 at 05:33 AM
+-- Generation Time: Jun 10, 2026 at 11:00 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -42,22 +42,22 @@ CREATE TABLE `academic_schedule` (
 --
 
 INSERT INTO `academic_schedule` (`sch_id`, `sem_id`, `vid`, `day_of_week`, `start_time`, `end_time`, `subject_name`) VALUES
-(16, 2610, 'MSMR2012', 'Monday', '08:00:00', '10:00:00', 'TCC 4223'),
-(17, 2610, 'MSMX0001', 'Monday', '08:00:00', '10:00:00', 'Data Structures'),
-(18, 2610, 'MSMX0001', 'Monday', '10:00:00', '12:00:00', 'Algorithms'),
-(19, 2610, 'MSMR2016', 'Tuesday', '14:00:00', '16:00:00', 'Database Systems'),
-(20, 2610, 'MSMR2012', 'Wednesday', '09:00:00', '11:00:00', 'Software Engineering'),
-(21, 2610, 'MSMX0002', 'Thursday', '10:00:00', '13:00:00', 'Operating Systems'),
-(22, 2610, 'MSMX0003', 'Friday', '08:00:00', '10:00:00', 'Computer Networks'),
-(23, 2610, 'MSMR3012', 'Monday', '14:00:00', '16:00:00', 'AI Fundamentals'),
-(24, 2610, 'MSMR3013', 'Tuesday', '10:00:00', '12:00:00', 'Machine Learning'),
-(25, 2610, 'MSMR3014', 'Wednesday', '14:00:00', '17:00:00', 'Deep Learning'),
-(26, 2610, 'MSMR3015', 'Thursday', '08:00:00', '10:00:00', 'Cloud Computing'),
-(27, 2610, 'MSMX2001', 'Friday', '14:00:00', '16:00:00', 'Cyber Security'),
-(28, 2610, 'MSMX2002', 'Monday', '16:00:00', '18:00:00', 'Web Development'),
-(29, 2610, 'MSMX0003', 'Saturday', '09:00:00', '12:00:00', 'Weekend Workshop'),
-(30, 2610, 'MSMR2016', 'Monday', '08:00:00', '10:00:00', 'Calculus I'),
-(31, 2610, 'MSMX2003', 'Wednesday', '12:00:00', '14:00:00', 'Ethics in IT');
+(49, 2610, 'MSMX0001', 'Monday', '08:00:00', '10:00:00', 'Data Structures'),
+(50, 2610, 'MSMX0001', 'Monday', '10:00:00', '12:00:00', 'Algorithms'),
+(51, 2610, 'MSMR2016', 'Tuesday', '14:00:00', '16:00:00', 'Database Systems'),
+(52, 2610, 'MSMR2012', 'Wednesday', '09:00:00', '11:00:00', 'Software Engineering'),
+(53, 2610, 'MSMX0002', 'Thursday', '10:00:00', '13:00:00', 'Operating Systems'),
+(54, 2610, 'MSMX0003', 'Friday', '08:00:00', '10:00:00', 'Computer Networks'),
+(55, 2610, 'MSMR3012', 'Monday', '14:00:00', '16:00:00', 'AI Fundamentals'),
+(56, 2610, 'MSMR3013', 'Tuesday', '10:00:00', '12:00:00', 'Machine Learning'),
+(57, 2610, 'MSMR3014', 'Wednesday', '14:00:00', '17:00:00', 'Deep Learning'),
+(58, 2610, 'MSMR3015', 'Thursday', '08:00:00', '10:00:00', 'Cloud Computing'),
+(59, 2610, 'MSMX2001', 'Friday', '14:00:00', '16:00:00', 'Cyber Security'),
+(60, 2610, 'MSMX2002', 'Monday', '16:00:00', '18:00:00', 'Web Development'),
+(61, 2610, 'MSMX0003', 'Saturday', '09:00:00', '12:00:00', 'Weekend Workshop'),
+(62, 2610, 'MSMR2016', 'Monday', '08:00:00', '10:00:00', 'Calculus I'),
+(63, 2610, 'MSMX2003', 'Wednesday', '12:00:00', '14:00:00', 'Ethics in IT'),
+(64, 2610, 'MSMR2015', 'Wednesday', '08:00:00', '10:00:00', 'test');
 
 -- --------------------------------------------------------
 
@@ -84,7 +84,7 @@ CREATE TABLE `admin` (
 INSERT INTO `admin` (`aid`, `admin_name`, `email`, `password`, `phone_num`, `profile_pic`, `role`, `status`, `created_at`) VALUES
 (8000, 'SuperAdmin', 'SA@mmu.edu.my', '$2y$10$0av5Zh5QYMrLJyALrb8O5u60U292chJEz7SdcwfkthLTmx0j1RCw2', '06123456789', '', 'super_admin', 'active', '2026-04-28 09:43:39'),
 (8002, 'Siti', 'Siti@mmu.edu.my', '$2y$10$Q3kh7pg/gGCiw.JnpGremOrH26gnUTq.y3LZohGD9qpaPt/k4YZyu', '0122233456', '', 'admin', 'active', '2026-04-28 15:55:39'),
-(8009, 'testLim', 'LIM.LI.GUAN@student.mmu.edu.my', '$2y$10$e7zgRGN9UdAGmSLemLKK5Or8isHMrcQ0WzC3YDFVJblxK5iY.sAyK', '0122233456', '', 'admin', 'active', '2026-06-02 13:02:45');
+(8013, 'Kam JIa Sheng', 'kam.jia.sheng@student.mmu.edu.my', '$2y$10$lQfIQyNEpl4ToZitw0e3Sul17km5kwqreopbPs1I8D7HZ5nBna2b6', '01298293812', '', 'admin', 'inactive', '2026-06-10 07:23:20');
 
 -- --------------------------------------------------------
 
@@ -101,10 +101,12 @@ CREATE TABLE `booking` (
   `time_end` time NOT NULL,
   `status` enum('pending','approved','rejected','completed','cancelled') NOT NULL DEFAULT 'pending',
   `payment_status` enum('unpaid','paid','refunded') NOT NULL DEFAULT 'unpaid',
+  `payment_method` varchar(30) DEFAULT NULL,
   `payment_due_at` datetime DEFAULT NULL,
   `cancelled_at` datetime DEFAULT NULL,
   `cancel_reason` varchar(255) DEFAULT NULL,
   `transaction_ref` varchar(50) DEFAULT NULL,
+  `paid_at` datetime DEFAULT NULL,
   `purpose` varchar(100) NOT NULL,
   `aid` int(10) UNSIGNED DEFAULT NULL,
   `approve_date` datetime DEFAULT NULL,
@@ -115,34 +117,40 @@ CREATE TABLE `booking` (
 -- Dumping data for table `booking`
 --
 
-INSERT INTO `booking` (`bid`, `uid`, `vid`, `date_booked`, `time_start`, `time_end`, `status`, `payment_status`, `payment_due_at`, `cancelled_at`, `cancel_reason`, `transaction_ref`, `purpose`, `aid`, `approve_date`, `created_at`) VALUES
-(20000014, '242DT2430C', 'MSMR2016', '2026-04-29', '13:30:00', '14:30:00', 'completed', 'paid', NULL, NULL, NULL, 'TXN-9203A980', 'test', 8002, '2026-04-29 12:44:41', '2026-04-28 17:31:13'),
-(20000015, '242DT2429C', 'MSMR2016', '2026-07-02', '11:00:00', '14:30:00', 'cancelled', 'unpaid', '2026-05-06 10:48:41', '2026-06-03 10:21:14', 'Payment deadline expired', NULL, 'test', NULL, NULL, '2026-05-06 02:33:41'),
-(20000016, '242DT2429C', 'MSMR2016', '2026-05-08', '09:30:00', '10:30:00', 'cancelled', 'unpaid', '2026-05-06 10:48:52', '2026-06-03 10:21:14', 'Payment deadline expired', NULL, 'test', NULL, NULL, '2026-05-06 02:33:52'),
-(20000017, '242DT2421C', 'MSMR2016', '2026-05-06', '16:30:00', '18:30:00', 'completed', 'paid', NULL, NULL, NULL, 'TXN-C80129AA', 'Discussion', 8000, '2026-05-06 14:47:59', '2026-05-06 06:33:38'),
-(20000018, '242DT2429C', 'MSMR2016', '2026-05-07', '16:30:00', '17:30:00', 'rejected', 'paid', NULL, NULL, NULL, 'TXN-7538644A', 'teae', NULL, NULL, '2026-05-06 06:45:07'),
-(20000019, '242DT2429C', 'MSMX0003', '2026-05-13', '12:30:00', '18:30:00', 'rejected', 'paid', NULL, NULL, NULL, 'TXN-WO89K1Z6', 'For large event discussion', NULL, NULL, '2026-05-11 10:42:36'),
-(20000020, '242DT2429C', 'MSMX2001', '2026-05-16', '09:00:00', '10:30:00', 'completed', 'paid', NULL, NULL, NULL, 'TXN-D5TU789Q', 'For project video recording', 8002, '2026-05-12 08:37:40', '2026-05-11 10:44:26'),
-(20000021, '242DT2431X', 'MSMR2012', '2026-05-19', '18:30:00', '19:30:00', 'completed', 'paid', NULL, NULL, NULL, 'TXN-156FD6DE', 'test semester', NULL, NULL, '2026-05-19 10:38:54'),
-(20000022, '242DT2431X', 'MSMR2012', '2026-05-19', '20:00:00', '21:00:00', 'rejected', 'paid', NULL, NULL, NULL, NULL, 'test123', NULL, NULL, '2026-05-19 11:56:40'),
-(20000023, '242DT2431X', 'MSMR2012', '2026-05-19', '21:00:00', '22:00:00', 'cancelled', 'unpaid', '2026-05-19 20:12:29', '2026-06-03 10:21:14', 'Payment deadline expired', NULL, 'test123', NULL, NULL, '2026-05-19 11:57:29'),
-(20000024, '242DT2431X', 'MSMR2012', '2026-05-19', '22:00:00', '22:30:00', 'cancelled', 'unpaid', '2026-05-19 20:13:43', '2026-06-03 10:21:14', 'Payment deadline expired', NULL, 'test123', NULL, NULL, '2026-05-19 11:58:43'),
-(20000025, '242DT2431X', 'MSMR2012', '2026-05-19', '22:30:00', '23:00:00', 'cancelled', 'unpaid', '2026-05-19 20:14:14', '2026-06-03 10:21:14', 'Payment deadline expired', NULL, 'test123', NULL, NULL, '2026-05-19 11:59:14'),
-(20000026, '242DT2431X', 'MSMR2012', '2026-05-19', '23:00:00', '23:30:00', 'cancelled', 'unpaid', '2026-05-19 20:16:59', '2026-06-03 10:21:14', 'Payment deadline expired', NULL, 'test123', NULL, NULL, '2026-05-19 12:01:59'),
-(20000027, '242DT2431X', 'MSMR2012', '2026-05-19', '23:30:00', '00:00:00', 'rejected', 'paid', NULL, NULL, NULL, 'TXN-72711AB7', 'test123', NULL, NULL, '2026-05-19 12:02:44'),
-(20000028, '242DT2431X', 'MSMR2013', '2026-05-19', '20:00:00', '20:30:00', 'cancelled', 'unpaid', '2026-05-19 20:18:13', '2026-06-03 10:21:14', 'Payment deadline expired', NULL, 'test123', NULL, NULL, '2026-05-19 12:03:13'),
-(20000029, '242DT2431X', 'MSMR2013', '2026-05-19', '20:30:00', '21:00:00', 'cancelled', 'unpaid', '2026-05-19 20:19:08', '2026-06-03 10:21:14', 'Payment deadline expired', NULL, 'test123', NULL, NULL, '2026-05-19 12:04:08'),
-(20000030, '242DT2431X', 'MSMX0001', '2026-05-20', '14:30:00', '15:30:00', 'completed', 'paid', NULL, NULL, NULL, NULL, 'ter', NULL, NULL, '2026-05-20 06:33:59'),
-(20000031, '242DT2431X', 'MSMX0001', '2026-05-20', '15:30:00', '16:00:00', 'pending', '', NULL, NULL, NULL, NULL, 'ter', NULL, NULL, '2026-05-20 06:35:07'),
-(20000032, '242DT2429C', 'MSMX0001', '2026-06-17', '10:30:00', '12:00:00', 'pending', 'unpaid', NULL, NULL, NULL, NULL, 'test', NULL, NULL, '2026-06-03 02:02:21'),
-(20000033, '242DT2429C', 'MSMX0001', '2026-06-17', '13:30:00', '15:00:00', 'cancelled', 'unpaid', '2026-06-03 10:23:05', '2026-06-03 10:23:09', 'Payment deadline expired', NULL, 'test', NULL, NULL, '2026-06-03 02:08:05'),
-(20000034, '242DT2430C', 'MSMX0001', '2026-06-08', '12:00:00', '12:30:00', 'approved', 'paid', '2026-06-08 09:19:49', NULL, NULL, 'TXN-43338C76', 'test', 8000, '2026-06-08 09:05:04', '2026-06-08 01:04:49'),
-(20000035, '242DT2430C', 'MSMX0002', '2026-06-08', '09:00:00', '09:30:00', 'rejected', 'paid', '2026-06-08 09:20:25', NULL, NULL, 'TXN-283F5585', 'test', 8000, '2026-06-08 09:10:25', '2026-06-08 01:05:25'),
-(20000036, '242DT2430C', 'MSMX0003', '2026-06-08', '09:00:00', '09:30:00', 'cancelled', 'refunded', '2026-06-08 09:20:45', '2026-06-08 09:30:44', 'SYS_TIMEOUT_ADMIN', 'TXN-07BD9FA5', 'test', NULL, NULL, '2026-06-08 01:05:45'),
-(20000037, '242DT2430C', 'MSMX2002', '2026-06-08', '09:00:00', '09:30:00', 'cancelled', 'refunded', '2026-06-08 09:21:04', '2026-06-08 09:30:44', 'SYS_TIMEOUT_ADMIN', 'TXN-52A14C22', 'test', NULL, NULL, '2026-06-08 01:06:04'),
-(20000038, '242DT2430C', 'MSMX2003', '2026-06-08', '09:00:00', '09:30:00', 'cancelled', 'refunded', '2026-06-08 09:21:24', '2026-06-08 09:30:44', 'SYS_TIMEOUT_ADMIN', 'TXN-6DD34D71', 'test', NULL, NULL, '2026-06-08 01:06:24'),
-(20000039, '242DT2430C', 'MSMR3014', '2026-06-08', '09:00:00', '09:30:00', 'cancelled', 'refunded', '2026-06-08 09:21:44', '2026-06-08 09:30:44', 'SYS_TIMEOUT_ADMIN', 'TXN-97EC9959', 'test', NULL, NULL, '2026-06-08 01:06:44'),
-(20000040, '242DT2429C', 'MSMX2002', '2026-06-30', '10:30:00', '11:30:00', 'pending', 'paid', '2026-06-10 10:28:55', NULL, NULL, 'TXN-0C145680', 'Group discussion', NULL, NULL, '2026-06-10 02:13:55');
+INSERT INTO `booking` (`bid`, `uid`, `vid`, `date_booked`, `time_start`, `time_end`, `status`, `payment_status`, `payment_method`, `payment_due_at`, `cancelled_at`, `cancel_reason`, `transaction_ref`, `paid_at`, `purpose`, `aid`, `approve_date`, `created_at`) VALUES
+(20000014, '242DT2430C', 'MSMR2016', '2026-04-29', '13:30:00', '14:30:00', 'completed', 'paid', NULL, NULL, NULL, NULL, 'TXN-9203A980', NULL, 'test', 8002, '2026-04-29 12:44:41', '2026-04-28 17:31:13'),
+(20000015, '242DT2429C', 'MSMR2016', '2026-07-02', '11:00:00', '14:30:00', 'cancelled', 'unpaid', NULL, '2026-05-06 10:48:41', '2026-06-03 10:21:14', 'Payment deadline expired', NULL, NULL, 'test', NULL, NULL, '2026-05-06 02:33:41'),
+(20000016, '242DT2429C', 'MSMR2016', '2026-05-08', '09:30:00', '10:30:00', 'cancelled', 'unpaid', NULL, '2026-05-06 10:48:52', '2026-06-03 10:21:14', 'Payment deadline expired', NULL, NULL, 'test', NULL, NULL, '2026-05-06 02:33:52'),
+(20000017, '242DT2421C', 'MSMR2016', '2026-05-06', '16:30:00', '18:30:00', 'completed', 'paid', NULL, NULL, NULL, NULL, 'TXN-C80129AA', NULL, 'Discussion', 8000, '2026-05-06 14:47:59', '2026-05-06 06:33:38'),
+(20000018, '242DT2429C', 'MSMR2016', '2026-05-07', '16:30:00', '17:30:00', 'rejected', 'paid', NULL, NULL, NULL, NULL, 'TXN-7538644A', NULL, 'teae', NULL, NULL, '2026-05-06 06:45:07'),
+(20000019, '242DT2429C', 'MSMX0003', '2026-05-13', '12:30:00', '18:30:00', 'rejected', 'paid', NULL, NULL, NULL, NULL, 'TXN-WO89K1Z6', NULL, 'For large event discussion', NULL, NULL, '2026-05-11 10:42:36'),
+(20000020, '242DT2429C', 'MSMX2001', '2026-05-16', '09:00:00', '10:30:00', 'completed', 'paid', NULL, NULL, NULL, NULL, 'TXN-D5TU789Q', NULL, 'For project video recording', 8002, '2026-05-12 08:37:40', '2026-05-11 10:44:26'),
+(20000021, '242DT2431X', 'MSMR2012', '2026-05-19', '18:30:00', '19:30:00', 'completed', 'paid', NULL, NULL, NULL, NULL, 'TXN-156FD6DE', NULL, 'test semester', NULL, NULL, '2026-05-19 10:38:54'),
+(20000022, '242DT2431X', 'MSMR2012', '2026-05-19', '20:00:00', '21:00:00', 'rejected', 'paid', NULL, NULL, NULL, NULL, NULL, NULL, 'test123', NULL, NULL, '2026-05-19 11:56:40'),
+(20000023, '242DT2431X', 'MSMR2012', '2026-05-19', '21:00:00', '22:00:00', 'cancelled', 'unpaid', NULL, '2026-05-19 20:12:29', '2026-06-03 10:21:14', 'Payment deadline expired', NULL, NULL, 'test123', NULL, NULL, '2026-05-19 11:57:29'),
+(20000024, '242DT2431X', 'MSMR2012', '2026-05-19', '22:00:00', '22:30:00', 'cancelled', 'unpaid', NULL, '2026-05-19 20:13:43', '2026-06-03 10:21:14', 'Payment deadline expired', NULL, NULL, 'test123', NULL, NULL, '2026-05-19 11:58:43'),
+(20000025, '242DT2431X', 'MSMR2012', '2026-05-19', '22:30:00', '23:00:00', 'cancelled', 'unpaid', NULL, '2026-05-19 20:14:14', '2026-06-03 10:21:14', 'Payment deadline expired', NULL, NULL, 'test123', NULL, NULL, '2026-05-19 11:59:14'),
+(20000026, '242DT2431X', 'MSMR2012', '2026-05-19', '23:00:00', '23:30:00', 'cancelled', 'unpaid', NULL, '2026-05-19 20:16:59', '2026-06-03 10:21:14', 'Payment deadline expired', NULL, NULL, 'test123', NULL, NULL, '2026-05-19 12:01:59'),
+(20000027, '242DT2431X', 'MSMR2012', '2026-05-19', '23:30:00', '00:00:00', 'rejected', 'paid', NULL, NULL, NULL, NULL, 'TXN-72711AB7', NULL, 'test123', NULL, NULL, '2026-05-19 12:02:44'),
+(20000028, '242DT2431X', 'MSMR2013', '2026-05-19', '20:00:00', '20:30:00', 'cancelled', 'unpaid', NULL, '2026-05-19 20:18:13', '2026-06-03 10:21:14', 'Payment deadline expired', NULL, NULL, 'test123', NULL, NULL, '2026-05-19 12:03:13'),
+(20000029, '242DT2431X', 'MSMR2013', '2026-05-19', '20:30:00', '21:00:00', 'cancelled', 'unpaid', NULL, '2026-05-19 20:19:08', '2026-06-03 10:21:14', 'Payment deadline expired', NULL, NULL, 'test123', NULL, NULL, '2026-05-19 12:04:08'),
+(20000030, '242DT2431X', 'MSMX0001', '2026-05-20', '14:30:00', '15:30:00', 'completed', 'paid', NULL, NULL, NULL, NULL, NULL, NULL, 'ter', NULL, NULL, '2026-05-20 06:33:59'),
+(20000031, '242DT2431X', 'MSMX0001', '2026-05-20', '15:30:00', '16:00:00', 'cancelled', 'unpaid', NULL, NULL, NULL, NULL, NULL, NULL, 'ter', NULL, NULL, '2026-05-20 06:35:07'),
+(20000032, '242DT2429C', 'MSMX0001', '2026-06-17', '10:30:00', '12:00:00', 'cancelled', 'unpaid', NULL, NULL, NULL, NULL, NULL, NULL, 'test', NULL, NULL, '2026-06-03 02:02:21'),
+(20000033, '242DT2429C', 'MSMX0001', '2026-06-17', '13:30:00', '15:00:00', 'cancelled', 'unpaid', NULL, '2026-06-03 10:23:05', '2026-06-03 10:23:09', 'Payment deadline expired', NULL, NULL, 'test', NULL, NULL, '2026-06-03 02:08:05'),
+(20000034, '242DT2430C', 'MSMX0001', '2026-06-08', '12:00:00', '12:30:00', 'completed', 'paid', NULL, '2026-06-08 09:19:49', NULL, NULL, 'TXN-43338C76', NULL, 'test', 8000, '2026-06-08 09:05:04', '2026-06-08 01:04:49'),
+(20000035, '242DT2430C', 'MSMX0002', '2026-06-08', '09:00:00', '09:30:00', 'rejected', 'paid', NULL, '2026-06-08 09:20:25', NULL, NULL, 'TXN-283F5585', NULL, 'test', 8000, '2026-06-08 09:10:25', '2026-06-08 01:05:25'),
+(20000036, '242DT2430C', 'MSMX0003', '2026-06-08', '09:00:00', '09:30:00', 'cancelled', 'refunded', NULL, '2026-06-08 09:20:45', '2026-06-08 09:30:44', 'SYS_TIMEOUT_ADMIN', 'TXN-07BD9FA5', NULL, 'test', NULL, NULL, '2026-06-08 01:05:45'),
+(20000037, '242DT2430C', 'MSMX2002', '2026-06-08', '09:00:00', '09:30:00', 'cancelled', 'refunded', NULL, '2026-06-08 09:21:04', '2026-06-08 09:30:44', 'SYS_TIMEOUT_ADMIN', 'TXN-52A14C22', NULL, 'test', NULL, NULL, '2026-06-08 01:06:04'),
+(20000038, '242DT2430C', 'MSMX2003', '2026-06-08', '09:00:00', '09:30:00', 'cancelled', 'refunded', NULL, '2026-06-08 09:21:24', '2026-06-08 09:30:44', 'SYS_TIMEOUT_ADMIN', 'TXN-6DD34D71', NULL, 'test', NULL, NULL, '2026-06-08 01:06:24'),
+(20000039, '242DT2430C', 'MSMR3014', '2026-06-08', '09:00:00', '09:30:00', 'cancelled', 'refunded', NULL, '2026-06-08 09:21:44', '2026-06-08 09:30:44', 'SYS_TIMEOUT_ADMIN', 'TXN-97EC9959', NULL, 'test', NULL, NULL, '2026-06-08 01:06:44'),
+(20000040, '242DT2429C', 'MSMX2002', '2026-06-30', '10:30:00', '11:30:00', 'completed', 'paid', NULL, '2026-06-10 10:28:55', NULL, NULL, 'TXN-0C145680', NULL, 'Group discussion', 8000, '2026-06-10 14:07:28', '2026-06-10 02:13:55'),
+(20000045, '242DT2429C', 'MSMX0002', '2026-06-10', '13:00:00', '14:00:00', 'completed', 'paid', NULL, '2026-06-10 12:58:26', NULL, NULL, 'TXN-57FC36A8', NULL, 'teae', 8002, '2026-06-10 12:47:21', '2026-06-10 04:43:26'),
+(20000046, '242DT2429C', 'MSMR2016', '2026-06-11', '10:30:00', '11:30:00', 'rejected', 'refunded', 'card', '2026-06-10 13:47:04', NULL, NULL, 'TXN-CARD-EABF7154', '2026-06-10 13:32:45', 'Group discussion', 8000, '2026-06-10 14:07:34', '2026-06-10 05:32:04'),
+(20000047, '242DT2429C', 'MSMR3016', '2026-06-27', '13:00:00', '14:00:00', 'cancelled', 'unpaid', NULL, '2026-06-10 13:48:06', '2026-06-10 13:48:59', 'Payment deadline expired', NULL, NULL, 'Group discussion', NULL, NULL, '2026-06-10 05:33:06'),
+(20000048, '242DT2429C', 'MSMR2012', '2026-07-12', '13:00:00', '14:00:00', 'rejected', 'refunded', 'tng', '2026-06-10 14:00:13', NULL, NULL, 'TXN-TNG-4D2B377F', '2026-06-10 13:49:00', 'Group discussion', 8013, '2026-06-10 15:27:45', '2026-06-10 05:45:13'),
+(20000049, '242DT2429C', 'MSMR3014', '2026-06-29', '12:30:00', '13:30:00', 'pending', 'paid', 'tng', '2026-06-10 14:06:04', NULL, NULL, 'TXN-TNG-E0F1050C', '2026-06-10 13:51:44', 'Group discussion', NULL, NULL, '2026-06-10 05:51:04'),
+(20000050, '242DT2429C', 'MSMR2016', '2026-06-10', '15:00:00', '16:00:00', 'approved', 'paid', 'tng', '2026-06-10 15:29:57', NULL, NULL, 'TXN-TNG-CB37DDB1', '2026-06-10 15:17:04', 'test', 8013, '2026-06-10 15:27:39', '2026-06-10 07:14:57');
 
 -- --------------------------------------------------------
 
@@ -161,6 +169,14 @@ CREATE TABLE `damage_report` (
   `admin_remark` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `damage_report`
+--
+
+INSERT INTO `damage_report` (`report_id`, `bid`, `uid`, `vid`, `damage_description`, `damage_photo`, `report_status`, `admin_remark`, `created_at`) VALUES
+(1, 20000045, '242DT2429C', 'MSMX0002', 'The mic was not function.', 'damage_20000045_1781069384.png', 'submitted', NULL, '2026-06-10 05:29:44'),
+(2, 20000040, '242DT2429C', 'MSMX2002', 'test', NULL, 'submitted', NULL, '2026-06-10 06:56:39');
 
 -- --------------------------------------------------------
 
@@ -186,7 +202,9 @@ CREATE TABLE `inspection` (
 INSERT INTO `inspection` (`ins_id`, `bid`, `sid`, `ins_status`, `damage_desc`, `damage_cost`, `penalty`, `inspected_at`) VALUES
 (30000009, 20000014, 9000, 'failed', '', 0.00, 0.00, NULL),
 (30000012, 20000021, 9000, 'passed', 'SYS_TIMEOUT_24H_RELEASE', 0.00, 0.00, '2026-06-09 20:09:05'),
-(30000013, 20000034, 9000, 'passed', 'SYS_TIMEOUT_24H_RELEASE', 0.00, 0.00, '2026-06-09 20:09:05');
+(30000013, 20000034, 9000, 'passed', 'SYS_TIMEOUT_24H_RELEASE', 0.00, 0.00, '2026-06-09 20:09:05'),
+(30000014, 20000045, 9000, 'failed', 'test', 0.00, 100.00, '2026-06-10 14:09:09'),
+(30000015, 20000050, 9000, 'pending', NULL, 0.00, 0.00, NULL);
 
 -- --------------------------------------------------------
 
@@ -220,12 +238,8 @@ CREATE TABLE `password_resets` (
 --
 
 INSERT INTO `password_resets` (`id`, `email`, `token_hash`, `expires_at`, `created_at`) VALUES
-(1, 'LIM.LI.GUAN@student.mmu.edu.my', '677530785bd3ba7e88139db31a496d5182f0023c446b1607954fc59b41c7add6', '2026-06-02 15:30:36', '2026-06-02 12:30:36'),
-(2, 'LIM.LI.GUAN@student.mmu.edu.my', 'f81fd734f7636cfe63354d02cb14c831b92df122a6b17ac253dc5fce6de98a4c', '2026-06-02 15:39:40', '2026-06-02 12:39:40'),
-(3, 'LIM.LI.GUAN@student.mmu.edu.my', '10e575daba5adaaf497e7e9d42b62e3ea6d7209089265e0fc20b8f62d5363146', '2026-06-02 15:46:25', '2026-06-02 12:46:25'),
-(4, 'LIM.LI.GUAN@student.mmu.edu.my', 'e514242ab64de08b0f721070a6055d542f1e8d874947001def602aafc18fd284', '2026-06-02 15:46:45', '2026-06-02 12:46:45'),
-(6, 'LIM.LI.GUAN@student.mmu.edu.my', '3fc9278fb637d746f0f6c855fc45b00d1b3b11de38e624098e3f32ffdb76323c', '2026-06-02 16:02:19', '2026-06-02 13:02:19'),
-(7, 'LIM.LI.GUAN@student.mmu.edu.my', '967dbf77994d3375ee6a8a7fcca440838938e6f6ded7ab487021c858b1ddbdd3', '2026-06-02 16:02:45', '2026-06-02 13:02:45');
+(14, 'kam.jia.sheng@student.mmu.edu.my', '71fb9b04a25d37178b5c14af256b4243264f8990b7827e5adfb5d3304352678e', '2026-06-10 16:24:36', '2026-06-10 07:24:36'),
+(16, 'SA@mmu.edu.my', '650768a287cb19666e3f8849c3199b203cb456828c1217e0028af45a04e7841b', '2026-06-10 16:55:00', '2026-06-10 07:55:00');
 
 -- --------------------------------------------------------
 
@@ -249,7 +263,8 @@ CREATE TABLE `report` (
 INSERT INTO `report` (`rid`, `ins_id`, `final_deduct`, `refund_status`, `penalty_status`, `created_at`) VALUES
 (40000004, 30000009, 0.00, '', 'none', '0000-00-00'),
 (40000005, 30000012, 0.00, 'pending', 'none', '2026-06-09'),
-(40000006, 30000013, 0.00, 'pending', 'none', '2026-06-09');
+(40000006, 30000013, 0.00, 'pending', 'none', '2026-06-09'),
+(40000008, 30000014, 100.00, 'none', 'pending', '2026-06-10');
 
 -- --------------------------------------------------------
 
@@ -296,7 +311,8 @@ CREATE TABLE `staff` (
 --
 
 INSERT INTO `staff` (`sid`, `staff_name`, `email`, `password`, `phone_num`, `profile_pic`, `position`, `status`, `created_at`) VALUES
-(9000, 'Vikram', 'vikram@gmail.com', '$2y$10$hU8obf2c0SE317q2FH1Qs.sWcrUC3MneI6SKOOYTq2ux7AiouOzsO', '0122233456', '', 'inspector', 'active', '2026-04-28 15:25:58');
+(9000, 'Vikram', 'vikram@gmail.com', '$2y$10$hU8obf2c0SE317q2FH1Qs.sWcrUC3MneI6SKOOYTq2ux7AiouOzsO', '0122233456', '', 'inspector', 'active', '2026-04-28 15:25:58'),
+(9002, 'Lim', 'LIM.LI.GUAN@student.mmu.edu.my', '$2y$10$Lnwb9IVO8evOBd4ro8yyx.Jf3EMjSHs1TRqYqZxV17AU3h8KMnyvq', '0112334456', '', 'inspector', 'active', '2026-06-10 07:48:44');
 
 -- --------------------------------------------------------
 
@@ -322,7 +338,8 @@ CREATE TABLE `user` (
 
 INSERT INTO `user` (`uid`, `username`, `email`, `password`, `phone_num`, `profile_pic`, `outstanding_debt`, `account_status`, `created_at`) VALUES
 ('242DT2421C', 'test', 'test@gmail.com', '$2y$10$TjGMkbwlVVQO.fRym2HgAOWAv3yrUL3/a0GyZjYu5LwPZZjRg6wmm', '01241241124', '', 0.00, 'active', '2026-05-06 06:21:11'),
-('242DT2429C', 'KamJS', 'kam@gmail.com', '$2y$10$b9IdO4GLAwsebemQD0x1Q.MKQL1UlyAn6ZhVyKtRkbYRghAbt4VMC', '01156811078', '', 0.00, 'active', '2026-05-05 02:46:08'),
+('242DT2429C', 'KamJS', 'kam@gmail.com', '$2y$10$b9IdO4GLAwsebemQD0x1Q.MKQL1UlyAn6ZhVyKtRkbYRghAbt4VMC', '01156811078', '', 80.00, 'active', '2026-05-05 02:46:08'),
+('242DT242CL', 'KamJS', 'kam.jia.sheng@student.mmu.edu.my', '$2y$10$5SH.S0PrucSvkhJg6Mcdwe5OX/WTcibTOZ62ftvc8j1grDGyTbzFq', '01234567533', 'uploads/1781073919_0.jpg', 0.00, 'active', '2026-06-10 06:41:41'),
 ('242DT2430C', 'LIM', 'Lim@gmail.com', '$2y$10$7sFovpK/duwjvV1jbwrfROmzxvURhuIXPJfEj5t3ePzg3j4vmqnOO', '0122233456', '', 0.00, 'active', '2026-04-28 14:04:09'),
 ('242DT2431X', 'TestLim', 'TestLim@gmail.com', '$2y$10$IHgP9mcLA6Rc0Akf5rVUC.ZHUO2rYaNemocPx75QsXLtntTZXJDSG', '01223456789', '', 0.00, 'active', '2026-05-19 10:37:54'),
 ('242DT245Y6', 'Frank', 'kai@student.mmu.edu.my', '$2y$10$aM1vOkGZ/5mKORZGGsxWCOfWYZkoOhDDbQV.gyBZa5m/lH9u1Lt5C', '0112334456', '', 0.00, 'active', '2026-05-06 06:17:40'),
@@ -371,6 +388,7 @@ CREATE TABLE `venue` (
 --
 
 INSERT INTO `venue` (`vid`, `vname`, `vcid`, `max_cap`, `deposit`, `status`, `description`) VALUES
+('MBMR4015', 'Discussion Room C1', 1, 30, 10.00, 'available', ''),
 ('MSMR2012', 'Tutorial Room B5', 1, 25, 5.00, 'available', 'A small room which is good for small group discussion.'),
 ('MSMR2013', 'Tutorial Room B4', 1, 40, 5.00, 'available', 'A small room which is good for small group discussion.'),
 ('MSMR2014', 'Tutorial Room B3', 1, 35, 5.00, 'available', 'A small room which is good for small group discussion.'),
@@ -387,7 +405,8 @@ INSERT INTO `venue` (`vid`, `vname`, `vcid`, `max_cap`, `deposit`, `status`, `de
 ('MSMX0004', 'Lecture Hall A4', 3, 380, 20.00, 'maintenance', 'A large hall for large events and exams.'),
 ('MSMX2001', 'Lecture Hall B1', 2, 100, 10.00, 'maintenance', 'Lecture hall that can accommodate 100 people.'),
 ('MSMX2002', 'Lecture Hall B2', 2, 90, 10.00, 'available', 'Lecture hall that can accommodate 90 people.'),
-('MSMX2003', 'Lecture Hall B3', 2, 100, 10.00, 'available', 'A lecture hall with 100 person of capacity.');
+('MSMX2003', 'Lecture Hall B3', 2, 100, 10.00, 'available', 'A lecture hall with 100 person of capacity.'),
+('TEST1000', 'test', 1, 20, 5.00, 'available', '');
 
 -- --------------------------------------------------------
 
@@ -581,31 +600,31 @@ ALTER TABLE `vpic`
 -- AUTO_INCREMENT for table `academic_schedule`
 --
 ALTER TABLE `academic_schedule`
-  MODIFY `sch_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
+  MODIFY `sch_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=65;
 
 --
 -- AUTO_INCREMENT for table `admin`
 --
 ALTER TABLE `admin`
-  MODIFY `aid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8011;
+  MODIFY `aid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8014;
 
 --
 -- AUTO_INCREMENT for table `booking`
 --
 ALTER TABLE `booking`
-  MODIFY `bid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20000041;
+  MODIFY `bid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20000051;
 
 --
 -- AUTO_INCREMENT for table `damage_report`
 --
 ALTER TABLE `damage_report`
-  MODIFY `report_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `report_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `inspection`
 --
 ALTER TABLE `inspection`
-  MODIFY `ins_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30000014;
+  MODIFY `ins_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30000016;
 
 --
 -- AUTO_INCREMENT for table `inspic`
@@ -617,25 +636,25 @@ ALTER TABLE `inspic`
 -- AUTO_INCREMENT for table `password_resets`
 --
 ALTER TABLE `password_resets`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `report`
 --
 ALTER TABLE `report`
-  MODIFY `rid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40000008;
+  MODIFY `rid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40000009;
 
 --
 -- AUTO_INCREMENT for table `staff`
 --
 ALTER TABLE `staff`
-  MODIFY `sid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9001;
+  MODIFY `sid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9003;
 
 --
 -- AUTO_INCREMENT for table `vcategory`
 --
 ALTER TABLE `vcategory`
-  MODIFY `vcid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `vcid` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `vpic`
