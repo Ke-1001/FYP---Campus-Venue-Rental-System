@@ -45,7 +45,7 @@ if (isset($conn)) {
     .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 </style>
 
-<aside id="system-sidebar" class="mmu-sidebar bg-[#1e293b] text-white flex flex-col shadow-xl z-20 shrink-0 border-r border-slate-800">
+<aside id="system-sidebar" class="sidebar bg-[#1e293b] text-white flex flex-col shadow-xl z-20 shrink-0 border-r border-slate-800">
     
     <div class="brand-header h-16 flex items-center px-5 border-b border-slate-700/50 shrink-0 transition-all bg-[#0f172a]/30">
         <span class="text-sm font-black tracking-widest text-slate-100 uppercase brand-text">CVBMS Admin</span>

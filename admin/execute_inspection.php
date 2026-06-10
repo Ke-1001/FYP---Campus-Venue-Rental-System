@@ -1,262 +1,247 @@
 <?php
 // File: admin/execute_inspection.php
 session_start();
-require_once '../config/db.php';
-require_once '../includes/admin_auth.php';
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/admin_auth.php';
 
+// ∴ 嚴格引入倉儲依賴 (Zero-SQL Principle)
+require_once __DIR__ . '/../core/repositories/InspectionRepository.php';
+use Core\Repositories\InspectionRepository;
+
+/*
+|--------------------------------------------------------------------------
+| I: Repository Initialization & Identifier Validation
+|--------------------------------------------------------------------------
+*/
+$inspectionRepo = new InspectionRepository($conn);
 $bid = intval($_GET['bid'] ?? 0);
 
 if ($bid === 0) {
-    die("Invalid Booking Identifier.");
+    die("Execution Fault: Invalid Booking Identifier.");
 }
 
-// 💡 1. 提取核心詳情：引入 vcategory 解決崩潰
-$sql = "SELECT 
-            b.*, u.username, v.vname, v.deposit, vc.category AS venue_category,
-            i.ins_id, s.staff_name AS inspector_name
-        FROM inspection i
-        JOIN booking b ON i.bid = b.bid
-        JOIN user u ON b.uid = u.uid
-        JOIN venue v ON b.vid = v.vid
-        JOIN vcategory vc ON v.vcid = vc.vcid
-        JOIN staff s ON i.sid = s.sid
-        WHERE b.bid = ? AND i.ins_status = 'pending'";
-
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $bid);
-$stmt->execute();
-$data = $stmt->get_result()->fetch_assoc();
+/*
+|--------------------------------------------------------------------------
+| D: Data Extraction & Spatiotemporal Validation (Backend Shield)
+|--------------------------------------------------------------------------
+*/
+$data = $inspectionRepo->getPendingInspectionDetailById($bid);
 
 if (!$data) {
-    die("No pending inspection record found for this ID.");
+    die("Execution Fault: No pending inspection record found for this Reference ID.");
 }
+
+// 💡 伺服器端時空防護機制 (若非 Ready，立即觸發 HTTP 302 遣返)
+$tz = new DateTimeZone('Asia/Kuala_Lumpur');
+$now = new DateTime('now', $tz);
+$start_dt = new DateTime($data['date_booked'] . ' ' . $data['time_start'], $tz);
+$end_dt = new DateTime($data['date_booked'] . ' ' . $data['time_end'], $tz);
+
+$execution_state = 'awaiting';
+if ($now >= $end_dt || $data['status'] === 'completed') {
+    $execution_state = 'ready';
+} elseif ($now >= $start_dt && $now < $end_dt) {
+    $execution_state = 'in_use';
+}
+
+if ($execution_state !== 'ready') {
+    header("Location: pending_inspections.php?err=temporal&state=" . urlencode($execution_state));
+    exit;
+}
+
+/*
+|--------------------------------------------------------------------------
+| C: Configuration Definitions
+|--------------------------------------------------------------------------
+*/
+$page_title = "Execute Assessment";
+$page_description = "Conduct post-usage verification and deposit settlement.";
+$topbar_content = '
+<div class="flex items-center">
+    <a href="pending_inspections.php" class="text-sm font-bold text-[#004aad] hover:text-[#003882] flex items-center mr-4 transition-colors">
+        <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i> Back
+    </a>
+    <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Operations / Execute Inspection / BID: ' . $bid . '</h2>
+</div>';
+
+$extra_css = ["../assets/css/fiori_forms.css"];
+
+require_once __DIR__ . '/../core/components/FioriFormBuilder.php';
+use Core\Components\FioriFormBuilder as FB;
+
+/*
+|--------------------------------------------------------------------------
+| V: View Rendering (State Binding via Builder)
+|--------------------------------------------------------------------------
+*/
+ob_start();
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>MMU Admin | Execute Assessment</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script>
-        tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b' } } } } }
-    </script>
-    <link rel="stylesheet" href="../assets/css/layout.css?v=1.2">
-    <link rel="stylesheet" href="../assets/css/fiori_forms.css">
-</head>
-<body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
 
-    <?php include('../includes/admin_sidebar.php'); ?>
+<form action="../actions/process_inspection.php" method="POST" id="inspectionForm" class="bg-white rounded-lg shadow-sm border border-slate-200 relative mb-20">
+    <input type="hidden" name="bid" value="<?php echo htmlspecialchars($bid); ?>">
 
-    <main class="flex-1 flex flex-col h-screen overflow-hidden bg-[#f4f4f4] relative">
-        
-        <header class="h-16 glass-panel border-b border-slate-200 flex items-center justify-between px-6 z-10 shrink-0 bg-white">
-            <?php 
-            $topbar_content = '
-            <div class="flex items-center">
-                <a href="pending_inspections.php" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 flex items-center mr-4 transition-colors">
-                    <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i> Back
-                </a>
-                <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Operations / Execute Inspection</h2>
-            </div>';
-            include('../includes/admin_topbar.php'); 
-            ?>
-        </header>
+    <div class="p-0">
+        <div class="fiori-form-container">
+            <div class="fiori-section-header">
+                <h2 class="text-base font-bold text-[#1d2d3e]">Post-Usage Assessment Protocol</h2>
+            </div>
 
-        <form action="../actions/process_inspection.php" method="POST" id="inspectionForm" onsubmit="return validateInspectionForm()" class="flex-1 flex flex-col overflow-hidden">
-            <input type="hidden" name="bid" value="<?php echo htmlspecialchars($bid); ?>">
-
-            <div class="flex-1 overflow-y-auto p-4 md:p-8">
-
-            <div class="flex-1 overflow-y-auto p-4 md:p-8">
-                <div class="bg-white border border-slate-200 rounded-lg shadow-sm">
+            <div class="p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                <div class="lg:col-span-6 space-y-4">
+                    <h3 class="text-sm font-bold text-[#1d2d3e] mb-4">Reference Context (Read-Only)</h3>
                     
-                    <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-white">
-                        <h2 class="text-base font-bold text-slate-800">Post-Usage Assessment</h2>
+                    <?php 
+                    $readOnlyProps = ['readonly' => true, 'extra_css' => 'bg-slate-50 text-slate-500 cursor-not-allowed'];
+
+                    echo FB::input('text', 'disp_vname', 'Venue Details', $data['vname'] . ' [' . $data['venue_category'] . ']', $readOnlyProps);
+                    echo FB::input('text', 'disp_user', 'Allocated User', $data['username'], $readOnlyProps);
+                    echo FB::input('text', 'disp_inspector', 'Assigned Inspector', $data['inspector_name'], [
+                        'readonly' => true,
+                        'extra_css' => 'bg-slate-50 text-indigo-700 font-bold cursor-not-allowed'
+                    ]);
+                    echo FB::input('text', 'disp_deposit', 'Held Deposit', number_format($data['deposit'], 2), [
+                        'readonly' => true,
+                        'prefix' => 'RM',
+                        'extra_css' => 'bg-slate-50 text-emerald-700 font-bold font-mono cursor-not-allowed'
+                    ]);
+                    ?>
+                </div>
+
+                <div class="lg:col-span-6 space-y-4">
+                    <h3 class="text-sm font-bold text-[#1d2d3e] mb-4">Assessment Submission</h3>
+                    
+                    <?php 
+                    echo FB::select('ins_status', 'Final Condition', [
+                        'passed' => 'Passed (Perfect Condition - Full Refund)',
+                        'failed' => 'Failed (Damages/Dirty - Apply Penalties)'
+                    ], 'passed', [
+                        'required' => true,
+                        'extra_css' => 'font-bold text-emerald-600 border-emerald-300 focus:border-emerald-500'
+                    ]);
+                    ?>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Observations</label>
+                        <textarea name="damage_desc" id="damage_desc" rows="3" class="fiori-input w-full resize-none p-3 transition-colors focus:ring-2 focus:ring-[#004aad]/20 focus:border-[#004aad] outline-none rounded-md border border-slate-300"></textarea>
                     </div>
 
-                    <div class="p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
-                        
-                        <div class="lg:col-span-6 space-y-4">
-                            <h3 class="text-sm font-bold text-slate-800 mb-4">Reference Context</h3>
-                            
-                            <div class="grid grid-cols-3 gap-4 items-center">
-                                <label class="col-span-1 text-sm text-fiori-label">Venue Details:</label>
-                                <div class="col-span-2">
-                                    <input type="text" value="<?php echo htmlspecialchars($data['vname']); ?> [<?php echo htmlspecialchars($data['venue_category']); ?>]" class="fiori-input fiori-readonly" readonly>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-3 gap-4 items-center">
-                                <label class="col-span-1 text-sm text-fiori-label">Allocated User:</label>
-                                <div class="col-span-2">
-                                    <input type="text" value="<?php echo htmlspecialchars($data['username']); ?>" class="fiori-input fiori-readonly" readonly>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-3 gap-4 items-center border-b border-slate-100 pb-4">
-                                <label class="col-span-1 text-sm text-fiori-label">Inspector:</label>
-                                <div class="col-span-2">
-                                    <input type="text" value="<?php echo htmlspecialchars($data['inspector_name']); ?>" class="fiori-input fiori-readonly text-indigo-700 font-bold" readonly>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-3 gap-4 items-center pt-2">
-                                <label class="col-span-1 text-sm text-fiori-label">Held Deposit:</label>
-                                <div class="col-span-2 relative">
-                                    <span class="absolute left-3 top-2.5 text-sm text-emerald-600 font-bold">RM</span>
-                                    <input type="text" value="<?php echo number_format($data['deposit'], 2); ?>" class="fiori-input fiori-readonly pl-10 text-emerald-700 font-bold" readonly>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="lg:col-span-6 space-y-4">
-                            <h3 class="text-sm font-bold text-slate-800 mb-4">Assessment Submission</h3>
-                            
-                            <div class="grid grid-cols-3 gap-4 items-center">
-                                <label class="col-span-1 text-sm text-fiori-label">Final Condition:</label>
-                                <div class="col-span-2 relative">
-                                    <select name="ins_status" id="ins_status" required onchange="syncPenaltyFields()" class="fiori-input appearance-none pr-8 bg-white cursor-pointer font-bold transition-colors">
-                                        <option value="passed" class="text-emerald-600">Passed (Perfect Condition - Full Refund)</option>
-                                        <option value="failed" class="text-red-600">Failed (Damages/Dirty - Apply Penalties)</option>
-                                    </select>
-                                    <i data-lucide="chevron-down" class="w-4 h-4 text-fiori-label absolute right-2 top-2 pointer-events-none"></i>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-3 gap-4 items-start">
-                                <label class="col-span-1 text-sm text-fiori-label mt-2">Observations:</label>
-                                <div class="col-span-2">
-                                    <textarea name="damage_desc" id="damage_desc" rows="3" class="fiori-input w-full resize-none p-3"></textarea>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-3 gap-4 items-center">
-                                <label class="col-span-1 text-sm text-fiori-label leading-tight">Assessed Penalty<br><span class="text-[10px] font-normal opacity-70">(Held Deposit: RM <?php echo number_format($data['deposit'], 2); ?>)</span></label>
-                                <div class="col-span-2 relative">
-                                    <span class="absolute left-3 top-2.5 text-sm text-slate-400 font-bold">RM</span>
-                                    <input type="number" name="penalty" id="penalty" step="0.01" min="0" value="0.00" class="fiori-input font-mono pl-10 text-red-600 font-bold">
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
+                    <?php
+                    // ∴ 移除了 PHP 端的 readonly，純粹由 JS 進行狀態管理
+                    echo FB::input('number', 'penalty', 'Assessed Penalty (RM)', '0.00', [
+                        'step' => '0.01', 
+                        'min' => '0', 
+                        'prefix' => 'RM',
+                        'extra_css' => 'font-mono transition-colors'
+                    ]);
+                    ?>
                 </div>
-            </div>
 
-            <div class="border-t border-slate-200 bg-white px-6 py-3 flex justify-end space-x-2 shrink-0 z-20 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
-                <button type="button" onclick="window.location.href='pending_inspections.php'" class="px-5 py-2 text-sm font-bold text-indigo-600 hover:bg-indigo-50 rounded transition-colors">
-                    Cancel
-                </button>
-                <button type="submit" id="submit-btn" class="px-5 py-2 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded transition-colors shadow-sm">
-                    Finalize Settle
-                </button>
-            </div>
-
-        </form>
-    </main>
-    <div id="validation-modal" class="fixed inset-0 z-[100] hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center transition-opacity opacity-0">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform scale-95 transition-transform" id="validation-panel">
-            <div class="p-6 text-center">
-                <div class="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
-                    <i data-lucide="alert-octagon" class="w-7 h-7 text-red-600"></i>
-                </div>
-                <h3 class="text-lg font-extrabold text-slate-800 mb-2">Validation Incomplete</h3>
-                <p id="validation-msg" class="text-sm text-slate-600 font-medium leading-relaxed"></p>
-            </div>
-            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-center">
-                <button type="button" onclick="closeValidationModal()" class="w-full py-2.5 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors shadow-sm active:scale-95">
-                    Acknowledge
-                </button>
             </div>
         </div>
     </div>
 
-    <?php include('../includes/ui_components.php'); ?>
+    <div class="fixed bottom-0 right-0 w-full lg:w-[calc(100%-16rem)] bg-slate-50 border-t border-slate-200 p-4 px-6 flex justify-end space-x-3 z-50 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.1)]">
+        <button type="button" onclick="window.location.href='pending_inspections.php'" class="px-5 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors">
+            Cancel
+        </button>
+        <button type="submit" id="submit-btn" class="px-5 py-2 text-sm font-semibold text-white bg-[#004aad] rounded-md shadow-sm transition-colors flex items-center border border-[#004aad]">
+            <i data-lucide="check-circle" class="w-4 h-4 mr-2"></i> Finalize Settle
+        </button>
+    </div>
+</form>
 
-    <script>
-        lucide.createIcons();
-        function toggleSidebar() { document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed'); }
+<script>
+    // ∴ 單一事實來源狀態機 (Single Source of Truth State Machine)
+    function evaluateFormState() {
+        const selectBox = document.querySelector('select[name="ins_status"]');
+        const desc = document.getElementById('damage_desc');
+        const penalty = document.querySelector('input[name="penalty"]');
+        const btn = document.getElementById('submit-btn');
 
-        // 💡 1. 主動式按鈕狀態機 (Proactive Button State Machine)
-        function evaluateButtonState() {
-            const status = document.getElementById('ins_status').value;
-            const desc = document.getElementById('damage_desc').value.trim();
-            const penalty = parseFloat(document.getElementById('penalty').value);
-            const submitBtn = document.getElementById('submit-btn');
+        if (!selectBox || !desc || !penalty || !btn) return;
 
-            let isValid = false;
+        const status = selectBox.value;
 
-            if (status === 'passed') {
-                isValid = true;
-            } else if (status === 'failed') {
-                // 滿足條件：文本不為空 且 罰款數字合法且大於0
-                if (desc !== "" && !isNaN(penalty) && penalty > 0) {
-                    isValid = true;
-                }
-            }
+        if (status === 'passed') {
+            // 狀態 A: Passed -> 鎖定輸入框，強制歸零，解鎖按鈕
+            selectBox.classList.remove('text-red-600', 'border-red-300');
+            selectBox.classList.add('text-emerald-600', 'border-emerald-300');
 
-            // 動態映射 DOM 狀態
+            desc.readOnly = true;
+            desc.value = '';
+            desc.placeholder = "Venue is in standard condition.";
+            desc.classList.add('bg-slate-50', 'text-slate-500', 'cursor-not-allowed');
+
+            penalty.readOnly = true;
+            penalty.value = '0.00';
+            penalty.classList.remove('text-red-600', 'font-bold');
+            penalty.classList.add('bg-slate-50', 'text-slate-400', 'cursor-not-allowed');
+
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-slate-400', 'border-slate-400');
+            btn.classList.add('bg-[#004aad]', 'hover:bg-[#003882]', 'border-[#004aad]');
+
+        } else {
+            // 狀態 B: Failed -> 解鎖輸入框，要求驗證邏輯
+            selectBox.classList.remove('text-emerald-600', 'border-emerald-300');
+            selectBox.classList.add('text-red-600', 'border-red-300');
+
+            desc.readOnly = false;
+            desc.placeholder = "REQUIRED: Detail the identified issues...";
+            desc.classList.remove('bg-slate-50', 'text-slate-500', 'cursor-not-allowed');
+
+            penalty.readOnly = false;
+            penalty.classList.remove('bg-slate-50', 'text-slate-400', 'cursor-not-allowed');
+            penalty.classList.add('text-red-600', 'font-bold');
+
+            // 邏輯閘：僅當有描述且金額大於0時，才解鎖按鈕
+            const pVal = parseFloat(penalty.value);
+            const isValid = (desc.value.trim() !== '') && (!isNaN(pVal) && pVal > 0);
+
+            btn.disabled = !isValid;
             if (isValid) {
-                submitBtn.disabled = false;
-                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-slate-400');
-                submitBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+                btn.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-slate-400', 'border-slate-400');
+                btn.classList.add('bg-[#004aad]', 'hover:bg-[#003882]', 'border-[#004aad]');
             } else {
-                submitBtn.disabled = true;
-                submitBtn.classList.add('opacity-50', 'cursor-not-allowed', 'bg-slate-400');
-                submitBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
+                btn.classList.add('opacity-50', 'cursor-not-allowed', 'bg-slate-400', 'border-slate-400');
+                btn.classList.remove('bg-[#004aad]', 'hover:bg-[#003882]', 'border-[#004aad]');
             }
         }
+    }
 
-        // 💡 2. 欄位鎖定同步 (維持原有的安全邏輯)
-        function syncPenaltyFields() {
-            const status = document.getElementById('ins_status').value;
-            const desc = document.getElementById('damage_desc');
-            const penalty = document.getElementById('penalty');
+    window.addEventListener('DOMContentLoaded', () => {
+        const selectBox = document.querySelector('select[name="ins_status"]');
+        const desc = document.getElementById('damage_desc');
+        const penalty = document.querySelector('input[name="penalty"]');
 
-            if (status === 'passed') {
-                desc.readOnly = true;
-                desc.value = '';
-                desc.placeholder = "Venue is in standard condition.";
-                desc.classList.add('fiori-readonly');
-                
-                penalty.readOnly = true;
-                penalty.value = '0.00';
-                penalty.classList.add('fiori-readonly');
-            } else {
-                desc.readOnly = false;
-                desc.placeholder = "REQUIRED: Detail the identified issues...";
-                desc.classList.remove('fiori-readonly');
-                
-                penalty.readOnly = false;
-                penalty.classList.remove('fiori-readonly');
-            }
-            
-            // 每次狀態改變時，強制重新評估按鈕合法性
-            evaluateButtonState();
+        if (selectBox) selectBox.addEventListener('change', evaluateFormState);
+        if (desc) desc.addEventListener('input', evaluateFormState);
+        if (penalty) penalty.addEventListener('input', evaluateFormState);
+
+        // 初始化狀態
+        evaluateFormState();
+    });
+
+    document.getElementById('inspectionForm').addEventListener('submit', function(e) {
+        const btn = document.getElementById('submit-btn');
+        if (btn.disabled) {
+            e.preventDefault();
+            return;
         }
+        btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin mr-2 inline"></i> Processing...';
+        btn.classList.add('opacity-70', 'cursor-not-allowed', 'pointer-events-none');
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    });
+</script>
 
-        // 💡 3. 提交過渡狀態 (防止重複提交)
-        function validateInspectionForm() {
-            const submitBtn = document.getElementById('submit-btn');
-            if (submitBtn) {
-                submitBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin mr-2 inline"></i> Processing...';
-                submitBtn.classList.add('opacity-70', 'cursor-not-allowed', 'pointer-events-none');
-                lucide.createIcons();
-            }
-            return true;
-        }
-        
-        // 💡 4. 註冊實時監聽矩陣
-        window.addEventListener('DOMContentLoaded', () => {
-            // 綁定狀態機
-            document.getElementById('ins_status').addEventListener('change', syncPenaltyFields);
-            document.getElementById('damage_desc').addEventListener('input', evaluateButtonState);
-            document.getElementById('penalty').addEventListener('input', evaluateButtonState);
-            
-            // 初始化同步
-            syncPenaltyFields();
-        });
-    </script>
-</body>
-</html>
+<?php
+$page_content = ob_get_clean();
+
+/*
+|--------------------------------------------------------------------------
+| L: Global Layout Engine
+|--------------------------------------------------------------------------
+*/
+require_once __DIR__ . '/../core/layout.php';
+?>

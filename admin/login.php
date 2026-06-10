@@ -72,11 +72,18 @@ if ($admin_identifier && in_array($admin_role, ['admin', 'super_admin'], true)) 
                     <input type="password" name="password" required placeholder="Enter password" 
                            class="w-full pl-2 pr-4 py-3 bg-slate-900/50 border border-slate-700 text-white rounded-lg focus:ring-2 focus:ring-mmu-accent focus:border-mmu-accent outline-none transition-all placeholder-slate-600">
                 </div>
+                <div class="flex justify-end mt-2">
+                    <a href="forgot_password.php" class="text-xs text-white font-bold text-mmu-accent hover:text-blue-400 transition-colors">
+                        Forgot Parameters?
+                    </a>
+                </div>
             </div>
 
             <button type="submit" class="w-full mt-6 py-3.5 bg-mmu-blue hover:bg-blue-600 text-white font-bold rounded-lg transition-all shadow-lg hover:shadow-mmu-blue/30 flex justify-center items-center">
                 Log In <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
             </button>
+
+            
         </form>
     </div>
 

@@ -41,7 +41,7 @@
 /* * 基態 (Ground State): S_expanded 
  * 預設維持 16rem (256px) 的空間佔用
  */
-.mmu-sidebar {
+.sidebar {
     width: 16rem; /* 等效於 Tailwind w-64 */
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     white-space: nowrap;
@@ -53,34 +53,27 @@
  * 觸發條件：附加 .sidebar-collapsed 類別
  * 結果：寬度向量收斂至 4rem (64px)
  */
-.mmu-sidebar.sidebar-collapsed {
+.sidebar.sidebar-collapsed {
     width: 4rem; 
 }
 
-/* * 資訊熵衰減控制 (Information Entropy Attenuation)
- * 當系統進入 S_collapsed 狀態時，強制隱藏非必要的文本節點
- * 複雜度：O(1) DOM 樹查詢
- */
-.mmu-sidebar.sidebar-collapsed .nav-text,
-.mmu-sidebar.sidebar-collapsed .brand-text,
-.mmu-sidebar.sidebar-collapsed .nav-badge,
-.mmu-sidebar.sidebar-collapsed .profile-text,
-.mmu-sidebar.sidebar-collapsed .nav-header {
+.sidebar.sidebar-collapsed .nav-text,
+.sidebar.sidebar-collapsed .brand-text,
+.sidebar.sidebar-collapsed .nav-badge,
+.sidebar.sidebar-collapsed .profile-text,
+.sidebar.sidebar-collapsed .nav-header {
     display: none !important;
 }
 
-/* * 幾何向量重對齊 (Geometric Realignment)
- * 在狹窄空間內強制圖示矩陣居中，消除原有 padding 導致的偏移
- */
-.mmu-sidebar.sidebar-collapsed .nav-item,
-.mmu-sidebar.sidebar-collapsed .brand-header,
-.mmu-sidebar.sidebar-collapsed .profile-container {
+.sidebar.sidebar-collapsed .nav-item,
+.sidebar.sidebar-collapsed .brand-header,
+.sidebar.sidebar-collapsed .profile-container {
     justify-content: center !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
 }
 
-/* 確保品牌頭部在過渡期間的彈性佈局穩定 */
+
 .brand-header {
     transition: padding 0.3s ease;
 }

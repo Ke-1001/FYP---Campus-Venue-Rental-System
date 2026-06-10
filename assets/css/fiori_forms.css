@@ -25,10 +25,7 @@
     transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.fiori-form-container:hover {
-    border-color: #94a3b8; /* slate-400 */
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-}
+
 
 /* 块标头：对齐 Tile Header 的高密度文本规范 */
 .fiori-section-header {

@@ -52,5 +52,36 @@ class VenueRepository {
 
         return $this->conn->query($sql);
     }
+
+    /**
+     * 獲取單一場地實體狀態 (Fetch Entity State for Form Binding)
+     * ∴ 透過預處理語句防止 SQL 注入，並回傳實體陣列
+     */
+    public function getVenueById(string $vid): ?array {
+        $stmt = $this->conn->prepare("SELECT * FROM venue WHERE vid = ?");
+        $stmt->bind_param("s", $vid);
+        $stmt->execute();
+        $result = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
+        
+        return $result ?: null;
+    }
+
+    /**
+     * 獲取表單專用的類別字典 (Form Category Dictionary)
+     * ∴ 供 Register/Edit 表單的 Select 進行映射 (必須綁定實體外鍵 vcid)
+     */
+    public function getCategoryDictionary(): array {
+        $sql = "SELECT vcid, category FROM vcategory ORDER BY category ASC";
+        $result = $this->conn->query($sql);
+        
+        $options = [];
+        if ($result && $result->num_rows > 0) {
+            while ($row = $result->fetch_assoc()) {
+                $options[] = $row; // 輸出結構為 ['vcid' => X, 'category' => Y]
+            }
+        }
+        return $options;
+    }
 }
 ?>

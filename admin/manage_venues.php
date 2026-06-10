@@ -42,12 +42,12 @@ $kpi_available = $conn->query("SELECT COUNT(*) FROM venue WHERE status = 'availa
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
 
-                <a href="register_venue.php" class="fiori-tile">
+                <a href="manage_vcategory.php" class="fiori-tile">
                     <div class="fiori-tile-header">
-                        <h3 class="fiori-tile-title">Register Venue</h3>
+                        <h3 class="fiori-tile-title">Register Category</h3>
                         <i data-lucide="plus-square" class="w-5 h-5 fiori-tile-icon"></i>
                     </div>
-                    <p class="fiori-tile-desc">Add a new venue to the system.</p>
+                    <p class="fiori-tile-desc">Add a new venue category to the system.</p>
                     <div class="fiori-tile-kpi">
                         <i data-lucide="door-open" class="w-8 h-8 opacity-20"></i>
                     </div>
