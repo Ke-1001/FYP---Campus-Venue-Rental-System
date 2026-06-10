@@ -3,6 +3,12 @@ session_start();
 require_once '../config/db.php';
 require_once '../includes/booking_functions.php';
 
+if (!isset($_POST['agree_rules']) || $_POST['agree_rules'] !== '1') {
+    $_SESSION['error'] = "You must read and agree to the Rules and Regulations before requesting a booking.";
+    header("Location: booking_form.php?vid=" . urlencode($_POST['vid'] ?? ''));
+    exit;
+}
+
 header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

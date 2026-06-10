@@ -5,17 +5,84 @@ include("../includes/user_navbar.php");
 include("../config/db.php");
 
 $user_id = $_SESSION['uid'];
+$status_filter = trim($_GET['status'] ?? '');
+$payment_filter = trim($_GET['payment'] ?? '');
+$date_filter = trim($_GET['date_filter'] ?? '');
+$search = trim($_GET['search'] ?? '');
 
-$stmt = $conn->prepare("
-    SELECT b.bid, b.date_booked, b.status, b.payment_status, b.payment_due_at,
-           v.vname, v.vcid, v.max_cap, vc.category
+$has_filter = (
+    $status_filter !== '' ||
+    $payment_filter !== '' ||
+    $date_filter !== '' ||
+    $search !== ''
+);
+
+$count_sql = "SELECT COUNT(*) AS total FROM booking WHERE uid = ?";
+$count_stmt = $conn->prepare($count_sql);
+$count_stmt->bind_param("s", $user_id);
+$count_stmt->execute();
+$count_result = $count_stmt->get_result()->fetch_assoc();
+$total_bookings = (int)($count_result['total'] ?? 0);
+$count_stmt->close();
+
+$sql = "
+    SELECT 
+        b.bid,
+        b.date_booked,
+        b.time_start,
+        b.time_end,
+        b.status,
+        b.payment_status,
+        b.created_at,
+        v.vid,
+        v.vname,
+        v.max_cap,
+        v.deposit,
+        vc.category
     FROM booking b
     JOIN venue v ON b.vid = v.vid
     JOIN vcategory vc ON v.vcid = vc.vcid
     WHERE b.uid = ?
-    ORDER BY b.date_booked DESC
-");
-$stmt->bind_param("s", $user_id);
+";
+
+$params = [$user_id];
+$types = "s";
+
+// Filter by booking status
+if ($status_filter !== '') {
+    $sql .= " AND b.status = ?";
+    $params[] = $status_filter;
+    $types .= "s";
+}
+
+// Filter by payment status
+if ($payment_filter !== '') {
+    $sql .= " AND b.payment_status = ?";
+    $params[] = $payment_filter;
+    $types .= "s";
+}
+
+// Filter by date
+if ($date_filter === 'upcoming') {
+    $sql .= " AND b.date_booked >= CURDATE()";
+} elseif ($date_filter === 'past') {
+    $sql .= " AND b.date_booked < CURDATE()";
+}
+
+// Search by booking ID or venue name
+if ($search !== '') {
+    $sql .= " AND (CAST(b.bid AS CHAR) LIKE ? OR v.vname LIKE ? OR v.vid LIKE ?)";
+    $search_like = "%" . $search . "%";
+    $params[] = $search_like;
+    $params[] = $search_like;
+    $params[] = $search_like;
+    $types .= "sss";
+}
+
+$sql .= " ORDER BY b.date_booked DESC, b.time_start DESC";
+
+$stmt = $conn->prepare($sql);
+$stmt->bind_param($types, ...$params);
 $stmt->execute();
 $result = $stmt->get_result();
 
@@ -88,6 +155,97 @@ function formatBookingDate($date) {
                 New Booking
             </a>
         </div>
+
+        <!-- Booking Filter Section -->
+        <?php if ($total_bookings > 0): ?>
+            <form method="GET" action="my_bookings.php" id="bookingFilterForm" class="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 mb-8">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+                    <!-- Search -->
+                    <div>
+                        <label class="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">
+                            Search
+                        </label>
+                        <div class="relative">
+                            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-3"></i>
+                            <input 
+                                type="text" 
+                                name="search"
+                                id="bookingSearchInput"
+                                value="<?php echo htmlspecialchars($search); ?>"
+                                placeholder="Booking ID or venue..."
+                                class="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Status Filter -->
+                    <div>
+                        <label class="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">
+                            Booking Status
+                        </label>
+                        <select 
+                            name="status"
+                            class="auto-submit w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        >
+                            <option value="">All Status</option>
+                            <option value="pending" <?php echo ($status_filter === 'pending') ? 'selected' : ''; ?>>Pending</option>
+                            <option value="approved" <?php echo ($status_filter === 'approved') ? 'selected' : ''; ?>>Approved</option>
+                            <option value="completed" <?php echo ($status_filter === 'completed') ? 'selected' : ''; ?>>Completed</option>
+                            <option value="cancelled" <?php echo ($status_filter === 'cancelled') ? 'selected' : ''; ?>>Cancelled</option>
+                            <option value="rejected" <?php echo ($status_filter === 'rejected') ? 'selected' : ''; ?>>Rejected</option>
+                        </select>
+                    </div>
+
+                    <!-- Payment Filter -->
+                    <div>
+                        <label class="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">
+                            Payment Status
+                        </label>
+                        <select 
+                            name="payment"
+                            class="auto-submit w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        >
+                            <option value="">All Payment</option>
+                            <option value="unpaid" <?php echo ($payment_filter === 'unpaid') ? 'selected' : ''; ?>>Unpaid</option>
+                            <option value="paid" <?php echo ($payment_filter === 'paid') ? 'selected' : ''; ?>>Paid</option>
+                            <option value="refunded" <?php echo ($payment_filter === 'refunded') ? 'selected' : ''; ?>>Refunded</option>
+                        </select>
+                    </div>
+
+                    <!-- Date Filter -->
+                    <div>
+                        <label class="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">
+                            Date
+                        </label>
+                        <select 
+                            name="date_filter"
+                            class="auto-submit w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        >
+                            <option value="">All Dates</option>
+                            <option value="upcoming" <?php echo ($date_filter === 'upcoming') ? 'selected' : ''; ?>>Upcoming</option>
+                            <option value="past" <?php echo ($date_filter === 'past') ? 'selected' : ''; ?>>Past</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between mt-5">
+                    <p class="text-xs text-slate-400 font-semibold">
+                        Search and filters will be applied automatically.
+                    </p>
+
+                    <?php if ($search !== '' || $status_filter !== '' || $payment_filter !== '' || $date_filter !== ''): ?>
+                        <a 
+                            href="my_bookings.php"
+                            class="inline-flex items-center px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition-colors"
+                        >
+                            <i data-lucide="rotate-ccw" class="w-4 h-4 mr-2"></i>
+                            Reset
+                        </a>
+                    <?php endif; ?>
+                </div>
+            </form>
+        <?php endif; ?>
 
         <?php if ($result && $result->num_rows > 0): ?>
 
@@ -257,63 +415,69 @@ function formatBookingDate($date) {
                         </div>
 
                         <div class="p-4 border-t border-slate-100 bg-slate-50">
-                            <?php if ($bookingStatus === "pending" && $paymentStatus === "unpaid"): ?>
-                                <div class="grid grid-cols-3 gap-2">
-                                    <a href="booking_details.php?bid=<?php echo urlencode($row['bid']); ?>"
-                                    class="flex items-center justify-center w-full px-3 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-lg shadow-sm transition">
-                                        Progress
-                                    </a>
-                                    
-                                    <a href="booking_print.php?bid=<?php echo urlencode($row['bid']); ?>"
-                                    target="_blank"
-                                    class="flex items-center justify-center w-full px-3 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-sm font-bold rounded-lg shadow-sm transition">
-                                        Report
-                                    </a>
-                                </div>
-                            <?php else: ?>
-                                <div class="grid grid-cols-2 gap-2">
-                                    <a href="booking_details.php?bid=<?php echo urlencode($row['bid']); ?>"
-                                    class="flex items-center justify-center w-full px-3 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-lg shadow-sm transition">
-                                        Progress
-                                    </a>
+                            <div class="grid grid-cols-2 gap-2">
+                                <a href="booking_details.php?bid=<?php echo urlencode($row['bid']); ?>"
+                                class="flex items-center justify-center w-full px-3 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-lg shadow-sm transition">
+                                    Progress
+                                </a>
 
-                                    <a href="booking_print.php?bid=<?php echo urlencode($row['bid']); ?>"
-                                    target="_blank"
-                                    class="flex items-center justify-center w-full px-3 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-sm font-bold rounded-lg shadow-sm transition">
-                                        Report
-                                    </a>
-                                </div>
-                            <?php endif; ?>
+                                <a href="booking_print.php?bid=<?php echo urlencode($row['bid']); ?>"
+                                target="_blank"
+                                class="flex items-center justify-center w-full px-3 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-sm font-bold rounded-lg shadow-sm transition">
+                                    Report
+                                </a>
+                            </div>
                         </div>
                     </div>
                 <?php endwhile; ?>
             </div>
 
         <?php else: ?>
+            <?php if ($total_bookings === 0): ?>
+                <!-- User has no booking at all -->
+                <div class="py-12 text-center text-slate-500 bg-white rounded-2xl border border-slate-200">
+                    <i data-lucide="calendar-plus" class="w-12 h-12 mx-auto text-slate-300 mb-3"></i>
 
-            <!-- Empty State -->
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm py-16 px-6 text-center">
-                <div class="w-16 h-16 mx-auto rounded-full bg-slate-100 flex items-center justify-center mb-4">
-                    <i data-lucide="inbox" class="w-8 h-8 text-slate-400"></i>
+                    <p class="font-bold text-slate-700">
+                        No bookings yet.
+                    </p>
+
+                    <p class="text-sm text-slate-400 mt-1">
+                        You have not made any venue booking yet.
+                    </p>
+
+                    <a 
+                        href="venues.php"
+                        class="inline-flex items-center justify-center mt-5 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-lg shadow-sm transition"
+                    >
+                        <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
+                        Make Your First Booking
+                    </a>
                 </div>
 
-                <h2 class="text-xl font-extrabold text-slate-800">
-                    No booking records yet
-                </h2>
+            <?php else: ?>
+                <!-- User has bookings, but filter/search found nothing -->
+                <div class="py-12 text-center text-slate-500 bg-white rounded-2xl border border-slate-200">
+                    <i data-lucide="calendar-x" class="w-12 h-12 mx-auto text-slate-300 mb-3"></i>
 
-                <p class="text-sm text-slate-500 mt-2">
-                    Once you make a booking, your record will appear here.
-                </p>
+                    <p class="font-bold text-slate-700">
+                        No bookings matched your filter.
+                    </p>
 
-                <a href="venues.php"
-                   class="inline-flex items-center justify-center mt-6 px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl shadow-sm transition">
-                    <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
-                    Make a Booking
-                </a>
-            </div>
+                    <p class="text-sm text-slate-400 mt-1">
+                        Try changing the keyword, booking status, payment status, or date filter.
+                    </p>
 
+                    <a 
+                        href="my_bookings.php"
+                        class="inline-flex items-center justify-center mt-5 px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold rounded-lg transition"
+                    >
+                        <i data-lucide="rotate-ccw" class="w-4 h-4 mr-2"></i>
+                        Clear Filters
+                    </a>
+                </div>
+            <?php endif; ?>
         <?php endif; ?>
-
     </div>
 </div>
 
@@ -321,4 +485,30 @@ function formatBookingDate($date) {
 
 <script>
 lucide.createIcons();
+
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('bookingFilterForm');
+    const searchInput = document.getElementById('bookingSearchInput');
+    const autoSubmitFields = document.querySelectorAll('.auto-submit');
+
+    let searchTimer;
+
+    if (form) {
+        autoSubmitFields.forEach(function (field) {
+            field.addEventListener('change', function () {
+                form.submit();
+            });
+        });
+    }
+
+    if (form && searchInput) {
+        searchInput.addEventListener('input', function () {
+            clearTimeout(searchTimer);
+
+            searchTimer = setTimeout(function () {
+                form.submit();
+            }, 500);
+        });
+    }
+});
 </script>

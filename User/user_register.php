@@ -71,7 +71,11 @@
             </div>
             <div class="grid grid-cols-2 gap-4">
                 <div><label class="block text-[14px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">Full Name</label><input type="text" name="username" required class="input-glass w-full px-4 py-3 rounded-xl text-slate-800 font-semibold text-sm"></div>
-                <div><label class="block text-[14px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">Phone Number</label><input type="text" name="phone_num" placeholder="01X-XXXXXXX" required class="input-glass w-full px-4 py-3 rounded-xl text-slate-800 font-semibold text-sm"></div>
+                <div class="relative">
+                    <label class="block text-[14px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">Phone Number</label>
+                    <div id="phoneToast" class="hidden absolute -top-1 right-0 bg-red-600 text-white text-[12px] px-3 py-1 rounded-lg z-50">Only numbers allowed!</div>
+                    <input type="tel" name="phone_num" placeholder="01X-XXXXXXX" required oninput="validatePhone(this)" class="input-glass w-full px-4 py-3 rounded-xl text-slate-800 font-semibold text-sm">
+                </div>
             </div>
             <div class="pt-2">
                 <label class="block text-[14px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">Password</label>
@@ -97,21 +101,26 @@
 
 <script>
     lucide.createIcons();
+    function validatePhone(input) {
+        if (/[^0-9]/.test(input.value)) {
+            input.value = input.value.replace(/[^0-9]/g, '');
+            const toast = document.getElementById('phoneToast');
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 2000);
+        }
+    }
     const uidInput = document.getElementById('uid');
     const emailInput = document.getElementById('email');
-
     uidInput.addEventListener('input', () => {
         const regex = /^[0-9]{3}[A-Za-z]{2}[A-Za-z0-9]{5}$/;
         const errorEl = document.getElementById('uid-error');
         errorEl.style.display = (uidInput.value.length === 0) ? 'none' : (regex.test(uidInput.value) ? 'none' : 'block');
     });
-
     emailInput.addEventListener('input', () => {
         const regex = /@student\.mmu\.edu\.my$/;
         const errorEl = document.getElementById('email-error');
         errorEl.style.display = (emailInput.value.length === 0) ? 'none' : (regex.test(emailInput.value) ? 'none' : 'block');
     });
-
     function togglePasswordVisibility() {
         const p = document.getElementById('password');
         const eye = document.getElementById('eyeIcon');
@@ -119,7 +128,6 @@
         else { p.type = 'password'; eye.setAttribute('data-lucide', 'eye'); }
         lucide.createIcons();
     }
-    
     function evaluateEntropy() {
         const p = document.getElementById('password').value;
         const v = { length: p.length >= 8, upper: /[A-Z]/.test(p), lower: /[a-z]/.test(p), number: /\d/.test(p), special: /[@$!%*?&]/.test(p) };

@@ -56,11 +56,11 @@ if (!$user) {
                             </button>
                         </div>
                         <ul id="password-requirements" class="mt-3 text-[10px] text-slate-400 grid grid-cols-2 gap-x-2 gap-y-1">
-                            <li id="length">● 8+ chars</li>
+                            <li id="length">● 8+ Characters</li>
                             <li id="upper">● 1 Uppercase</li>
                             <li id="lower">● 1 Lowercase</li>
                             <li id="number">● 1 Number</li>
-                            <li id="special" class="col-span-2">● 1 Special char</li>
+                            <li id="special" class="col-span-2">● 1 Special Character</li>
                         </ul>
                     </div>
                     <button type="submit" id="submit-btn" disabled class="w-full bg-slate-600 cursor-not-allowed text-white font-bold py-3 rounded-xl transition-all">

@@ -34,6 +34,16 @@ $result = $stmt->get_result();
 $venue = $result->fetch_assoc();
 
 if (!$venue) {
+    die("Venue not found.");
+}
+
+if (strtolower($venue['status']) !== 'available') {
+    $_SESSION['error'] = "This venue is currently not available for booking.";
+    header("Location: venue_details.php?vid=" . urlencode($venue['vid']));
+    exit;
+}
+
+if (!$venue) {
     die("<div class='min-h-screen flex items-center justify-center bg-slate-50 text-xl font-bold text-slate-800'>Error: Venue is offline or not available for booking.</div>");
 }
 ?>
@@ -112,7 +122,7 @@ if (!$venue) {
 
                     <div id="time-grid" class="grid grid-cols-4 sm:grid-cols-6 gap-2 mb-8 max-h-64 overflow-y-auto p-2 border border-slate-100 rounded-xl bg-slate-50"></div>
 
-                    <form id="asyncBookingForm" class="space-y-6 pt-6 border-t border-slate-100 hidden">
+                    <form id="asyncBookingForm" method="POST" action="process_booking.php" class="space-y-6 pt-6 border-t border-slate-100 hidden">
                         <input type="hidden" name="venue_id" id="payload_venue_id" value="<?php echo htmlspecialchars($venue["vid"]); ?>">
                         <input type="hidden" name="booking_date" id="payload_date" value="">
                         <input type="hidden" name="start_time" id="payload_start" value="">
@@ -129,8 +139,46 @@ if (!$venue) {
                                    class="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm bg-white">
                         </div>
 
-                        <button type="submit" id="submitBtn" class="w-full py-4 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-md flex items-center justify-center">
-                            <i data-lucide="check-circle" class="w-4 h-4 mr-2"></i> Confirm Configuration & Proceed
+                        <!-- Rules and Regulations Agreement -->
+                        <div class="mb-4 p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                            <div class="flex items-start gap-3">
+                                <input 
+                                    type="checkbox" 
+                                    id="agreeRules" 
+                                    name="agree_rules"
+                                    value="1"
+                                    disabled
+                                    class="mt-1 w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500 cursor-not-allowed"
+                                >
+
+                                <div class="flex-1">
+                                    <label for="agreeRules" class="text-sm font-semibold text-slate-700">
+                                        I have read and agree to the 
+                                        <button 
+                                            type="button"
+                                            onclick="openRulesModal()"
+                                            class="text-indigo-600 hover:text-indigo-800 font-bold underline"
+                                        >
+                                            Rules and Regulations
+                                        </button>
+                                        before requesting this booking.
+                                    </label>
+
+                                    <p class="text-xs text-slate-400 mt-1">
+                                        Please open and read the rules before ticking this agreement.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button 
+                            type="submit" 
+                            id="requestBookingBtn"
+                            disabled
+                            class="w-full py-3 text-sm font-bold text-white bg-slate-400 rounded-lg cursor-not-allowed transition flex items-center justify-center"
+                        >
+                            Request Booking
+                            <i data-lucide="send" class="w-4 h-4 ml-2"></i>
                         </button>
                     </form>
 
@@ -141,6 +189,96 @@ if (!$venue) {
 </div>
 
 <?php include("../includes/user_footer.php"); ?>
+
+<!-- Rules and Regulations Modal -->
+<div 
+    id="rulesModal" 
+    class="fixed inset-0 bg-black/70 z-50 hidden items-center justify-center px-4"
+>
+    <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden">
+        
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+            <div>
+                <h3 class="text-lg font-black text-slate-800">
+                    Venue Booking Rules and Regulations
+                </h3>
+                <p class="text-xs text-slate-400 mt-1">
+                    Please read carefully before requesting your booking.
+                </p>
+            </div>
+
+            <button 
+                type="button"
+                onclick="closeRulesModal()"
+                class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center"
+            >
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <div class="p-6 max-h-[60vh] overflow-y-auto text-sm text-slate-600 leading-relaxed space-y-4">
+            <div>
+                <h4 class="font-bold text-slate-800 mb-1">1. Booking Responsibility</h4>
+                <p>
+                    The user is responsible for using the venue properly during the approved booking period.
+                </p>
+            </div>
+
+            <div>
+                <h4 class="font-bold text-slate-800 mb-1">2. Venue Condition</h4>
+                <p>
+                    The user should check the venue condition before use. Any existing damage should be reported before the activity starts.
+                </p>
+            </div>
+
+            <div>
+                <h4 class="font-bold text-slate-800 mb-1">3. Damage and Cleanliness</h4>
+                <p>
+                    The user may be held responsible for any damage, missing equipment, or serious cleanliness issue caused during the booking period.
+                </p>
+            </div>
+
+            <div>
+                <h4 class="font-bold text-slate-800 mb-1">4. Time Usage</h4>
+                <p>
+                    The venue must only be used within the approved booking time. The system may reserve additional time after the booking for inspection purposes.
+                </p>
+            </div>
+
+            <div>
+                <h4 class="font-bold text-slate-800 mb-1">5. Prohibited Activities</h4>
+                <p>
+                    Users are not allowed to conduct illegal, unsafe, or unauthorized activities inside the venue.
+                </p>
+            </div>
+
+            <div>
+                <h4 class="font-bold text-slate-800 mb-1">6. Booking Approval</h4>
+                <p>
+                    Submitting a booking request does not mean the booking is approved. The booking will only be confirmed after admin approval.
+                </p>
+            </div>
+        </div>
+
+        <div class="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3">
+            <button 
+                type="button"
+                onclick="closeRulesModal()"
+                class="px-5 py-2.5 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-100"
+            >
+                Close
+            </button>
+
+            <button 
+                type="button"
+                onclick="confirmRulesRead()"
+                class="px-5 py-2.5 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow"
+            >
+                I Have Read the Rules
+            </button>
+        </div>
+    </div>
+</div>
 
 <script>
     lucide.createIcons();
@@ -292,17 +430,22 @@ if (!$venue) {
                 return;
             }
 
-            // 校驗區間衝突
+            // Check selected range.
+            // The last clicked slot is also locked because it is used as inspection buffer.
             let rangeValid = true;
+
+            const selectedStart = selectionState.start;
+            const selectedEndWithInspection = addMinutes(timeStr, 30);
+
             for (let block of blockedVectors) {
-                if (block.start >= selectionState.start && block.start <= timeStr) {
+                if (selectedStart < block.end && selectedEndWithInspection > block.start) {
                     rangeValid = false;
                     break;
                 }
             }
 
             if (!rangeValid) {
-                alert("Vector Conflict: Selected temporal range intersects with locked slots.");
+                alert("This selected range conflicts with an existing booking or inspection time.");
                 return;
             }
 
@@ -331,11 +474,15 @@ if (!$venue) {
 
     function finalizeSelection(isSingle = false) {
         let actualStart = selectionState.start;
-        // 💡 將介面點擊的最後一個時塊加上 30 分鐘，形成數學上的真實驗證端點
-        let actualEnd = isSingle ? addMinutes(selectionState.start, 30) : addMinutes(selectionState.end, 30);
+
+        // Single click means minimum 30 minutes booking.
+        let actualEnd = isSingle ? addMinutes(selectionState.start, 30) : selectionState.end;
 
         document.querySelectorAll('.time-slot-btn').forEach(btn => {
             const slotTime = btn.innerText;
+
+            // Highlight all selected buttons, including the final clicked end slot.
+            // The final clicked slot is used as the inspection buffer slot.
             if (slotTime >= selectionState.start && slotTime <= (selectionState.end || selectionState.start)) {
                 btn.classList.replace('bg-white', 'bg-indigo-600');
                 btn.classList.replace('text-slate-600', 'text-white');
@@ -394,4 +541,52 @@ if (!$venue) {
     }
 
     renderCalendar();
+
+    function openRulesModal() {
+        const modal = document.getElementById('rulesModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.classList.add('overflow-hidden');
+    }
+
+    function closeRulesModal() {
+        const modal = document.getElementById('rulesModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        document.body.classList.remove('overflow-hidden');
+    }
+
+    function confirmRulesRead() {
+        const checkbox = document.getElementById('agreeRules');
+
+        checkbox.disabled = false;
+        checkbox.classList.remove('cursor-not-allowed');
+
+        closeRulesModal();
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const checkbox = document.getElementById('agreeRules');
+        const requestBtn = document.getElementById('requestBookingBtn');
+
+        if (checkbox && requestBtn) {
+            checkbox.addEventListener('change', function () {
+                if (checkbox.checked) {
+                    requestBtn.disabled = false;
+                    requestBtn.classList.remove('bg-slate-400', 'cursor-not-allowed');
+                    requestBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-700', 'shadow');
+                } else {
+                    requestBtn.disabled = true;
+                    requestBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-700', 'shadow');
+                    requestBtn.classList.add('bg-slate-400', 'cursor-not-allowed');
+                }
+            });
+        }
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                closeRulesModal();
+            }
+        });
+    });
 </script>

@@ -20,23 +20,31 @@ function expireUnpaidBookings($conn) {
 function checkTimeSlotConflict($conn, $vid, $date_booked, $new_start_time, $new_end_time) {
     expireUnpaidBookings($conn);
 
+    // The database stores the real booking time only.
+    $new_end_with_inspection = date("H:i:s", strtotime($new_end_time . " +30 minutes"));
+
     $sql1 = "SELECT COUNT(*) as conflict_count 
             FROM booking 
             WHERE vid = ? 
               AND date_booked = ? 
               AND status IN ('pending', 'approved') 
-              AND (time_start < ? AND time_end > ?)"; 
-              
+              AND (
+                    time_start < ?
+                    AND ADDTIME(time_end, '00:30:00') > ?
+                  )";
+
     $stmt1 = $conn->prepare($sql1);
-    $stmt1->bind_param("ssss", $vid, $date_booked, $new_end_time, $new_start_time);
+    $stmt1->bind_param("ssss", $vid, $date_booked, $new_end_with_inspection, $new_start_time);
     $stmt1->execute();
     $res1 = $stmt1->get_result()->fetch_assoc();
-    $stmt1->close(); 
-    
+    $stmt1->close();
+
     if ($res1['conflict_count'] > 0) {
         return true;
     }
 
+    // Academic schedule has no inspection buffer,
+    // but the new booking plus inspection buffer cannot overlap with academic schedule.
     $sql2 = "SELECT COUNT(*) as conflict_count 
              FROM academic_schedule a
              JOIN semester_config s ON a.sem_id = s.sem_id
@@ -46,7 +54,7 @@ function checkTimeSlotConflict($conn, $vid, $date_booked, $new_start_time, $new_
                AND (a.start_time < ? AND a.end_time > ?)";
 
     $stmt2 = $conn->prepare($sql2);
-    $stmt2->bind_param("sssss", $vid, $date_booked, $date_booked, $new_end_time, $new_start_time);
+    $stmt2->bind_param("sssss", $vid, $date_booked, $date_booked, $new_end_with_inspection, $new_start_time);
     $stmt2->execute();
     $res2 = $stmt2->get_result()->fetch_assoc();
     $stmt2->close();

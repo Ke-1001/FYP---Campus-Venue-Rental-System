@@ -65,6 +65,29 @@ $stmt->execute();
 $result = $stmt->get_result();
 $booking = $result->fetch_assoc();
 
+$damage_report = null;
+
+$damage_stmt = $conn->prepare("
+    SELECT report_id, report_status, created_at
+    FROM damage_report
+    WHERE bid = ? AND uid = ?
+    ORDER BY created_at DESC
+    LIMIT 1
+");
+$damage_stmt->bind_param("ii", $booking['bid'], $_SESSION['uid']);
+$damage_stmt->execute();
+$damage_result = $damage_stmt->get_result();
+
+if ($damage_result && $damage_result->num_rows > 0) {
+    $damage_report = $damage_result->fetch_assoc();
+}
+
+$damage_stmt->close();
+
+$can_report_damage = (
+    strtolower($booking['status']) === 'approved' && !$damage_report
+);
+
 if (!$booking) {
     die("<div class='p-10 text-center text-slate-600 font-bold'>Booking not found or access denied.</div>");
 }
@@ -357,6 +380,51 @@ $flowSteps[] = [
                     <p class="text-sm text-slate-500 mt-1">
                         Track your booking status from request submission until final settlement.
                     </p>
+                </div>
+
+                <?php if (isset($_SESSION['success'])): ?>
+                    <div class="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl text-sm font-semibold">
+                        <?php echo htmlspecialchars($_SESSION['success']); ?>
+                    </div>
+                    <?php unset($_SESSION['success']); ?>
+                <?php endif; ?>
+
+                <?php if (isset($_SESSION['error'])): ?>
+                    <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-semibold">
+                        <?php echo htmlspecialchars($_SESSION['error']); ?>
+                    </div>
+                    <?php unset($_SESSION['error']); ?>
+                <?php endif; ?>
+
+                <!-- Report Existing Damage Button -->
+                <div class="mt-6">
+                    <?php if ($damage_report): ?>
+                        <button 
+                            disabled
+                            class="w-full inline-flex items-center justify-center px-5 py-3 bg-emerald-100 text-emerald-700 border border-emerald-200 text-sm font-bold rounded-lg cursor-not-allowed"
+                        >
+                            <i data-lucide="check-circle" class="w-4 h-4 mr-2"></i>
+                            Damage Report Submitted
+                        </button>
+
+                    <?php elseif ($can_report_damage): ?>
+                        <a 
+                            href="report_damage.php?bid=<?php echo urlencode($booking['bid']); ?>"
+                            class="w-full inline-flex items-center justify-center px-5 py-3 bg-amber-600 hover:bg-amber-700 text-white text-sm font-bold rounded-lg shadow-sm transition"
+                        >
+                            <i data-lucide="camera" class="w-4 h-4 mr-2"></i>
+                            Report Existing Damage
+                        </a>
+
+                    <?php else: ?>
+                        <button 
+                            disabled
+                            class="w-full inline-flex items-center justify-center px-5 py-3 bg-slate-100 text-slate-400 text-sm font-bold rounded-lg cursor-not-allowed"
+                        >
+                            <i data-lucide="lock" class="w-4 h-4 mr-2"></i>
+                            Report Existing Damage Not Available
+                        </button>
+                    <?php endif; ?>
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2">

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 03, 2026 at 07:54 AM
+-- Generation Time: Jun 10, 2026 at 05:33 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -121,7 +121,7 @@ INSERT INTO `booking` (`bid`, `uid`, `vid`, `date_booked`, `time_start`, `time_e
 (20000016, '242DT2429C', 'MSMR2016', '2026-05-08', '09:30:00', '10:30:00', 'cancelled', 'unpaid', '2026-05-06 10:48:52', '2026-06-03 10:21:14', 'Payment deadline expired', NULL, 'test', NULL, NULL, '2026-05-06 02:33:52'),
 (20000017, '242DT2421C', 'MSMR2016', '2026-05-06', '16:30:00', '18:30:00', 'completed', 'paid', NULL, NULL, NULL, 'TXN-C80129AA', 'Discussion', 8000, '2026-05-06 14:47:59', '2026-05-06 06:33:38'),
 (20000018, '242DT2429C', 'MSMR2016', '2026-05-07', '16:30:00', '17:30:00', 'rejected', 'paid', NULL, NULL, NULL, 'TXN-7538644A', 'teae', NULL, NULL, '2026-05-06 06:45:07'),
-(20000019, '242DT2429C', 'MSMX0003', '2026-05-13', '12:30:00', '18:30:00', 'rejected', 'paid', NULL, NULL, NULL, 'TXN-WO89K1Z6', 'For large event\'s discussion', NULL, NULL, '2026-05-11 10:42:36'),
+(20000019, '242DT2429C', 'MSMX0003', '2026-05-13', '12:30:00', '18:30:00', 'rejected', 'paid', NULL, NULL, NULL, 'TXN-WO89K1Z6', 'For large event discussion', NULL, NULL, '2026-05-11 10:42:36'),
 (20000020, '242DT2429C', 'MSMX2001', '2026-05-16', '09:00:00', '10:30:00', 'completed', 'paid', NULL, NULL, NULL, 'TXN-D5TU789Q', 'For project video recording', 8002, '2026-05-12 08:37:40', '2026-05-11 10:44:26'),
 (20000021, '242DT2431X', 'MSMR2012', '2026-05-19', '18:30:00', '19:30:00', 'completed', 'paid', NULL, NULL, NULL, 'TXN-156FD6DE', 'test semester', NULL, NULL, '2026-05-19 10:38:54'),
 (20000022, '242DT2431X', 'MSMR2012', '2026-05-19', '20:00:00', '21:00:00', 'rejected', 'paid', NULL, NULL, NULL, NULL, 'test123', NULL, NULL, '2026-05-19 11:56:40'),
@@ -134,8 +134,33 @@ INSERT INTO `booking` (`bid`, `uid`, `vid`, `date_booked`, `time_start`, `time_e
 (20000029, '242DT2431X', 'MSMR2013', '2026-05-19', '20:30:00', '21:00:00', 'cancelled', 'unpaid', '2026-05-19 20:19:08', '2026-06-03 10:21:14', 'Payment deadline expired', NULL, 'test123', NULL, NULL, '2026-05-19 12:04:08'),
 (20000030, '242DT2431X', 'MSMX0001', '2026-05-20', '14:30:00', '15:30:00', 'completed', 'paid', NULL, NULL, NULL, NULL, 'ter', NULL, NULL, '2026-05-20 06:33:59'),
 (20000031, '242DT2431X', 'MSMX0001', '2026-05-20', '15:30:00', '16:00:00', 'pending', '', NULL, NULL, NULL, NULL, 'ter', NULL, NULL, '2026-05-20 06:35:07'),
-(20000032, '242DT2429C', 'MSMX0001', '2026-06-17', '10:30:00', '12:00:00', 'pending', '', NULL, NULL, NULL, NULL, 'test', NULL, NULL, '2026-06-03 02:02:21'),
-(20000033, '242DT2429C', 'MSMX0001', '2026-06-17', '13:30:00', '15:00:00', 'cancelled', 'unpaid', '2026-06-03 10:23:05', '2026-06-03 10:23:09', 'Payment deadline expired', NULL, 'test', NULL, NULL, '2026-06-03 02:08:05');
+(20000032, '242DT2429C', 'MSMX0001', '2026-06-17', '10:30:00', '12:00:00', 'pending', 'unpaid', NULL, NULL, NULL, NULL, 'test', NULL, NULL, '2026-06-03 02:02:21'),
+(20000033, '242DT2429C', 'MSMX0001', '2026-06-17', '13:30:00', '15:00:00', 'cancelled', 'unpaid', '2026-06-03 10:23:05', '2026-06-03 10:23:09', 'Payment deadline expired', NULL, 'test', NULL, NULL, '2026-06-03 02:08:05'),
+(20000034, '242DT2430C', 'MSMX0001', '2026-06-08', '12:00:00', '12:30:00', 'approved', 'paid', '2026-06-08 09:19:49', NULL, NULL, 'TXN-43338C76', 'test', 8000, '2026-06-08 09:05:04', '2026-06-08 01:04:49'),
+(20000035, '242DT2430C', 'MSMX0002', '2026-06-08', '09:00:00', '09:30:00', 'rejected', 'paid', '2026-06-08 09:20:25', NULL, NULL, 'TXN-283F5585', 'test', 8000, '2026-06-08 09:10:25', '2026-06-08 01:05:25'),
+(20000036, '242DT2430C', 'MSMX0003', '2026-06-08', '09:00:00', '09:30:00', 'cancelled', 'refunded', '2026-06-08 09:20:45', '2026-06-08 09:30:44', 'SYS_TIMEOUT_ADMIN', 'TXN-07BD9FA5', 'test', NULL, NULL, '2026-06-08 01:05:45'),
+(20000037, '242DT2430C', 'MSMX2002', '2026-06-08', '09:00:00', '09:30:00', 'cancelled', 'refunded', '2026-06-08 09:21:04', '2026-06-08 09:30:44', 'SYS_TIMEOUT_ADMIN', 'TXN-52A14C22', 'test', NULL, NULL, '2026-06-08 01:06:04'),
+(20000038, '242DT2430C', 'MSMX2003', '2026-06-08', '09:00:00', '09:30:00', 'cancelled', 'refunded', '2026-06-08 09:21:24', '2026-06-08 09:30:44', 'SYS_TIMEOUT_ADMIN', 'TXN-6DD34D71', 'test', NULL, NULL, '2026-06-08 01:06:24'),
+(20000039, '242DT2430C', 'MSMR3014', '2026-06-08', '09:00:00', '09:30:00', 'cancelled', 'refunded', '2026-06-08 09:21:44', '2026-06-08 09:30:44', 'SYS_TIMEOUT_ADMIN', 'TXN-97EC9959', 'test', NULL, NULL, '2026-06-08 01:06:44'),
+(20000040, '242DT2429C', 'MSMX2002', '2026-06-30', '10:30:00', '11:30:00', 'pending', 'paid', '2026-06-10 10:28:55', NULL, NULL, 'TXN-0C145680', 'Group discussion', NULL, NULL, '2026-06-10 02:13:55');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `damage_report`
+--
+
+CREATE TABLE `damage_report` (
+  `report_id` int(11) NOT NULL,
+  `bid` int(10) UNSIGNED NOT NULL,
+  `uid` varchar(15) NOT NULL,
+  `vid` varchar(10) NOT NULL,
+  `damage_description` text NOT NULL,
+  `damage_photo` varchar(255) DEFAULT NULL,
+  `report_status` enum('submitted','reviewed') DEFAULT 'submitted',
+  `admin_remark` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -147,7 +172,7 @@ CREATE TABLE `inspection` (
   `ins_id` int(10) UNSIGNED NOT NULL,
   `bid` int(10) UNSIGNED NOT NULL,
   `sid` int(10) UNSIGNED NOT NULL,
-  `ins_status` enum('passed','failed','pending') NOT NULL DEFAULT 'pending',
+  `ins_status` enum('passed','failed','pending','overdue') NOT NULL DEFAULT 'pending',
   `damage_desc` text DEFAULT NULL,
   `damage_cost` decimal(10,2) UNSIGNED DEFAULT 0.00,
   `penalty` decimal(10,2) UNSIGNED DEFAULT 0.00,
@@ -160,7 +185,8 @@ CREATE TABLE `inspection` (
 
 INSERT INTO `inspection` (`ins_id`, `bid`, `sid`, `ins_status`, `damage_desc`, `damage_cost`, `penalty`, `inspected_at`) VALUES
 (30000009, 20000014, 9000, 'failed', '', 0.00, 0.00, NULL),
-(30000012, 20000021, 9000, 'pending', NULL, 0.00, 0.00, NULL);
+(30000012, 20000021, 9000, 'passed', 'SYS_TIMEOUT_24H_RELEASE', 0.00, 0.00, '2026-06-09 20:09:05'),
+(30000013, 20000034, 9000, 'passed', 'SYS_TIMEOUT_24H_RELEASE', 0.00, 0.00, '2026-06-09 20:09:05');
 
 -- --------------------------------------------------------
 
@@ -221,7 +247,9 @@ CREATE TABLE `report` (
 --
 
 INSERT INTO `report` (`rid`, `ins_id`, `final_deduct`, `refund_status`, `penalty_status`, `created_at`) VALUES
-(40000004, 30000009, 0.00, '', 'none', '0000-00-00');
+(40000004, 30000009, 0.00, '', 'none', '0000-00-00'),
+(40000005, 30000012, 0.00, 'pending', 'none', '2026-06-09'),
+(40000006, 30000013, 0.00, 'pending', 'none', '2026-06-09');
 
 -- --------------------------------------------------------
 
@@ -334,7 +362,7 @@ CREATE TABLE `venue` (
   `vcid` int(11) NOT NULL,
   `max_cap` int(10) UNSIGNED NOT NULL,
   `deposit` decimal(10,2) UNSIGNED NOT NULL,
-  `status` enum('available','maintenance','booked') NOT NULL DEFAULT 'available',
+  `status` enum('available','maintenance','closed') NOT NULL DEFAULT 'available',
   `description` text NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -466,6 +494,15 @@ ALTER TABLE `booking`
   ADD KEY `fk_booking_venue` (`vid`);
 
 --
+-- Indexes for table `damage_report`
+--
+ALTER TABLE `damage_report`
+  ADD PRIMARY KEY (`report_id`),
+  ADD KEY `fk_booking_id` (`bid`),
+  ADD KEY `fk_user_id` (`uid`),
+  ADD KEY `fk_venue_id` (`vid`);
+
+--
 -- Indexes for table `inspection`
 --
 ALTER TABLE `inspection`
@@ -550,19 +587,25 @@ ALTER TABLE `academic_schedule`
 -- AUTO_INCREMENT for table `admin`
 --
 ALTER TABLE `admin`
-  MODIFY `aid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8010;
+  MODIFY `aid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8011;
 
 --
 -- AUTO_INCREMENT for table `booking`
 --
 ALTER TABLE `booking`
-  MODIFY `bid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20000034;
+  MODIFY `bid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20000041;
+
+--
+-- AUTO_INCREMENT for table `damage_report`
+--
+ALTER TABLE `damage_report`
+  MODIFY `report_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `inspection`
 --
 ALTER TABLE `inspection`
-  MODIFY `ins_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30000013;
+  MODIFY `ins_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30000014;
 
 --
 -- AUTO_INCREMENT for table `inspic`
@@ -574,13 +617,13 @@ ALTER TABLE `inspic`
 -- AUTO_INCREMENT for table `password_resets`
 --
 ALTER TABLE `password_resets`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `report`
 --
 ALTER TABLE `report`
-  MODIFY `rid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40000005;
+  MODIFY `rid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40000008;
 
 --
 -- AUTO_INCREMENT for table `staff`
@@ -620,6 +663,14 @@ ALTER TABLE `booking`
   ADD CONSTRAINT `fk_booking_venue` FOREIGN KEY (`vid`) REFERENCES `venue` (`vid`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
+-- Constraints for table `damage_report`
+--
+ALTER TABLE `damage_report`
+  ADD CONSTRAINT `fk_booking_id` FOREIGN KEY (`bid`) REFERENCES `booking` (`bid`),
+  ADD CONSTRAINT `fk_user_id` FOREIGN KEY (`uid`) REFERENCES `user` (`uid`),
+  ADD CONSTRAINT `fk_venue_id` FOREIGN KEY (`vid`) REFERENCES `venue` (`vid`);
+
+--
 -- Constraints for table `inspection`
 --
 ALTER TABLE `inspection`
@@ -649,6 +700,76 @@ ALTER TABLE `venue`
 --
 ALTER TABLE `vpic`
   ADD CONSTRAINT `fk_vpic_venue` FOREIGN KEY (`vid`) REFERENCES `venue` (`vid`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+DELIMITER $$
+--
+-- Events
+--
+CREATE DEFINER=`root`@`localhost` EVENT `ev_inspection_lifecycle_manager` ON SCHEDULE EVERY 5 MINUTE STARTS '2026-06-08 08:54:05' ON COMPLETION NOT PRESERVE ENABLE DO BEGIN
+    START TRANSACTION;
+
+    INSERT IGNORE INTO report (ins_id, final_deduct, refund_status, penalty_status, created_at)
+    SELECT i.ins_id, 0.00, 'pending', 'none', CURDATE()
+    FROM inspection i
+    JOIN booking b ON i.bid = b.bid
+    WHERE i.ins_status = 'overdue'
+      AND TIMESTAMPADD(HOUR, 24, CAST(CONCAT(b.date_booked, ' ', b.time_end) AS DATETIME)) <= NOW();
+
+    UPDATE inspection i
+    JOIN booking b ON i.bid = b.bid
+    SET i.ins_status = 'passed',
+        i.damage_desc = 'SYS_TIMEOUT_24H_RELEASE',
+        i.penalty = 0.00,
+        i.inspected_at = NOW()
+    WHERE i.ins_status = 'overdue'
+      AND TIMESTAMPADD(HOUR, 24, CAST(CONCAT(b.date_booked, ' ', b.time_end) AS DATETIME)) <= NOW();
+
+    UPDATE inspection i
+    JOIN booking b ON i.bid = b.bid
+    SET i.ins_status = 'overdue',
+        i.damage_desc = 'SYS_TIMEOUT_30M_LOCK'
+    WHERE i.ins_status = 'pending'
+      AND TIMESTAMPADD(MINUTE, 30, CAST(CONCAT(b.date_booked, ' ', b.time_end) AS DATETIME)) <= NOW();
+
+    COMMIT;
+END$$
+
+CREATE DEFINER=`root`@`localhost` EVENT `ev_pre_usage_handler` ON SCHEDULE EVERY 1 MINUTE STARTS '2026-06-08 09:30:44' ON COMPLETION NOT PRESERVE ENABLE DO BEGIN
+    START TRANSACTION;
+
+    UPDATE booking
+    SET status = 'cancelled', 
+        payment_status = 'refunded', 
+        cancel_reason = 'SYS_TIMEOUT_ADMIN',
+        cancelled_at = NOW()
+    WHERE status = 'pending' 
+      AND payment_status = 'paid'
+      AND TIMESTAMPADD(MINUTE, -5, CAST(CONCAT(date_booked, ' ', time_end) AS DATETIME)) <= NOW();
+
+    INSERT INTO inspection (bid, sid, ins_status)
+    SELECT target_booking.bid, optimal_staff.sid, 'pending'
+    FROM (
+        SELECT b.bid
+        FROM booking b
+        LEFT JOIN inspection i ON b.bid = i.bid
+        WHERE b.status = 'approved' 
+          AND i.ins_id IS NULL
+          AND TIMESTAMPADD(MINUTE, -5, CAST(CONCAT(b.date_booked, ' ', b.time_end) AS DATETIME)) <= NOW()
+    ) AS target_booking
+    CROSS JOIN (
+        SELECT s.sid
+        FROM staff s
+        LEFT JOIN inspection i ON s.sid = i.sid AND i.ins_status = 'pending'
+        WHERE s.position = 'inspector' AND s.status = 'active'
+        GROUP BY s.sid
+        ORDER BY COUNT(i.ins_id) ASC
+        LIMIT 1
+    ) AS optimal_staff;
+
+    COMMIT;
+END$$
+
+DELIMITER ;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

@@ -46,6 +46,9 @@ $main_pic = "";
 if (!empty($pics)) {
     $main_pic = "../uploads/venues/" . $pics[0]["pic"];
 }
+
+$is_maintenance = $row && strtolower($row['status']) === 'maintenance';
+$is_available = $row && strtolower($row['status']) === 'available';
 ?>
 
 <script src="https://cdn.tailwindcss.com"></script>
@@ -97,13 +100,17 @@ if (!empty($pics)) {
                             </p>
                         </div>
 
-                        <?php if ($row['status'] === 'maintenance'): ?>
+                        <?php if ($is_maintenance): ?>
                             <span class="px-3 py-1 bg-amber-100 text-amber-700 border border-amber-200 rounded-lg text-xs font-black uppercase tracking-widest flex items-center">
                                 <i data-lucide="wrench" class="w-4 h-4 mr-2"></i> Maintenance
                             </span>
-                        <?php else: ?>
+                        <?php elseif ($is_available): ?>
                             <span class="px-3 py-1 bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-black uppercase tracking-widest flex items-center">
                                 <i data-lucide="check-circle" class="w-4 h-4 mr-2"></i> Available
+                            </span>
+                        <?php else: ?>
+                            <span class="px-3 py-1 bg-slate-100 text-slate-600 border border-slate-200 rounded-lg text-xs font-black uppercase tracking-widest flex items-center">
+                                <i data-lucide="circle-off" class="w-4 h-4 mr-2"></i> Unavailable
                             </span>
                         <?php endif; ?>
                     </div>
@@ -140,6 +147,24 @@ if (!empty($pics)) {
                         </div>
                     </div>
 
+                    <?php if ($is_maintenance): ?>
+                        <div class="mb-8 bg-amber-50 border border-amber-200 rounded-xl p-5 flex items-start">
+                            <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center mr-4 text-amber-700 flex-shrink-0">
+                                <i data-lucide="wrench" class="w-5 h-5"></i>
+                            </div>
+
+                            <div>
+                                <h4 class="text-sm font-black text-amber-800 uppercase tracking-wider mb-1">
+                                    Venue Under Maintenance
+                                </h4>
+
+                                <p class="text-sm text-amber-700 leading-relaxed">
+                                    This venue is currently under maintenance. You may view the venue details, but booking is temporarily not allowed.
+                                </p>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
                     <?php if (!empty($pics)): ?>
                         <div class="mb-8">
                             <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
@@ -148,11 +173,14 @@ if (!empty($pics)) {
 
                             <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                                 <?php foreach ($pics as $pic): ?>
+                                    <?php $gallery_pic_path = "../uploads/venues/" . $pic["pic"]; ?>
+
                                     <div class="h-28 bg-slate-100 rounded-xl overflow-hidden border border-slate-200">
                                         <img 
-                                            src="../uploads/venues/<?php echo htmlspecialchars($pic["pic"]); ?>" 
+                                            src="<?php echo htmlspecialchars($gallery_pic_path); ?>" 
                                             alt="<?php echo htmlspecialchars($row["vname"]); ?>"
-                                            class="w-full h-full object-cover"
+                                            class="w-full h-full object-cover cursor-zoom-in hover:scale-105 transition-transform duration-300"
+                                            onclick="openImageModal('<?php echo htmlspecialchars($gallery_pic_path); ?>')"
                                         >
                                     </div>
                                 <?php endforeach; ?>
@@ -173,13 +201,21 @@ if (!empty($pics)) {
                     <?php endif; ?>
 
                     <div class="flex justify-end pt-6 border-t border-slate-100">
-                        <?php if ($row['status'] === 'available'): ?>
-                            <a href="booking_form.php?vid=<?php echo urlencode($row["vid"]); ?>" class="px-8 py-3 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-md transition flex items-center">
+                        <?php if ($is_available): ?>
+                            <a href="booking_form.php?vid=<?php echo urlencode($row["vid"]); ?>" 
+                            class="px-8 py-3 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-md transition flex items-center">
                                 Proceed to Book 
                                 <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
                             </a>
+                        <?php elseif ($is_maintenance): ?>
+                            <button disabled 
+                                    class="px-8 py-3 text-sm font-bold text-amber-700 bg-amber-100 border border-amber-200 rounded-lg cursor-not-allowed flex items-center">
+                                <i data-lucide="wrench" class="w-4 h-4 mr-2"></i> 
+                                Booking Closed for Maintenance
+                            </button>
                         <?php else: ?>
-                            <button disabled class="px-8 py-3 text-sm font-bold text-slate-400 bg-slate-100 border border-slate-200 rounded-lg cursor-not-allowed flex items-center">
+                            <button disabled 
+                                    class="px-8 py-3 text-sm font-bold text-slate-400 bg-slate-100 border border-slate-200 rounded-lg cursor-not-allowed flex items-center">
                                 <i data-lucide="lock" class="w-4 h-4 mr-2"></i> 
                                 Unavailable for Booking
                             </button>
@@ -209,7 +245,62 @@ if (!empty($pics)) {
     </div>
 </div>
 
-<script>lucide.createIcons();</script>
+<!-- Image Preview Modal -->
+<div 
+    id="imageModal" 
+    class="fixed inset-0 bg-black/80 z-50 hidden items-center justify-center px-4"
+    onclick="closeImageModal()"
+>
+    <button 
+        type="button"
+        onclick="closeImageModal()"
+        class="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition"
+        aria-label="Close image preview"
+    >
+        <i data-lucide="x" class="w-6 h-6"></i>
+    </button>
+
+    <img 
+        id="modalImage"
+        src=""
+        alt="Venue image preview"
+        class="max-w-full max-h-[85vh] rounded-xl shadow-2xl object-contain"
+        onclick="event.stopPropagation()"
+    >
+</div>
+
+<script>
+lucide.createIcons();
+
+function openImageModal(imageSrc) {
+    const modal = document.getElementById('imageModal');
+    const modalImage = document.getElementById('modalImage');
+
+    modalImage.src = imageSrc;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+
+    document.body.classList.add('overflow-hidden');
+}
+
+function closeImageModal() {
+    const modal = document.getElementById('imageModal');
+    const modalImage = document.getElementById('modalImage');
+
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+
+    modalImage.src = '';
+    document.body.classList.remove('overflow-hidden');
+}
+
+document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') {
+        closeImageModal();
+    }
+});
+</script>
+
 <?php include("../includes/user_footer.php"); ?>
 
 </body>

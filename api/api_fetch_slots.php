@@ -22,7 +22,10 @@ try {
     while ($row = $res1->fetch_assoc()) {
         $blocked_vectors[] = [
             'start' => substr($row['time_start'], 0, 5),
-            'end' => substr($row['time_end'], 0, 5)
+
+            // Displayed booking time is stored normally.
+            // But slot blocking includes 30 minutes inspection time.
+            'end' => date("H:i", strtotime($row['time_end'] . " +30 minutes"))
         ];
     }
     $stmt1->close();
