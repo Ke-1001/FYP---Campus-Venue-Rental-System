@@ -18,6 +18,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    // ∴ [新增] 後端嚴格網域斷言 (Backend Domain Assertion)
+    // 確保輸入向量 E ∈ MMU Domain Space
+    if (!preg_match('/^[a-zA-Z0-9._%+-]+@([a-zA-Z0-9.-]+\.)?mmu\.edu\.my$/', $email)) {
+        $_SESSION['toast'] = ['type' => 'error', 'msg' => 'Security Exception: Invalid identity vector. Only MMU institutional domains are permitted.'];
+        header("Location: ../admin/add_staff.php");
+        exit;
+    }
+
     $conn->begin_transaction();
 
     try {
@@ -72,13 +80,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $app_domain = "http://localhost/FYP"; 
         $reset_link = $app_domain . "/admin/setup_password.php?token=" . $token;
 
-        $subject = "Action Required: Complete Your MMU System Configuration";
+        $subject = "Action Required: Complete Your CVBMS password Configuration";
         $message = "Hello {$full_name},\n\n" .
                    "An administrator account has been provisioned for you. " .
                    "To activate your account and configure your secure credential vector, please access the following cryptographic link:\n\n" .
                    $reset_link . "\n\n" .
                    "Note: This link will strictly expire in 1 hour. Do not share this URL with anyone.\n\n" .
-                   "MMU Automated System";
+                   "CVBMS Automated System";
 
         // 💡 [依賴替換與精確執行節點] 
         // 變數皆已賦值，廢除 mail() 函數，改以 PHPMailer 引擎執行 SMTP 交握

@@ -27,8 +27,7 @@
     <div class="relative z-10 flex items-center justify-center min-h-screen px-4">
         <div class="w-full max-w-sm glass-panel rounded-2xl p-8 shadow-2xl">
             <h2 class="text-white text-xl font-bold mb-6 text-center">Reset Password</h2>
-            
-            <form action="forgot_password_process.php" method="POST" class="space-y-4">
+            <form action="/FYP/actions/process_forgot_password.php" method="POST" id="recoveryForm" class="space-y-6">
                 <div>
                     <div class="flex justify-between items-center mb-1.5">
                         <label class="block text-[12px] font-bold text-slate-300 uppercase tracking-wider">Registered Email</label>

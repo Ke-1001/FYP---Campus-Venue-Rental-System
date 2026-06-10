@@ -55,5 +55,25 @@ class PersonnelRepository {
         
         return $this->conn->query($base_sql);
     }
+
+    /**
+     * [業務場景: assign_inspector_detail.php 使用]
+     * 專用數據提取：獲取職位為 inspector 的工作人員子集合
+     * ∴ 繞過 Unified Directory，直接對 staff 表進行輕量化提取
+     *
+     * @return array 包含 sid 與 staff_name 的關聯陣列
+     */
+    public function getInspectors(): array {
+        $sql = "SELECT sid, staff_name FROM staff WHERE position = 'inspector' ORDER BY staff_name ASC";
+        $result = $this->conn->query($sql);
+        
+        $inspectors = [];
+        if ($result && $result->num_rows > 0) {
+            while ($row = $result->fetch_assoc()) {
+                $inspectors[] = $row;
+            }
+        }
+        return $inspectors;
+    }
 }
 ?>

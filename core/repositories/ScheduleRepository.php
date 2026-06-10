@@ -63,5 +63,58 @@ class ScheduleRepository {
         
         return $this->conn->query($sql);
     }
+
+    /**
+     * [業務場景: add_exclusion.php 使用]
+     * 基於主鍵精確提取單一排程實體 (Single Entity Extraction)
+     *
+     * @param int $sch_id
+     * @return array|null
+     */
+    public function getScheduleById(int $sch_id): ?array {
+        $stmt = $this->conn->prepare("SELECT * FROM academic_schedule WHERE sch_id = ?");
+        $stmt->bind_param("i", $sch_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        return $result->num_rows > 0 ? $result->fetch_assoc() : null;
+    }
+
+    /**
+     * [業務場景: add_exclusion.php 使用]
+     * 獲取場地字典矩陣 (返回二維關聯陣列集合以供視圖層迭代)
+     * ∴ 獨立於 getVenueOptions() 確保向後相容
+     *
+     * @return array
+     */
+    public function getVenuesForDropdown(): array {
+        $sql = "SELECT vid, vname FROM venue ORDER BY vid ASC";
+        $result = $this->conn->query($sql);
+        $venues = [];
+        if ($result && $result->num_rows > 0) {
+            while ($row = $result->fetch_assoc()) {
+                $venues[] = $row;
+            }
+        }
+        return $venues;
+    }
+
+    /**
+     * [業務場景: add_exclusion.php 使用]
+     * 獲取學期字典矩陣 (必須包含 is_active 狀態以供 UI 預設選取判定)
+     * ∴ 獨立於 getSemesterOptions() 確保向後相容
+     *
+     * @return array
+     */
+    public function getSemestersForDropdown(): array {
+        $sql = "SELECT sem_id, sem_name, is_active FROM semester_config ORDER BY start_date DESC";
+        $result = $this->conn->query($sql);
+        $semesters = [];
+        if ($result && $result->num_rows > 0) {
+            while ($row = $result->fetch_assoc()) {
+                $semesters[] = $row;
+            }
+        }
+        return $semesters;
+    }
 }
 ?>

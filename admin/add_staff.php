@@ -1,142 +1,228 @@
 <?php
 // File: admin/add_staff.php
 session_start();
-require_once '../config/db.php';
-require_once '../includes/admin_auth.php';
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/admin_auth.php';
+
+/*
+|--------------------------------------------------------------------------
+| I: Repository Initialization & Mode Detection
+|--------------------------------------------------------------------------
+*/
+// ∴ 純粹註冊節點，無需初始化資料提取倉儲 (Zero-Data Dependency)
+
+/*
+|--------------------------------------------------------------------------
+| C: Configuration Definitions
+|--------------------------------------------------------------------------
+*/
+$page_title = "Register Personnel";
+$page_description = "Provision new administrative and inspector entities.";
+$topbar_content = '
+<div class="flex items-center">
+    <a href="staff_directory.php" class="text-sm font-bold text-[#004aad] hover:text-[#003882] flex items-center mr-4 transition-colors">
+        <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i> Back
+    </a>
+    <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Identity Management / Register Personnel</h2>
+</div>';
+
+$extra_css = ["../assets/css/fiori_forms.css"];
+
+// ∴ 引入表單建構矩陣
+require_once __DIR__ . '/../core/components/FioriFormBuilder.php';
+use Core\Components\FioriFormBuilder as FB;
+
+/*
+|--------------------------------------------------------------------------
+| V: View Rendering (State Binding via Builder)
+|--------------------------------------------------------------------------
+*/
+ob_start();
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>MMU Admin | Register Personnel</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script>
-        tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b' }, fiori: { bg: '#f4f4f4', text: '#1d2d3e', blue: '#0a6ed1', label: '#6b7280' } } } } }
-    </script>
-    <link rel="stylesheet" href="../assets/css/layout.css?v=1.2">
-    <link rel="stylesheet" href="../assets/css/fiori_forms.css">
-    <style>input[type="date"]::-webkit-calendar-picker-indicator { display: none; -webkit-appearance: none; }</style>
-</head>
-<body class="bg-[#f4f4f4] text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
 
-    <?php include('../includes/admin_sidebar.php'); ?>
+<form action="../actions/process_add_staff.php" method="POST" id="addStaffForm" class="bg-white rounded-lg shadow-sm border border-slate-200 relative mb-20">
+    <div class="p-0">
+        <div class="fiori-form-container">
+            <div class="fiori-section-header">
+                <h2 class="text-base font-bold text-[#1d2d3e]">Basic Personnel Data</h2>
+            </div>
 
-    <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
-        <header class="h-16 glass-panel border-b border-slate-200 flex items-center justify-between px-6 z-10 shrink-0 bg-white">
-            <?php 
-            $topbar_content = '
-            <div class="flex items-center">
-                <a href="staff_directory.php" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 flex items-center mr-4 transition-colors">
-                    <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i> Back
-                </a>
-                <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Identity Management / Register Personnel</h2>
-            </div>';
-            include('../includes/admin_topbar.php'); 
-            ?>
-        </header>
+            <div class="p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                <div class="lg:col-span-6 space-y-4">
+                    <h3 class="text-sm font-bold text-[#1d2d3e] mb-4">Identity Credentials</h3>
+                    
+                    <?php 
+                    echo FB::select('access_level', 'Authorization Level', [
+                        'admin' => 'Standard Administrator',
+                        'inspector' => 'Venue Inspector'
+                    ], null, [
+                        'required' => true,
+                        'placeholder' => 'Select Role Assignment',
+                        'extra_css' => 'font-bold text-indigo-700'
+                    ]);
 
-        <form action="../actions/process_add_staff.php" method="POST" id="addStaffForm" class="flex-1 flex flex-col overflow-hidden">
-            <div class="flex-1 overflow-y-auto p-4 md:p-8 space-y-6">
-                <div class="fiori-form-container">
-                    <div class="fiori-section-header">
-                        <h2 class="text-base font-bold text-fiori-text">Basic Personnel Data</h2>
+                    echo FB::input('text', 'full_name', 'Full Name', '', [
+                        'required' => true, 
+                        'placeholder' => 'e.g., Siti Nurhaliza'
+                    ]);
+                    ?>
+                </div>
+
+                <div class="lg:col-span-6 space-y-4">
+                    <h3 class="text-sm font-bold text-[#1d2d3e] mb-4">Contact Parameters</h3>
+                    
+                    <div class="space-y-1">
+                        <?php 
+                        echo FB::input('email', 'email', 'Email Address', '', [
+                            'id' => 'email',
+                            'required' => true, 
+                            'placeholder' => 'name@mmu.edu.my',
+                            'oninput' => 'validateFormState()'
+                        ]);
+                        ?>
+                        <p id="email-feedback" class="text-xs text-red-600 mt-1 hidden pl-32">Invalid email format</p>
                     </div>
 
-                    <div class="p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
-                        
-                        <div class="lg:col-span-6 space-y-4">
-                            <div class="grid grid-cols-3 gap-4 items-center">
-                                <label class="col-span-1 text-sm text-fiori-label">Authorization Level:</label>
-                                <div class="col-span-2 relative">
-                                    <select name="access_level" required class="fiori-input appearance-none pr-8 bg-white cursor-pointer transition-colors font-bold text-indigo-700">
-                                        <option value="" disabled selected>Select Role Assignment</option>
-                                        <option value="admin">Standard Administrator</option>
-                                        <option value="inspector">Venue Inspector</option>
-                                    </select>
-                                    <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 absolute right-3 top-2.5 pointer-events-none"></i>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-3 gap-4 items-center">
-                                <label class="col-span-1 text-sm text-fiori-label">Full Name:</label>
-                                <div class="col-span-2">
-                                    <input type="text" name="full_name" required placeholder="e.g., Siti Nurhaliza" class="fiori-input">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="lg:col-span-6 space-y-4">
-                            <div class="grid grid-cols-3 gap-4 items-start">
-                                <label class="col-span-1 text-sm text-fiori-label mt-1">Email Address:</label>
-                                <div class="col-span-2 relative">
-                                    <input type="email" name="email" id="email" required onkeyup="validateEmail()" placeholder="name@mmu.edu.my" class="fiori-input pr-8">
-                                    <i data-lucide="mail" class="w-4 h-4 text-slate-400 absolute right-3 top-2.5"></i>
-                                    <p id="email-feedback" class="text-xs text-red-600 mt-1 hidden">Invalid email format</p>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-3 gap-4 items-center">
-                                <label class="col-span-1 text-sm text-fiori-label">Contact Number:</label>
-                                <div class="col-span-2 relative">
-                                    <input type="text" name="phone_num" required placeholder="0123456789" class="fiori-input font-mono">
-                                </div>
-                            </div>
-                            
-                            <div class="md:col-span-3 pt-4 border-t border-slate-100">
-                                <p class="text-xs text-indigo-600 font-bold bg-indigo-50 border border-indigo-100 p-3 rounded-lg flex items-start">
-                                    <i data-lucide="info" class="w-4 h-4 mr-2 shrink-0 mt-0.5"></i>
-                                    Upon registration, an automated email containing a cryptographic token will be dispatched to the provided email address, allowing the personnel to configure their own credential vector.
-                                </p>
-                            </div>
-                        </div>
+                    <div class="space-y-1">
+                        <?php
+                        echo FB::input('text', 'phone_num', 'Contact Number', '', [
+                            'id' => 'phone_num',               // ∴ 強制綁定 DOM ID
+                            'required' => true, 
+                            'placeholder' => '0123456789',
+                            'maxlength' => '11',               
+                            'inputmode' => 'numeric',
+                            'extra_css' => 'font-mono',
+                            'oninput' => 'validateFormState()' 
+                        ]);
+                        ?>
+                        <p id="phone-feedback" class="text-xs text-red-600 mt-1 hidden pl-32">Invalid length. Must be 10 or 11 digits.</p>
+                    </div>
+                    
+                    <div class="pt-4 border-t border-slate-100 mt-4">
+                        <p class="text-xs text-indigo-600 font-bold bg-indigo-50 border border-indigo-100 p-3 rounded-lg flex items-start">
+                            <i data-lucide="info" class="w-4 h-4 mr-2 shrink-0 mt-0.5"></i>
+                            Upon registration, an automated email containing a cryptographic token will be dispatched to the provided email address, allowing the personnel to configure their own credential vector.
+                        </p>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <div class="fiori-footer-toolbar shrink-0 z-20 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
-                <button type="button" onclick="window.location.href='staff_directory.php'" class="fiori-btn-cancel">Cancel</button>
-                <button type="submit" id="submitBtn" disabled class="fiori-btn-primary disabled:opacity-50 disabled:cursor-not-allowed">
-                    Register Entity & Dispatch Email
-                </button>
-            </div>
-        </form>
-    </main>
+    <div class="fixed bottom-0 right-0 w-full lg:w-[calc(100%-16rem)] bg-slate-50 border-t border-slate-200 p-4 px-6 flex justify-end space-x-3 z-50 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.1)]">
+        <button type="button" onclick="window.location.href='staff_directory.php'" class="px-5 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors">
+            Cancel
+        </button>
+        <button type="submit" id="submitBtn" disabled class="px-5 py-2 text-sm font-semibold text-white bg-[#004aad] rounded-md hover:bg-[#003882] shadow-sm transition-colors flex items-center border border-[#004aad] disabled:opacity-50 disabled:cursor-not-allowed">
+            <i data-lucide="send" class="w-4 h-4 mr-2"></i> Register Entity & Dispatch Email
+        </button>
+    </div>
+</form>
 
-    <?php include('../includes/ui_components.php'); ?>
+<script>
+    // 建立狀態字典 (State Dictionary) 追蹤各欄位有效性
+    const formValidity = {
+        email: false,
+        phone: false
+    };
 
-    <script>
-        lucide.createIcons();
-        function toggleSidebar() { document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed'); }
+    /**
+     * 主控樞紐：評估表單總體狀態 (Evaluate Aggregate State)
+     * ∀ state ∈ formValidity, state ≡ true ⇒ enable Submit
+     */
+    function validateFormState() {
+        validateEmailField();
+        validatePhoneField();
 
-        function validateEmail() {
-            const emailInput = document.getElementById('email');
-            const emailFeedback = document.getElementById('email-feedback');
-            const btn = document.getElementById('submitBtn');
-            const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-            
-            if (emailInput.value.length > 0) {
-                if (emailRegex.test(emailInput.value)) {
-                    emailInput.style.borderColor = '#89919a';
-                    emailFeedback.classList.add('hidden');
-                    btn.disabled = false;
-                } else {
-                    emailInput.style.borderColor = '#ee0000';
-                    emailFeedback.classList.remove('hidden');
-                    btn.disabled = true;
-                }
+        const btn = document.getElementById('submitBtn');
+        // 邏輯乘積運算 (Logical AND)
+        const isFormValid = formValidity.email && formValidity.phone;
+        btn.disabled = !isFormValid;
+    }
+
+    /**
+     * V_{email}: Email 驗證函數 (特化多媒體大學網域限制)
+     * 邊界條件：僅允許 @mmu.edu.my 或其子網域 (如 @student.mmu.edu.my)
+     */
+    function validateEmailField() {
+        const emailInput = document.getElementById('email');
+        const emailFeedback = document.getElementById('email-feedback');
+        
+        // 嚴格網域邊界正規表達式
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@([a-zA-Z0-9.-]+\.)?mmu\.edu\.my$/;
+        
+        if (emailInput.value.length > 0) {
+            if (emailRegex.test(emailInput.value)) {
+                // 驗證通過：恢復 Fiori 預設樣式
+                emailInput.style.borderColor = '#d9d9d9';
+                emailFeedback.classList.add('hidden');
+                formValidity.email = true;
             } else {
-                btn.disabled = true;
+                // 驗證失敗：觸發高亮提示
+                emailInput.style.borderColor = '#ee0000';
+                emailFeedback.textContent = "Invalid identity vector. Only MMU institutional domains are permitted.";
+                emailFeedback.classList.remove('hidden');
+                formValidity.email = false;
             }
+        } else {
+            emailInput.style.borderColor = '#d9d9d9';
+            emailFeedback.classList.add('hidden');
+            formValidity.email = false;
         }
+    }
 
-        document.getElementById('addStaffForm').addEventListener('submit', function() {
-            const btn = document.getElementById('submitBtn');
-            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin mr-2 inline"></i> Provisioning...';
-            btn.classList.add('opacity-70', 'cursor-not-allowed');
-            btn.style.pointerEvents = 'none';
-            lucide.createIcons();
-        });
-    </script>
-</body>
-</html>
+    /**
+     * V_{phone}: 電話號碼驗證函數
+     * 執行路徑：Sanitize -> Measure -> Evaluate
+     */
+    function validatePhoneField() {
+        const phoneInput = document.getElementById('phone_num');
+        const phoneFeedback = document.getElementById('phone-feedback');
+        
+        // 限制2：即時過濾（Sanitization）
+        // 利用 Regex \D 捕捉所有非數字字元並剔除，確保輸入域 I ∈ Z^+
+        phoneInput.value = phoneInput.value.replace(/\D/g, '');
+        
+        const len = phoneInput.value.length;
+
+        if (len > 0) {
+            // 限制3 & 4：邊界條件檢測 (10 <= L <= 11)
+            // L > 11 已由 HTML maxlength="11" 於前端物理阻擋
+            if (len >= 10 && len <= 11) {
+                phoneInput.style.borderColor = '#d9d9d9';
+                phoneFeedback.classList.add('hidden');
+                formValidity.phone = true;
+            } else {
+                phoneInput.style.borderColor = '#ee0000';
+                phoneFeedback.classList.remove('hidden');
+                formValidity.phone = false;
+            }
+        } else {
+            phoneInput.style.borderColor = '#d9d9d9';
+            phoneFeedback.classList.add('hidden');
+            formValidity.phone = false;
+        }
+    }
+
+    // 處理表單提交時的 UI 狀態防抖 (Debounce / State lock)
+    document.getElementById('addStaffForm').addEventListener('submit', function() {
+        const btn = document.getElementById('submitBtn');
+        btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin mr-2 inline"></i> Provisioning...';
+        btn.classList.add('opacity-70', 'cursor-not-allowed');
+        btn.style.pointerEvents = 'none';
+        // 若使用了 lucide.js，需重新渲染新加入的圖標
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    });
+</script>
+
+<?php
+$page_content = ob_get_clean();
+
+/*
+|--------------------------------------------------------------------------
+| L: Global Layout Engine
+|--------------------------------------------------------------------------
+*/
+require_once __DIR__ . '/../core/layout.php';
+?>

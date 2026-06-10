@@ -4,13 +4,19 @@ session_start();
 require_once '../config/db.php';
 require_once '../includes/mailer.php';
 
+// ∴ 動態路由指標 (Dynamic Routing Pointer)
+// 擷取 HTTP 請求來源，確保雙向相容性 (Bi-directional Compatibility)
+// 若來源為 profile.php 則回傳 profile.php；若為 forgot_password.php 則反之
+$source_node = $_SERVER['HTTP_REFERER'] ?? '../login.php';
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     $email = filter_var(trim($_POST['email'] ?? ''), FILTER_SANITIZE_EMAIL);
 
     if (empty($email)) {
         $_SESSION['toast'] = ['type' => 'error', 'msg' => 'Security Fault: Invalid email vector.'];
-        header("Location: ../admin/forgot_password.php");
+        // 💡 升級：動態重定向至來源節點
+        header("Location: " . $source_node);
         exit;
     }
 
@@ -59,7 +65,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // 💡 2. 條件式權杖發行 (Conditional Token Issuance)
-        // 為了防禦信箱枚舉攻擊，若找不到實體，我們依然跳轉回傳「成功」訊息，但不執行實質 SQL 與 SMTP。
         if ($entity_found) {
             // 發行非對稱時效性權杖
             $token = bin2hex(random_bytes(32)); 
@@ -81,13 +86,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $app_domain = "http://localhost/FYP---Campus-Venue-Rental-System"; 
             $reset_link = $app_domain . "/admin/setup_password.php?token=" . $token;
 
-            $subject = "Security Alert: MMU System Credential Recovery";
+            $subject = "Security Alert: CVBMS System Credential Recovery";
             $message = "Hello {$entity_name},\n\n" .
                        "A request to reconfigure the cryptographic credentials for your account has been initiated.\n\n" .
                        "To execute the reset protocol, please access the following secure link:\n\n" .
                        $reset_link . "\n\n" .
                        "Note: This authorization vector will expire in 1 hour. If you did not initiate this request, you may safely ignore this email.\n\n" .
-                       "MMU Automated Security System";
+                       "CVBMS Automated Security System";
 
             dispatchSystemEmail($email, $entity_name, $subject, $message);
         }
@@ -95,18 +100,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $conn->commit();
 
         // 💡 4. 終端路由移轉 (Terminal Routing Shift)
-        // 廢除 Toast，將目標信箱注入短暫的 Session，並引導至明確的信箱檢查視圖
         $_SESSION['recovery_email'] = $email;
+        // 正常發送成功後，統一導向檢查信箱頁面
         header("Location: ../check_email.php");
+        exit;
 
     } catch (Exception $e) {
         $conn->rollback();
-        // 將底層異常轉換為模糊的系統警告，防止架構暴露
         $_SESSION['toast'] = ['type' => 'error', 'msg' => 'System Execution Fault. Please try again later.'];
-        header("Location: ../forgot_password.php");
+        // 💡 升級：發生資料庫或 SMTP 例外時，動態重定向
+        header("Location: " . $source_node);
+        exit;
     }
-    exit;
 } else {
-    header("Location: ../forgot_password.php");
+    // 💡 升級：阻斷非 POST 請求時的動態重定向
+    header("Location: " . $source_node);
     exit;
 }
