@@ -409,7 +409,7 @@ $flowSteps[] = [
 
                     <?php elseif ($can_report_damage): ?>
                         <a 
-                            href="report_damage.php?bid=<?php echo urlencode($booking['bid']); ?>"
+                            href="user_report_damage.php?bid=<?php echo urlencode($booking['bid']); ?>"
                             class="w-full inline-flex items-center justify-center px-5 py-3 bg-amber-600 hover:bg-amber-700 text-white text-sm font-bold rounded-lg shadow-sm transition"
                         >
                             <i data-lucide="camera" class="w-4 h-4 mr-2"></i>

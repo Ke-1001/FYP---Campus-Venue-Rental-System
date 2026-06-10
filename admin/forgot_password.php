@@ -38,7 +38,7 @@ session_start();
                 </p>
             </div>
 
-            <form action="actions/process_forgot_password.php" method="POST" id="recoveryForm" class="p-8 space-y-6">
+            <form action="../actions/process_forgot_password.php" method="POST" id="recoveryForm" class="p-8 space-y-6">
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Registered Email Vector</label>
                     <div class="relative">

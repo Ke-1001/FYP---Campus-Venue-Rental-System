@@ -25,7 +25,7 @@ $stmt = $conn->prepare("
     WHERE bid = ? AND uid = ? AND vid = ?
     LIMIT 1
 ");
-$stmt->bind_param("iis", $bid, $uid, $vid);
+$stmt->bind_param("iss", $bid, $uid, $vid);
 $stmt->execute();
 $result = $stmt->get_result();
 
@@ -51,7 +51,7 @@ $check = $conn->prepare("
     WHERE bid = ? AND uid = ?
     LIMIT 1
 ");
-$check->bind_param("ii", $bid, $uid);
+$check->bind_param("is", $bid, $uid);
 $check->execute();
 $check_result = $check->get_result();
 
@@ -116,7 +116,7 @@ $insert = $conn->prepare("
     VALUES 
         (?, ?, ?, ?, ?, 'submitted')
 ");
-$insert->bind_param("iisss", $bid, $uid, $vid, $damage_description, $damage_photo);
+$insert->bind_param("issss", $bid, $uid, $vid, $damage_description, $damage_photo);
 
 if ($insert->execute()) {
     $_SESSION['success'] = "Damage report submitted successfully.";

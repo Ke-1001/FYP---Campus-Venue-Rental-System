@@ -32,7 +32,7 @@ $stmt = $conn->prepare("
     WHERE b.bid = ? AND b.uid = ?
     LIMIT 1
 ");
-$stmt->bind_param("ii", $bid, $uid);
+$stmt->bind_param("is", $bid, $uid);
 $stmt->execute();
 $result = $stmt->get_result();
 
@@ -54,7 +54,7 @@ $check = $conn->prepare("
     WHERE bid = ? AND uid = ?
     LIMIT 1
 ");
-$check->bind_param("ii", $bid, $uid);
+$check->bind_param("is", $bid, $uid);
 $check->execute();
 $check_result = $check->get_result();
 

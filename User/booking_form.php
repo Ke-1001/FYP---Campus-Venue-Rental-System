@@ -24,7 +24,7 @@ if (!preg_match('/^[A-Za-z0-9_-]+$/', $vid)) {
 $sql = "SELECT v.vid, v.vname, vc.category, v.max_cap, v.deposit, v.status
         FROM venue v
         JOIN vcategory vc ON v.vcid = vc.vcid
-        WHERE v.vid = ? AND v.status = 'available'
+        WHERE v.vid = ?
         LIMIT 1";
 
 $stmt = $conn->prepare($sql);
@@ -122,11 +122,11 @@ if (!$venue) {
 
                     <div id="time-grid" class="grid grid-cols-4 sm:grid-cols-6 gap-2 mb-8 max-h-64 overflow-y-auto p-2 border border-slate-100 rounded-xl bg-slate-50"></div>
 
-                    <form id="asyncBookingForm" method="POST" action="process_booking.php" class="space-y-6 pt-6 border-t border-slate-100 hidden">
-                        <input type="hidden" name="venue_id" id="payload_venue_id" value="<?php echo htmlspecialchars($venue["vid"]); ?>">
-                        <input type="hidden" name="booking_date" id="payload_date" value="">
-                        <input type="hidden" name="start_time" id="payload_start" value="">
-                        <input type="hidden" name="end_time" id="payload_end" value="">
+                    <form id="asyncBookingForm" method="POST" action="../actions/process_booking.php" class="space-y-6 pt-6 border-t border-slate-100 hidden">
+                        <input type="hidden" name="vid" id="payload_venue_id" value="<?php echo htmlspecialchars($venue["vid"]); ?>">
+                        <input type="hidden" name="date_booked" id="payload_date" value="">
+                        <input type="hidden" name="time_start" id="payload_start" value="">
+                        <input type="hidden" name="time_end" id="payload_end" value="">
 
                         <div class="bg-indigo-50 p-4 rounded-lg flex justify-between items-center border border-indigo-100">
                             <span class="text-sm font-bold text-indigo-800 uppercase tracking-wider">Selected Time</span>
@@ -283,7 +283,7 @@ if (!$venue) {
 <script>
     lucide.createIcons();
 
-    const venueID = document.getElementById('payload_venue_id').value;
+    const venueID = "<?php echo htmlspecialchars($venue['vid'], ENT_QUOTES); ?>";
     const today = new Date();
     let currentMonth = today.getMonth();
     let currentYear = today.getFullYear();
@@ -350,15 +350,27 @@ if (!$venue) {
         selectionState = { start: null, end: null };
         document.getElementById('asyncBookingForm').classList.add('hidden');
 
-        fetch(`../api/api_fetch_slots.php?venue_id=${venueID}&date=${dateStr}`)
-            .then(res => res.json())
+        fetch(`../api/api_fetch_slots.php?venue_id=${encodeURIComponent(venueID)}&date=${encodeURIComponent(dateStr)}`)
+            .then(async res => {
+                const text = await res.text();
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    console.error("Slot API returned non-JSON:", text);
+                    throw new Error("Slot API returned non-JSON.");
+                }
+            })
             .then(data => {
-                if(data.status === 'success') {
+                if (data.status === 'success') {
                     blockedVectors = data.blocked_vectors || [];
                     renderTimeGrid();
                 } else {
-                    alert("System Fault: Unable to synchronize schedule matrices.");
+                    alert(data.message || "Unable to load available time slots.");
                 }
+            })
+            .catch(error => {
+                console.error("Slot Fetch Error:", error);
+                alert("Unable to load available time slots. Please check api_fetch_slots.php.");
             });
     }
 
@@ -497,46 +509,64 @@ if (!$venue) {
     }
 
     document.getElementById('asyncBookingForm').addEventListener('submit', function(e) {
-        e.preventDefault(); 
-        
-        const submitBtn = document.getElementById('submitBtn');
+        e.preventDefault();
+
+        const form = this;
+        const submitBtn = document.getElementById('requestBookingBtn');
         const originalBtnText = submitBtn.innerHTML;
-        submitBtn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 mr-2 animate-spin"></i> Processing Matrix...';
+
+        submitBtn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 mr-2 animate-spin"></i> Processing...';
         submitBtn.disabled = true;
-        submitBtn.classList.replace('bg-indigo-600', 'bg-slate-400');
+        submitBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
+        submitBtn.classList.add('bg-slate-400', 'cursor-not-allowed');
         lucide.createIcons();
 
-        // 💡 這裡會自動擷取表單內的所有隱藏 input (包含已更新的 payload_end)
-        const formData = new FormData(this);
+        const formData = new FormData(form);
 
         fetch('../actions/process_booking.php', {
             method: 'POST',
             body: formData
         })
-        .then(response => {
-            if (!response.ok) throw new Error('Network Protocol Error.');
-            return response.json(); 
+        .then(async response => {
+            const text = await response.text();
+
+            try {
+                return JSON.parse(text);
+            } catch (error) {
+                console.error("process_booking.php returned non-JSON:", text);
+                throw new Error("process_booking.php returned invalid JSON.");
+            }
         })
         .then(data => {
             if (data.status === 'success') {
                 window.location.href = data.redirect_url;
             } else {
-                alert("Execution Halted: " + (data.message || "Unknown anomaly."));
+                alert(data.message || "Booking failed.");
                 resetFormButton(submitBtn, originalBtnText);
             }
         })
         .catch(error => {
-            console.error('Core Diagnostics:', error);
-            // 若仍報錯，必定是後端 PHP 在解析時發生 Fatal Error
-            alert("Connection Error: Server returned an invalid execution payload. Please check backend logs.");
+            console.error('Booking Error:', error);
+            alert("Booking failed because the server returned an invalid response. Please check process_booking.php.");
             resetFormButton(submitBtn, originalBtnText);
         });
     });
 
     function resetFormButton(btn, originalText) {
+        const checkbox = document.getElementById('agreeRules');
+
         btn.innerHTML = originalText;
-        btn.disabled = false;
-        btn.classList.replace('bg-slate-400', 'bg-indigo-600');
+
+        if (checkbox && checkbox.checked) {
+            btn.disabled = false;
+            btn.classList.remove('bg-slate-400', 'cursor-not-allowed');
+            btn.classList.add('bg-indigo-600', 'hover:bg-indigo-700', 'shadow');
+        } else {
+            btn.disabled = true;
+            btn.classList.remove('bg-indigo-600', 'hover:bg-indigo-700', 'shadow');
+            btn.classList.add('bg-slate-400', 'cursor-not-allowed');
+        }
+
         lucide.createIcons();
     }
 

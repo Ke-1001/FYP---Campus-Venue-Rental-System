@@ -10,6 +10,32 @@ if (!isset($_SESSION['uid'])) {
 $uid = $_SESSION['uid'];
 $display_name = isset($_SESSION['username']) ? $_SESSION['username'] : $uid;
 
+$damage_booking_stmt = $conn->prepare("
+    SELECT 
+        b.bid,
+        b.date_booked,
+        b.time_start,
+        b.time_end,
+        b.status,
+        v.vname,
+        v.vid,
+        dr.report_id,
+        dr.report_status,
+        dr.created_at AS report_created_at
+    FROM booking b
+    JOIN venue v ON b.vid = v.vid
+    LEFT JOIN damage_report dr ON b.bid = dr.bid AND b.uid = dr.uid
+    WHERE b.uid = ?
+      AND b.status = 'approved'
+      AND b.date_booked >= CURDATE()
+    ORDER BY b.date_booked ASC, b.time_start ASC
+    LIMIT 5
+");
+
+$damage_booking_stmt->bind_param("s", $uid);
+$damage_booking_stmt->execute();
+$damage_booking_result = $damage_booking_stmt->get_result();
+
 // 1. FIXED: Query Stats with correct column references (no single quotes around column names)
 $stats_stmt = $conn->prepare("SELECT 
     COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending,
@@ -52,6 +78,77 @@ include("../includes/user_navbar.php");
             <div class="glass-card p-10 text-center"><p class="text-white opacity-70">Approved</p><h3 class="text-4xl font-bold text-white"><?php echo $stats['approved']; ?></h3></div>
             <div class="glass-card p-10 text-center"><p class="text-white opacity-70">Pending</p><h3 class="text-4xl font-bold text-white"><?php echo $stats['pending']; ?></h3></div>
         </div>
+
+        <!-- Report Existing Damage Quick Access -->
+        <div class="mt-8 bg-white/10 border border-white/10 rounded-2xl shadow-sm overflow-hidden backdrop-blur">
+            <div class="px-6 py-5 border-b border-white/10">
+                <h2 class="text-xl font-black text-white flex items-center">
+                    <i data-lucide="triangle-alert" class="w-5 h-5 mr-2 text-amber-400"></i>
+                    Report Existing Damage
+                </h2>
+
+                <p class="text-sm text-slate-300 mt-1">
+                    Report damage before using the venue to avoid being charged for damage you did not cause.
+                </p>
+            </div>
+
+            <div class="p-6">
+                <?php if ($damage_booking_result && $damage_booking_result->num_rows > 0): ?>
+                    <div class="space-y-3">
+                        <?php while ($damage_booking = $damage_booking_result->fetch_assoc()): ?>
+                            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white/10 border border-white/10 rounded-xl p-4">
+                                <div>
+                                    <p class="text-white font-bold">
+                                        <?php echo htmlspecialchars($damage_booking['vname']); ?>
+                                    </p>
+
+                                    <p class="text-sm text-slate-300 mt-1">
+                                        <?php echo date("d M Y", strtotime($damage_booking['date_booked'])); ?>
+                                        ·
+                                        <?php echo substr($damage_booking['time_start'], 0, 5); ?>
+                                        -
+                                        <?php echo substr($damage_booking['time_end'], 0, 5); ?>
+                                    </p>
+                                </div>
+
+                                <div class="flex-shrink-0">
+                                    <?php if (!empty($damage_booking['report_id'])): ?>
+                                        <a 
+                                            href="booking_details.php?bid=<?php echo urlencode($damage_booking['bid']); ?>"
+                                            class="inline-flex items-center justify-center px-4 py-2 bg-emerald-100 text-emerald-700 text-sm font-bold rounded-lg border border-emerald-200"
+                                        >
+                                            <i data-lucide="check-circle" class="w-4 h-4 mr-2"></i>
+                                            Report Submitted
+                                        </a>
+                                    <?php else: ?>
+                                        <a 
+                                            href="user_report_damage.php?bid=<?php echo urlencode($damage_booking['bid']); ?>"
+                                            class="inline-flex items-center justify-center px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold rounded-lg shadow-sm transition"
+                                        >
+                                            <i data-lucide="camera" class="w-4 h-4 mr-2"></i>
+                                            Report Damage
+                                        </a>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        <?php endwhile; ?>
+                    </div>
+
+                <?php else: ?>
+                    <div class="text-center py-8 text-slate-300">
+                        <i data-lucide="shield-check" class="w-10 h-10 mx-auto mb-3 text-slate-400"></i>
+
+                        <p class="font-semibold text-white">
+                            No approved upcoming booking available for damage report.
+                        </p>
+
+                        <p class="text-sm text-slate-400 mt-1">
+                            This option will appear when you have an approved upcoming booking.
+                        </p>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
         
         <div class="glass-card p-8 text-white">
             <h3 class="text-2xl font-bold mb-6">Recent Activity</h3>
@@ -66,5 +163,9 @@ include("../includes/user_navbar.php");
         </div>
     </div>
 </div>
+
+<script>
+lucide.createIcons();
+</script>
 
 <?php include("../includes/user_footer.php"); ?>
