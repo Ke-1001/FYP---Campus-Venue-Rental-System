@@ -2,7 +2,14 @@
 session_start();
 require_once '../config/db.php';
 
-$sql = "SELECT vid, vname, vcid, description FROM venue LIMIT 3";
+$sql = "SELECT v.vid, v.vname, v.vcid, v.description, 
+               vc.category, 
+               MIN(vp.pic) AS pic
+        FROM venue v 
+        LEFT JOIN vcategory vc ON v.vcid = vc.vcid 
+        LEFT JOIN vpic vp ON v.vid = vp.vid 
+        GROUP BY v.vid, v.vname, v.vcid, v.description, vc.category
+        LIMIT 3";
 $result = $conn->query($sql);
 ?>
 
@@ -166,17 +173,17 @@ $result = $conn->query($sql);
             <?php if ($result->num_rows > 0): ?>
                 <?php while($row = $result->fetch_assoc()): ?>
                     <div class="glass-panel rounded-3xl overflow-hidden hover-lift flex flex-col group">
-                        <div class="h-56 bg-black/40 relative overflow-hidden flex items-center justify-center">
-                            <?php if(!empty($row['pic'])): ?>
-                                <img src="../uploads/<?php echo htmlspecialchars($row['pic']); ?>" alt="Venue" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700">
-                            <?php else: ?>
-                                <i data-lucide="image" class="w-12 h-12 text-slate-600"></i>
-                            <?php endif; ?>
-                            <div class="absolute inset-0 bg-gradient-to-t from-[#131d30] to-transparent"></div>
-                            <div class="absolute top-4 left-4 bg-black/50 backdrop-blur-md border border-white/10 text-[11px] font-bold px-3 py-1.5 rounded-lg text-white uppercase tracking-wider shadow-lg">
-                                <?php echo htmlspecialchars($row['category'] ?? 'Standard'); ?>
-                            </div>
-                        </div>
+                    <div class="h-56 bg-black/40 relative overflow-hidden flex items-center justify-center">
+                     <?php if(!empty($row['pic'])): ?>
+                     <img src="../uploads/venues/<?php echo htmlspecialchars($row['pic']); ?>" alt="Venue" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700">
+                     <?php else: ?>
+                     <i data-lucide="image" class="w-12 h-12 text-slate-600"></i>
+                     <?php endif; ?>
+                    <div class="absolute inset-0 bg-gradient-to-t from-[#131d30] to-transparent"></div>
+                    <div class="absolute top-4 left-4 bg-black/50 backdrop-blur-md border border-white/10 text-[11px] font-bold px-3 py-1.5 rounded-lg text-white uppercase tracking-wider shadow-lg">
+                    <?php echo htmlspecialchars($row['category'] ?? 'Standard'); ?>
+                    </div>
+                </div>
                         
                         <div class="p-8 flex-1 flex flex-col relative z-10 -mt-6">
                             <h3 class="text-2xl font-bold text-white mb-3 truncate group-hover:text-mmu-glow transition-colors drop-shadow-md">
