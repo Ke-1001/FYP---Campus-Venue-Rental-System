@@ -52,6 +52,12 @@ $sql_kpi_assign = "
 
 $kpi_assign = $conn->query($sql_kpi_assign)->fetch_row()[0] ?? 0;
 
+$kpi_damage_reports = $conn->query("
+    SELECT COUNT(*)
+    FROM damage_report
+    WHERE report_status = 'submitted'
+")->fetch_row()[0] ?? 0;
+
 /*
 |--------------------------------------------------------------------------
 | Page Config
@@ -163,6 +169,35 @@ ob_start();
 
         <div class="fiori-tile-footer">
             View Bookings
+
+            <i data-lucide="arrow-right"
+               class="w-3 h-3 ml-2"></i>
+        </div>
+
+    </a>
+
+    <!-- Damage Reports -->
+    <a href="damage_reports.php" class="fiori-tile">
+
+        <div class="fiori-tile-header">
+            <h3 class="fiori-tile-title">
+                Damage Reports
+            </h3>
+
+            <i data-lucide="triangle-alert"
+               class="w-5 h-5 fiori-tile-icon"></i>
+        </div>
+
+        <p class="fiori-tile-desc">
+            View damage reports submitted by users before venue usage.
+        </p>
+
+        <div class="fiori-tile-kpi">
+            <?php echo $kpi_damage_reports; ?>
+        </div>
+
+        <div class="fiori-tile-footer">
+            View Reports
 
             <i data-lucide="arrow-right"
                class="w-3 h-3 ml-2"></i>

@@ -4,46 +4,75 @@ session_start();
 require_once '../config/db.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // 1. Payload Extraction
-    $email = trim($_POST['email']);
-    $password = $_POST['password'];
+    $email = trim($_POST['email'] ?? '');
+    $password = $_POST['password'] ?? '';
 
-    // 💡 2. 對齊實體隔離表 (從 admin 表而非 users 提取資料)
-    $sql = "SELECT aid, admin_name, password, role FROM admin WHERE email = ?";
-    
-    $stmt = $conn->prepare($sql);
+    if ($email === '' || $password === '') {
+        header("Location: ../admin/login.php?error=invalid");
+        exit();
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | 1. Try admin account first
+    |--------------------------------------------------------------------------
+    */
+    $stmt = $conn->prepare("SELECT aid, admin_name, password, role FROM admin WHERE email = ? AND status = 'active' LIMIT 1");
     if (!$stmt) {
         die("SQL Prepare Fault: " . $conn->error);
     }
-    
+
     $stmt->bind_param("s", $email);
     $stmt->execute();
     $result = $stmt->get_result();
 
-    // 3. Cryptographic Verification Sequence
-    if ($result->num_rows === 1) {
+    if ($result && $result->num_rows === 1) {
         $admin = $result->fetch_assoc();
 
-        // 驗證密碼學特徵
         if (password_verify($password, $admin['password'])) {
-
-            // Security: Prevent session fixation
             session_regenerate_id(true);
 
-            // 💡 4. 寫入狀態機 (Session Key 映射為 aid)
             $_SESSION['aid'] = $admin['aid'];
             $_SESSION['full_name'] = $admin['admin_name'];
             $_SESSION['role'] = $admin['role'];
 
-            // Routing to Operations Launchpad
             header("Location: ../admin/dashboard.php");
             exit();
         }
     }
-
     $stmt->close();
 
-    // Authentication Fault
+    /*
+    |--------------------------------------------------------------------------
+    | 2. Try staff / inspector account
+    |--------------------------------------------------------------------------
+    */
+    $stmt = $conn->prepare("SELECT sid, staff_name, password, position FROM staff WHERE email = ? AND status = 'active' LIMIT 1");
+    if (!$stmt) {
+        die("SQL Prepare Fault: " . $conn->error);
+    }
+
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result && $result->num_rows === 1) {
+        $staff = $result->fetch_assoc();
+
+        if (password_verify($password, $staff['password'])) {
+            session_regenerate_id(true);
+
+            $_SESSION['sid'] = $staff['sid'];
+            $_SESSION['full_name'] = $staff['staff_name'];
+            $_SESSION['role'] = 'staff';
+            $_SESSION['position'] = $staff['position'];
+
+            header("Location: ../admin/inspections.php");
+            exit();
+        }
+    }
+    $stmt->close();
+
     header("Location: ../admin/login.php?error=invalid");
     exit();
 }

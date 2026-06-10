@@ -56,6 +56,33 @@ if ($result && $result->num_rows > 0) {
         $transactions[] = $row;
     }
 }
+
+// Export the same ledger data as CSV
+if (isset($_GET['export']) && $_GET['export'] === 'csv') {
+    $filename = 'financial_transaction_ledger_' . date('Ymd_His') . '.csv';
+
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename="' . $filename . '"');
+    header('Pragma: no-cache');
+    header('Expires: 0');
+
+    $output = fopen('php://output', 'w');
+    fputcsv($output, ['Transaction ID', 'Booking Ref', 'Type', 'Amount (RM)', 'Date', 'Settlement State']);
+
+    foreach ($transactions as $tx) {
+        fputcsv($output, [
+            $tx['id'],
+            $tx['ref'],
+            $tx['type'],
+            number_format((float)$tx['amount'], 2, '.', ''),
+            $tx['date'],
+            $tx['status']
+        ]);
+    }
+
+    fclose($output);
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -99,9 +126,9 @@ if ($result && $result->num_rows > 0) {
                     <i data-lucide="calendar" class="w-4 h-4 mr-2"></i>
                     <span class="text-xs font-bold text-slate-700">Fiscal Period: Q2 2026</span>
                 </div>
-                <button class="px-4 py-2 bg-white border border-slate-200 text-mmu-blue font-bold rounded-lg shadow-sm flex items-center hover:bg-slate-50 transition">
+                <a href="report.php?export=csv" class="px-4 py-2 bg-white border border-slate-200 text-mmu-blue font-bold rounded-lg shadow-sm flex items-center hover:bg-slate-50 transition">
                     <i data-lucide="download-cloud" class="w-4 h-4 mr-2"></i> Export CSV
-                </button>
+                </a>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">

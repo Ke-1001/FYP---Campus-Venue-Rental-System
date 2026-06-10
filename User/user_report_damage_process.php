@@ -119,7 +119,18 @@ $insert = $conn->prepare("
 $insert->bind_param("issss", $bid, $uid, $vid, $damage_description, $damage_photo);
 
 if ($insert->execute()) {
-    $_SESSION['success'] = "Damage report submitted successfully.";
+    // Once the user submits the pre-use damage report, close the booking usage state.
+    $update_booking = $conn->prepare("
+        UPDATE booking
+        SET status = 'completed'
+        WHERE bid = ? AND uid = ? AND status = 'approved'
+        LIMIT 1
+    ");
+    $update_booking->bind_param("is", $bid, $uid);
+    $update_booking->execute();
+    $update_booking->close();
+
+    $_SESSION['success'] = "Damage report submitted successfully. Booking status has been updated to completed.";
     header("Location: booking_details.php?bid=" . urlencode($bid));
     exit;
 } else {

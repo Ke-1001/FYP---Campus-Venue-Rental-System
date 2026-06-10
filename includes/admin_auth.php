@@ -5,39 +5,41 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// 1. Dynamic Identifier Resolution (Forward Compatibility for Migration)
-$admin_identifier = $_SESSION['aid'] ?? ($_SESSION['user_id'] ?? null);
+$admin_identifier = $_SESSION['aid'] ?? null;
+$staff_identifier = $_SESSION['sid'] ?? null;
 $admin_role = $_SESSION['role'] ?? '';
 
-// 2. Strict RBAC Verification (Mapped to new Schema ENUMs)
-if (!$admin_identifier || !in_array($admin_role, ['admin', 'super_admin'], true)) {
-    // Inject a forced logout to clear corrupted legacy sessions
+$allowed_roles = ['super_admin', 'admin', 'staff'];
+
+if ((!$admin_identifier && !$staff_identifier) || !in_array($admin_role, $allowed_roles, true)) {
     session_unset();
     session_destroy();
     header("Location: ../admin/login.php?error=access_denied");
     exit();
 }
 
-// 3. Continuous Status Verification (狀態機即時攔截)
-// 確保該帳號沒有在登入後被其他 Super Admin 設為 Inactive 或刪除
 global $conn;
 if (isset($conn)) {
-    $auth_stmt = $conn->prepare("SELECT status FROM admin WHERE aid = ? LIMIT 1");
-    $auth_stmt->bind_param("i", $admin_identifier);
+    if ($admin_role === 'staff') {
+        $auth_stmt = $conn->prepare("SELECT status FROM staff WHERE sid = ? LIMIT 1");
+        $auth_stmt->bind_param("i", $staff_identifier);
+    } else {
+        $auth_stmt = $conn->prepare("SELECT status FROM admin WHERE aid = ? LIMIT 1");
+        $auth_stmt->bind_param("i", $admin_identifier);
+    }
+
     $auth_stmt->execute();
     $auth_res = $auth_stmt->get_result();
-    
+
     if ($auth_res->num_rows === 1) {
         $auth_row = $auth_res->fetch_assoc();
         if ($auth_row['status'] === 'inactive') {
-            // 💡 若狀態為 inactive，強制銷毀 Session 並踢回登入頁
             session_unset();
             session_destroy();
             header("Location: ../admin/login.php?error=account_revoked");
             exit();
         }
     } else {
-        // 💡 找不到該帳號 (可能已被物理刪除)，強制登出
         session_unset();
         session_destroy();
         header("Location: ../admin/login.php?error=account_deleted");
@@ -46,12 +48,41 @@ if (isset($conn)) {
     $auth_stmt->close();
 }
 
-// 4. Idle Timeout Security (30 minutes)
-$timeout_duration = 1800; 
+/*
+|--------------------------------------------------------------------------
+| Role-based page access
+|--------------------------------------------------------------------------
+| staff       : can only open inspection pages and inspection action
+| admin       : can open all admin modules except inspection pages/actions
+| super_admin : no restriction
+*/
+$current_script = basename($_SERVER['SCRIPT_NAME']);
+
+$inspection_pages = [
+    'inspections.php',
+    'pending_inspections.php',
+    'execute_inspection.php',
+    'track_inspections.php',
+    'process_inspection.php'
+];
+
+$is_inspection_page = in_array($current_script, $inspection_pages, true);
+
+if ($admin_role === 'staff' && !$is_inspection_page) {
+    header("Location: ../admin/inspections.php?error=staff_restricted");
+    exit();
+}
+
+if ($admin_role === 'admin' && $is_inspection_page) {
+    header("Location: ../admin/dashboard.php?error=admin_inspection_restricted");
+    exit();
+}
+
+$timeout_duration = 1800;
 
 if (isset($_SESSION['last_activity'])) {
     $elapsed_time = time() - $_SESSION['last_activity'];
-    
+
     if ($elapsed_time > $timeout_duration) {
         session_unset();
         session_destroy();
@@ -60,6 +91,5 @@ if (isset($_SESSION['last_activity'])) {
     }
 }
 
-// 5. Refresh Activity Timestamp
-$_SESSION['last_activity'] = time(); 
+$_SESSION['last_activity'] = time();
 ?>
