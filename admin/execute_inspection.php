@@ -27,6 +27,28 @@ if ($bid === 0) {
 */
 $data = $inspectionRepo->getPendingInspectionDetailById($bid);
 
+// ... existing code ...
+$data = $inspectionRepo->getPendingInspectionDetailById($bid);
+
+if (!$data) {
+    die("Execution Fault: No pending inspection record found for this Reference ID.");
+}
+
+// 💡 注入：提取免责基准线 (Waiver Baseline Extraction)
+$stmt_waiver = $conn->prepare("
+    SELECT damage_description, admin_remark, damage_photo 
+    FROM damage_report 
+    WHERE bid = ? AND report_status = 'reviewed' 
+    LIMIT 1
+");
+$stmt_waiver->bind_param("i", $bid);
+$stmt_waiver->execute();
+$res_waiver = $stmt_waiver->get_result();
+$waiver_data = $res_waiver->num_rows > 0 ? $res_waiver->fetch_assoc() : null;
+$stmt_waiver->close();
+
+// 💡 伺服器端時空防護機制... (Keep existing code below)
+
 if (!$data) {
     die("Execution Fault: No pending inspection record found for this Reference ID.");
 }
@@ -96,16 +118,46 @@ ob_start();
 
                     echo FB::input('text', 'disp_vname', 'Venue Details', $data['vname'] . ' [' . $data['venue_category'] . ']', $readOnlyProps);
                     echo FB::input('text', 'disp_user', 'Allocated User', $data['username'], $readOnlyProps);
-                    echo FB::input('text', 'disp_inspector', 'Assigned Inspector', $data['inspector_name'], [
-                        'readonly' => true,
-                        'extra_css' => 'bg-slate-50 text-indigo-700 font-bold cursor-not-allowed'
-                    ]);
                     echo FB::input('text', 'disp_deposit', 'Held Deposit', number_format($data['deposit'], 2), [
                         'readonly' => true,
                         'prefix' => 'RM',
                         'extra_css' => 'bg-slate-50 text-emerald-700 font-bold font-mono cursor-not-allowed'
                     ]);
                     ?>
+
+                    <?php if ($waiver_data): ?>
+                    <div class="mt-6 border-2 border-amber-400 bg-amber-50 rounded-lg p-4 shadow-sm animate-pulse-once relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-amber-500"></div>
+                        <h4 class="text-sm font-black text-amber-800 flex items-center mb-3 uppercase tracking-wider">
+                            <i data-lucide="triangle-alert" class="w-4 h-4 mr-2"></i> 
+                            Pre-existing Damage Waiver
+                        </h4>
+                        <div class="space-y-3">
+                            <div>
+                                <span class="block text-[10px] font-bold text-amber-600 uppercase">User Report</span>
+                                <p class="text-xs font-semibold text-slate-700 mt-1 leading-relaxed border-l-2 border-amber-300 pl-2">
+                                    <?php echo htmlspecialchars($waiver_data['damage_description']); ?>
+                                </p>
+                            </div>
+                            <?php if (!empty($waiver_data['admin_remark'])): ?>
+                            <div>
+                                <span class="block text-[10px] font-bold text-amber-600 uppercase">Admin Remark</span>
+                                <p class="text-xs font-bold text-slate-800 mt-1 bg-amber-100/50 p-2 rounded border border-amber-200">
+                                    <?php echo htmlspecialchars($waiver_data['admin_remark']); ?>
+                                </p>
+                            </div>
+                            <?php endif; ?>
+                            <?php if (!empty($waiver_data['damage_photo'])): ?>
+                            <div class="pt-2 border-t border-amber-200/50">
+                                <a href="../uploads/damage_reports/<?php echo rawurlencode($waiver_data['damage_photo']); ?>" target="_blank" class="inline-flex items-center text-xs font-bold text-amber-700 hover:text-amber-900 transition-colors">
+                                    <i data-lucide="image" class="w-4 h-4 mr-1"></i> View Photographic Evidence
+                                </a>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+
                 </div>
 
                 <div class="lg:col-span-6 space-y-4">

@@ -159,7 +159,11 @@ ob_start();
                                 <?php echo date('d M Y', strtotime($report['date_booked'])); ?>,
                                 <?php echo substr($report['time_start'], 0, 5); ?> - <?php echo substr($report['time_end'], 0, 5); ?>
                             </div>
-                            <div class="text-[10px] uppercase font-black text-emerald-600 mt-1">
+                            <?php 
+                                // 根据是否被用户退款，渲染不同颜色的 booking 状态
+                                $b_status_color = ($report['booking_status'] === 'cancelled') ? 'text-red-600' : 'text-emerald-600';
+                            ?>
+                            <div class="text-[10px] uppercase font-black <?php echo $b_status_color; ?> mt-1">
                                 <?php echo htmlspecialchars($report['booking_status']); ?>
                             </div>
                         </td>
@@ -173,6 +177,12 @@ ob_start();
                         </td>
                         <td class="px-5 py-4 max-w-md">
                             <p class="text-sm leading-relaxed text-slate-600 whitespace-pre-wrap"><?php echo htmlspecialchars($report['damage_description']); ?></p>
+                            <?php if (!empty($report['admin_remark'])): ?>
+                                <div class="mt-3 p-2 bg-blue-50 border border-blue-100 rounded-lg text-xs text-blue-800">
+                                    <span class="font-bold uppercase tracking-wider text-[10px] text-blue-500 block mb-1">Admin Remark</span>
+                                    <?php echo htmlspecialchars($report['admin_remark']); ?>
+                                </div>
+                            <?php endif; ?>
                         </td>
                         <td class="px-5 py-4">
                             <?php if (!empty($report['damage_photo'])): ?>
@@ -184,14 +194,19 @@ ob_start();
                             <?php endif; ?>
                         </td>
                         <td class="px-5 py-4 text-right">
-                            <?php
-                                $status_class = $report['report_status'] === 'reviewed'
-                                    ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
-                                    : 'bg-amber-50 text-amber-600 border-amber-200';
-                            ?>
-                            <span class="px-2 py-0.5 border <?php echo $status_class; ?> rounded text-[10px] font-black uppercase tracking-widest">
-                                <?php echo htmlspecialchars($report['report_status']); ?>
-                            </span>
+                            <?php if ($report['report_status'] === 'submitted'): ?>
+                                <form action="../actions/process_damage.php" method="POST" class="flex flex-col items-end gap-2">
+                                    <input type="hidden" name="report_id" value="<?php echo htmlspecialchars($report['report_id']); ?>">
+                                    <textarea name="admin_remark" placeholder="Enter remark (optional)..." class="w-48 px-2 py-1.5 text-xs border border-slate-200 rounded focus:outline-none focus:ring-1 focus:ring-[#004aad] resize-none" rows="2"></textarea>
+                                    <button type="submit" class="px-3 py-1.5 text-xs font-bold text-white bg-[#004aad] hover:bg-[#003882] rounded shadow-sm transition-colors">
+                                        Resolve & Acknowledge
+                                    </button>
+                                </form>
+                            <?php else: ?>
+                                <span class="px-2 py-0.5 border bg-emerald-50 text-emerald-600 border-emerald-200 rounded text-[10px] font-black uppercase tracking-widest inline-block">
+                                    REVIEWED
+                                </span>
+                            <?php endif; ?>
                         </td>
                     </tr>
                 <?php endforeach; ?>
