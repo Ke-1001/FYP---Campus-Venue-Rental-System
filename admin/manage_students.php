@@ -72,7 +72,7 @@ $topbar_content = '<h2 class="text-sm font-bold text-slate-500 uppercase trackin
 $extra_css = ["../assets/css/fiori_forms.css", "../assets/css/table.css"];
 
 // ∴ 啟動 DataGridBuilder 渲染引擎
-$gridBuilder = new DataGridBuilder('uid', '../actions/process_student_action.php', 'student entity');
+$gridBuilder = new DataGridBuilder('uid', '../actions/process_student.php', 'student entity');
 $gridBuilder->setCreateAction('#', 'Register Entity') // 保留介面一致性
     ->setRowActionUrl('edit_student.php?uid=%s')
     ->disableAction('create') // 禁用創建按鈕以符合現有業務邏輯

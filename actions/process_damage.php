@@ -1,12 +1,8 @@
 <?php
 // File: actions/process_damage.php
 session_start();
-// 修正寻址向量：仅向上一级目录遍历寻找 config 文件夹
-require_once __DIR__ . '/../config/db.php';
-
-// ... 保持原有鉴权判断与 POST 验证不变 ...
-// 假设你有某种 admin 权限验证机制，如果没有请根据实际情况调整
-// require_once __DIR__ . '/../../includes/admin_auth.php';
+require_once '../config/db.php';
+require_once '../includes/admin_auth.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     $_SESSION['error'] = "Invalid request method.";
