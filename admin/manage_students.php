@@ -42,7 +42,7 @@ $result = $studentRepo->getAllStudents($filterBuilder, $current_sort);
 $records = [];
 if ($result && $result->num_rows > 0) {
     while($row = $result->fetch_assoc()) {
-        $row['status'] = 'active'; // 依據原邏輯硬編碼為活躍狀態
+        // ∴ 移除 $row['status'] = 'active'; 的硬編碼，直接繼承 Repository 輸出的狀態
         $row['joined_fmt'] = 'Joined: ' . date('M d, Y', strtotime($row['created_at']));
         $records[] = $row;
     }
@@ -62,7 +62,7 @@ $extra_css = ["../assets/css/fiori_forms.css", "../assets/css/table.css"];
 $gridBuilder = new DataGridBuilder('uid', '../actions/process_student_action.php', 'student entity');
 $gridBuilder->setCreateAction('#', 'Register Entity') // 保留介面一致性
     ->setRowActionUrl('edit_student.php?uid=%s')
-    ->disableAction('edit')
+    ->disableAction('create') // 禁用創建按鈕以符合現有業務邏輯
     ->addColumn('uid', 'Reference (UID)', 'link', ['url_format' => 'edit_student.php?uid=%s', 'width' => 'w-32 text-center'])
     ->addColumn('username', 'Student Profile', 'text_bold', ['width' => 'w-48'])
     ->addColumn('email', 'Email Vector', 'text_mono', ['width' => 'w-56'])

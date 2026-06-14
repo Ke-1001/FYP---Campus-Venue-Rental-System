@@ -83,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt_token->close();
 
             // 💡 3. SMTP 派發協議
-            $app_domain = "http://localhost/FYP---Campus-Venue-Rental-System"; 
+            $app_domain = "http://localhost/FYP"; 
             $reset_link = $app_domain . "/admin/setup_password.php?token=" . $token;
 
             $subject = "Security Alert: CVBMS System Credential Recovery";

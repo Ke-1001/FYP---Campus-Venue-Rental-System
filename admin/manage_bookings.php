@@ -1,221 +1,89 @@
 <?php
-
+// File: admin/manage_bookings.php
 session_start();
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/admin_auth.php';
+require_once __DIR__ . '/../includes/booking_functions.php';
 
-require_once("../config/db.php");
-require_once("../includes/admin_auth.php");
-require_once("../includes/booking_functions.php");
+// ∴ 嚴格引入架構依賴
+require_once __DIR__ . '/../core/repositories/MetricsRepository.php';
+require_once __DIR__ . '/../core/components/FioriTileBuilder.php';
+
+use Core\Repositories\MetricsRepository;
+use Core\Components\FioriTileBuilder as TileBuilder;
 
 /*
 |--------------------------------------------------------------------------
-| Auto-expire unpaid bookings
+| I & D: Initialization & Data Extraction Protocol
 |--------------------------------------------------------------------------
-| When admin opens this booking management page, expired unpaid bookings
-| will be marked as cancelled automatically.
 */
-
+// ∴ 觸發領域邏輯：自動過期未付款之預約
 expireUnpaidBookings($conn);
 
-/*
-|--------------------------------------------------------------------------
-| KPI Queries
-|--------------------------------------------------------------------------
-*/
-
-$kpi_pending = $conn->query("
-    SELECT COUNT(*)
-    FROM booking
-    WHERE status = 'pending'
-    AND payment_status = 'paid'
-")->fetch_row()[0] ?? 0;
-
-$kpi_ongoing = $conn->query("
-    SELECT COUNT(*)
-    FROM booking
-    WHERE status = 'approved'
-")->fetch_row()[0] ?? 0;
-
-$kpi_returned = $conn->query("
-    SELECT COUNT(*)
-    FROM booking
-    WHERE status = 'completed'
-")->fetch_row()[0] ?? 0;
-
-$sql_kpi_assign = "
-    SELECT COUNT(*)
-    FROM booking b
-    LEFT JOIN inspection i ON b.bid = i.bid
-    WHERE b.status IN ('approved', 'completed')
-    AND b.payment_status = 'paid'
-    AND i.ins_id IS NULL
-";
-
-$kpi_assign = $conn->query($sql_kpi_assign)->fetch_row()[0] ?? 0;
-
-$kpi_damage_reports = $conn->query("
-    SELECT COUNT(*)
-    FROM damage_report
-    WHERE report_status = 'submitted'
-")->fetch_row()[0] ?? 0;
+// ∴ 實例化分析倉儲並提取局部切片
+$metricsRepo = new MetricsRepository($conn);
+$kpi = $metricsRepo->getBookingKPIs();
 
 /*
 |--------------------------------------------------------------------------
-| Page Config
+| C: Configuration Definitions
 |--------------------------------------------------------------------------
 */
-
 $page_title = "Manage Bookings";
-
 $page_description = "Select a module below to manage venue bookings, assign inspectors, and track records.";
-
-$topbar_content = '
-    <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider">
-        Bookings / Dashboard
-    </h2>
-';
-
-$extra_css = [
-    "../assets/css/fiori-tile.css"
-];
+$topbar_content = '<h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Bookings / Dashboard</h2>';
+$extra_css = ["../assets/css/fiori-tile.css"];
 
 /*
 |--------------------------------------------------------------------------
-| Page Content
+| V: View Rendering (Launchpad Matrix)
 |--------------------------------------------------------------------------
 */
-
 ob_start();
-?>
 
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-
-    <!-- Pending Requests -->
-    <a href="pending_requests.php" class="fiori-tile">
-
-        <div class="fiori-tile-header">
-            <h3 class="fiori-tile-title">
-                Pending Requests
-            </h3>
-
-            <i data-lucide="shield-alert"
-               class="w-5 h-5 fiori-tile-icon"></i>
-        </div>
-
-        <p class="fiori-tile-desc">
-            Review and approve paid venue booking requests.
-        </p>
-
-        <div class="fiori-tile-kpi">
-            <?php echo $kpi_pending; ?>
-        </div>
-
-        <div class="fiori-tile-footer">
-            View Requests
-
-            <i data-lucide="arrow-right"
-               class="w-3 h-3 ml-2"></i>
-        </div>
-
-    </a>
-
-    <!-- Assign Inspector -->
-    <a href="assign_inspector.php" class="fiori-tile">
-
-        <div class="fiori-tile-header">
-            <h3 class="fiori-tile-title">
-                Assign Inspector
-            </h3>
-
-            <i data-lucide="users"
-               class="w-5 h-5 fiori-tile-icon"></i>
-        </div>
-
-        <p class="fiori-tile-desc">
-            Assign staff to inspect venues after they are used.
-        </p>
-
-        <div class="fiori-tile-kpi">
-            <?php echo $kpi_assign; ?>
-        </div>
-
-        <div class="fiori-tile-footer">
-            Assign Staff
-
-            <i data-lucide="arrow-right"
-               class="w-3 h-3 ml-2"></i>
-        </div>
-
-    </a>
-
-    <!-- Track Bookings -->
-    <a href="track_bookings.php" class="fiori-tile">
-
-        <div class="fiori-tile-header">
-            <h3 class="fiori-tile-title">
-                Track Bookings
-            </h3>
-
-            <i data-lucide="activity"
-               class="w-5 h-5 fiori-tile-icon"></i>
-        </div>
-
-        <p class="fiori-tile-desc">
-            Monitor ongoing bookings and view completed records.
-        </p>
-
-        <div class="fiori-tile-kpi">
-            <?php echo ($kpi_ongoing + $kpi_returned); ?>
-        </div>
-
-        <div class="fiori-tile-footer">
-            View Bookings
-
-            <i data-lucide="arrow-right"
-               class="w-3 h-3 ml-2"></i>
-        </div>
-
-    </a>
-
-    <!-- Damage Reports -->
-    <a href="damage_reports.php" class="fiori-tile">
-
-        <div class="fiori-tile-header">
-            <h3 class="fiori-tile-title">
-                Damage Reports
-            </h3>
-
-            <i data-lucide="triangle-alert"
-               class="w-5 h-5 fiori-tile-icon"></i>
-        </div>
-
-        <p class="fiori-tile-desc">
-            View damage reports submitted by users before venue usage.
-        </p>
-
-        <div class="fiori-tile-kpi">
-            <?php echo $kpi_damage_reports; ?>
-        </div>
-
-        <div class="fiori-tile-footer">
-            View Reports
-
-            <i data-lucide="arrow-right"
-               class="w-3 h-3 ml-2"></i>
-        </div>
-
-    </a>
-
-</div>
-
-<?php
+// ∴ 透過宣告式陣列建構磁磚拓撲 (Declarative Tile Topology)
+// 若未來需隱藏特定模組，僅需將該陣列元素註解即可
+echo TileBuilder::renderSection('Operational Modules', 'Execute booking approvals, assign staff, and monitor active usage.', [
+    [
+        'url' => 'pending_requests.php', 
+        'title' => 'Pending Requests', 
+        'icon' => 'shield-alert',
+        'desc' => 'Review and approve paid venue booking requests.', 
+        'kpi' => $kpi['pending_requests'], 
+        'action' => 'View Requests'
+    ],
+    [
+        'url' => 'assign_inspector.php', 
+        'title' => 'Assign Inspector', 
+        'icon' => 'users',
+        'desc' => 'Assign staff to inspect venues after they are used.', 
+        'kpi' => $kpi['pending_assignments'], 
+        'action' => 'Assign Staff'
+    ],
+    [
+        'url' => 'track_bookings.php', 
+        'title' => 'Track Bookings', 
+        'icon' => 'activity',
+        'desc' => 'Monitor ongoing bookings and view completed records.', 
+        'kpi' => ($kpi['ongoing_bookings'] + $kpi['completed_bookings']), 
+        'action' => 'View Bookings'
+    ],
+    [
+        'url' => 'damage_reports.php', 
+        'title' => 'Damage Reports', 
+        'icon' => 'triangle-alert',
+        'desc' => 'View damage reports submitted by users before venue usage.', 
+        'kpi' => $kpi['damage_reports'], 
+        'action' => 'View Reports'
+    ]
+]);
 
 $page_content = ob_get_clean();
 
 /*
 |--------------------------------------------------------------------------
-| Render Layout
+| L: Global Layout Engine
 |--------------------------------------------------------------------------
 */
-
-include('../core/layout.php');
+require_once __DIR__ . '/../core/layout.php';
 ?>

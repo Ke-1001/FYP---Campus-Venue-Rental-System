@@ -75,6 +75,7 @@ $extra_css = ["../assets/css/fiori_forms.css", "../assets/css/table.css"];
 $gridBuilder = new DataGridBuilder('vcid', '../actions/process_vcategory.php', 'category entity');
 $gridBuilder->setCreateAction('manage_vcategory.php', 'Reset Form Mode') // 指向自身以清空 Update 狀態
     ->setRowActionUrl('manage_vcategory.php?vcid=%s')
+    ->disableAction('create') // 禁用創建按鈕以強制使用表單提交
     ->addColumn('vcid', 'ID', 'text_mono', ['width' => 'w-24 text-center'])
     ->addColumn('category', 'Category Name', 'text_bold', ['width' => 'w-64'])
     ->addColumn('description', 'Parameters / Description', 'text_muted_mono', []);
@@ -149,8 +150,7 @@ ob_start();
     });
 </script>
 
-<h3 class="text-xl font-extrabold text-slate-800 tracking-tight mb-4">Existing Topology</h3>
-<?php echo $filterBuilder->render(); ?>
+
 <?php echo $gridBuilder->render($result); ?>
 
 <div id="constraint-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center transition-opacity opacity-0">
@@ -160,7 +160,7 @@ ob_start();
             <i data-lucide="shield-alert" class="w-6 h-6 text-red-600"></i>
         </div>
         
-        <h3 class="text-lg font-black text-slate-800 mb-2 text-center tracking-tight">Topological Constraint Violation</h3>
+        <h3 class="text-lg font-black text-slate-800 mb-2 text-center tracking-tight">Failed to Delete Category</h3>
         
         <p class="text-sm text-slate-600 font-medium leading-relaxed mb-6 text-center bg-slate-50 p-3 rounded border border-slate-100" id="constraint-msg">
             </p>

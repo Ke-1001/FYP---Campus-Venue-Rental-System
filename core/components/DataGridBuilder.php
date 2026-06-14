@@ -68,10 +68,17 @@ class DataGridBuilder {
             <div class="text-xs font-bold text-slate-500 pl-2">
                 <span id="cb-counter">0</span> selected
             </div>
-            <div class="flex space-x-2">
+            <div class="flex space-x-2">';
+
+        // ∴ Conditional Matrix for Create Button (Minimal Modification)
+        if (!in_array('create', $this->disabled_actions)) {
+            $html .= '
                 <button onclick="window.location.href=\''.htmlspecialchars($create_url).'\'" class="px-4 py-2 text-xs font-semibold text-white bg-[#004aad] hover:bg-[#003882] rounded-md shadow-sm transition border border-[#004aad]">
                     <i data-lucide="plus" class="w-3.5 h-3.5 inline mr-1"></i> '.htmlspecialchars($create_label).'
                 </button>';
+        }
+
+        
 
         // 階段二：條件矩陣校驗（Condition Matrix Validation）
         // 僅在未被加入 $disabled_actions 時渲染對應按鈕

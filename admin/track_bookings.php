@@ -74,7 +74,7 @@ if ($result && $result->num_rows > 0) {
             if (!empty($time_str)) {
                 $remarks = $time_str . ' (' . $friendly_reason . ')';
             } else {
-                $remarks = 'CXL: ' . $friendly_reason;
+                $remarks = '' . $friendly_reason;
             }
         }
         

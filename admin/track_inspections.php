@@ -30,6 +30,7 @@ $filterBuilder
     ->addField('text', 'f_inspector', 'Inspector', [], 'Personnel...', 's.staff_name', 'LIKE')
     ->addField('select', 'f_res', 'Result State', [
         'passed' => 'Passed',
+        'overdue' => 'Overdue',
         'failed' => 'Failed'
     ], 'All Results', 'i.ins_status', '=');
 
@@ -92,6 +93,7 @@ $datagrid_schema = [
         ['key' => 'inspected_at_fmt', 'label' => 'Log Time', 'type' => 'text_mono', 'width' => 'w-32 text-center'],
         ['key' => 'ins_status', 'label' => 'Outcome', 'type' => 'map_badge', 'width' => 'w-28 text-center', 'map' => [
             'passed' => ['label' => 'Passed', 'class' => 'bg-emerald-50 text-emerald-700 border-emerald-200'],
+            'overdue' => ['label' => 'Overdue', 'class' => 'bg-yellow-50 text-yellow-700 border-yellow-200'],
             'failed' => ['label' => 'Failed', 'class' => 'bg-red-50 text-red-700 border-red-200']
         ]],
         ['key' => 'penalty_val', 'label' => 'Penalty', 'type' => 'currency', 'prefix' => '-RM ', 'width' => 'w-28 text-right'],
