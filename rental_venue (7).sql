@@ -3,12 +3,11 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 14, 2026 at 07:30 AM
+-- Generation Time: Jun 14, 2026 at 09:26 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-SET GLOBAL event_scheduler =ON;
 START TRANSACTION;
 SET time_zone = "+00:00";
 
@@ -188,12 +187,12 @@ INSERT INTO `inspection` (`ins_id`, `bid`, `sid`, `ins_status`, `damage_desc`, `
 (30000014, 20000045, 9000, 'failed', 'test', 0.00, 100.00, '2026-06-10 14:09:09'),
 (30000015, 20000050, 9000, 'passed', 'SYS_TIMEOUT_24H_RELEASE', 0.00, 0.00, '2026-06-13 03:59:05'),
 (30000016, 20000051, 9002, 'passed', 'No damage. Venue is in standard condition.', 0.00, 0.00, '2026-06-13 12:33:26'),
-(30000017, 20000054, 9002, 'pending', NULL, 0.00, 0.00, NULL),
-(30000018, 20000052, 9000, 'pending', NULL, 0.00, 0.00, NULL),
-(30000019, 20000057, 9000, 'pending', NULL, 0.00, 0.00, NULL),
-(30000020, 20000059, 9002, 'pending', NULL, 0.00, 0.00, NULL),
-(30000021, 20000053, 9000, 'pending', NULL, 0.00, 0.00, NULL),
-(30000022, 20000058, 9000, 'pending', NULL, 0.00, 0.00, NULL);
+(30000017, 20000054, 9002, 'overdue', 'SLA Violation: Inspector Timeout. Auto-released.', 0.00, 0.00, NULL),
+(30000018, 20000052, 9000, 'overdue', 'SLA Violation: Inspector Timeout. Auto-released.', 0.00, 0.00, NULL),
+(30000019, 20000057, 9000, 'overdue', 'SLA Violation: Inspector Timeout. Auto-released.', 0.00, 0.00, NULL),
+(30000020, 20000059, 9002, 'overdue', 'SLA Violation: Inspector Timeout. Auto-released.', 0.00, 0.00, NULL),
+(30000021, 20000053, 9000, 'overdue', 'SLA Violation: Inspector Timeout. Auto-released.', 0.00, 0.00, NULL),
+(30000022, 20000058, 9000, 'overdue', 'SLA Violation: Inspector Timeout. Auto-released.', 0.00, 0.00, NULL);
 
 -- --------------------------------------------------------
 
@@ -252,7 +251,13 @@ CREATE TABLE `report` (
 INSERT INTO `report` (`rid`, `ins_id`, `final_deduct`, `refund_status`, `penalty_status`, `created_at`) VALUES
 (40000008, 30000014, 100.00, 'none', 'pending', '2026-06-10'),
 (40000009, 30000015, 0.00, 'pending', 'none', '2026-06-13'),
-(40000010, 30000016, 0.00, 'pending', 'none', '2026-06-13');
+(40000010, 30000016, 0.00, 'pending', 'none', '2026-06-13'),
+(40000011, 30000017, 0.00, 'pending', 'none', '2026-06-14'),
+(40000012, 30000018, 0.00, 'pending', 'none', '2026-06-14'),
+(40000013, 30000019, 0.00, 'pending', 'none', '2026-06-14'),
+(40000014, 30000020, 0.00, 'pending', 'none', '2026-06-14'),
+(40000015, 30000021, 0.00, 'pending', 'none', '2026-06-14'),
+(40000016, 30000022, 0.00, 'pending', 'none', '2026-06-14');
 
 -- --------------------------------------------------------
 
@@ -631,7 +636,7 @@ ALTER TABLE `password_resets`
 -- AUTO_INCREMENT for table `report`
 --
 ALTER TABLE `report`
-  MODIFY `rid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40000011;
+  MODIFY `rid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40000018;
 
 --
 -- AUTO_INCREMENT for table `staff`
@@ -713,44 +718,14 @@ DELIMITER $$
 --
 -- Events
 --
-CREATE DEFINER=`root`@`localhost` EVENT `ev_inspection_lifecycle_manager` ON SCHEDULE EVERY 5 MINUTE STARTS '2026-06-08 08:54:05' ON COMPLETION NOT PRESERVE ENABLE DO BEGIN
-    START TRANSACTION;
-
-    INSERT IGNORE INTO report (ins_id, final_deduct, refund_status, penalty_status, created_at)
-    SELECT i.ins_id, 0.00, 'pending', 'none', CURDATE()
-    FROM inspection i
-    JOIN booking b ON i.bid = b.bid
-    WHERE i.ins_status = 'overdue'
-      AND TIMESTAMPADD(HOUR, 24, CAST(CONCAT(b.date_booked, ' ', b.time_end) AS DATETIME)) <= NOW();
-
-    UPDATE inspection i
-    JOIN booking b ON i.bid = b.bid
-    SET i.ins_status = 'passed',
-        i.damage_desc = 'SYS_TIMEOUT_24H_RELEASE',
-        i.penalty = 0.00,
-        i.inspected_at = NOW()
-    WHERE i.ins_status = 'overdue'
-      AND TIMESTAMPADD(HOUR, 24, CAST(CONCAT(b.date_booked, ' ', b.time_end) AS DATETIME)) <= NOW();
-
-    UPDATE inspection i
-    JOIN booking b ON i.bid = b.bid
-    SET i.ins_status = 'overdue',
-        i.damage_desc = 'SYS_TIMEOUT_30M_LOCK'
-    WHERE i.ins_status = 'pending'
-      AND TIMESTAMPADD(MINUTE, 30, CAST(CONCAT(b.date_booked, ' ', b.time_end) AS DATETIME)) <= NOW();
-
-    COMMIT;
-END$$
-
-CREATE DEFINER=`root`@`localhost` EVENT `ev_pre_usage_handler` ON SCHEDULE EVERY 1 MINUTE STARTS '2026-06-13 12:28:54' ON COMPLETION PRESERVE ENABLE DO BEGIN
-    -- ∴ 變數與游標宣告矩陣
+CREATE DEFINER=`root`@`localhost` EVENT `ev_master_sla_daemon` ON SCHEDULE EVERY 1 MINUTE STARTS '2026-06-14 14:14:33' ON COMPLETION PRESERVE ENABLE DO BEGIN
+    -- [變數與游標宣告區] (供 Pipeline B 使用)
     DECLARE done INT DEFAULT FALSE;
     DECLARE v_bid INT;
     DECLARE v_date_booked DATE;
     DECLARE v_time_end TIME;
     DECLARE v_optimal_sid INT;
     
-    -- ∴ 定義目標游標：篩選符合 JIT 分配條件的預約節點
     DECLARE cur_pending_assignments CURSOR FOR 
         SELECT b.bid, b.date_booked, b.time_end 
         FROM booking b
@@ -764,7 +739,7 @@ CREATE DEFINER=`root`@`localhost` EVENT `ev_pre_usage_handler` ON SCHEDULE EVERY
     START TRANSACTION;
 
     -- =========================================================================
-    -- Logic Pipeline A: SLA 逾期硬性收斂 (超時未處理退款)
+    -- Logic Pipeline A: Booking SLA 收斂 (超時未批准之硬性取消與退款)
     -- =========================================================================
     UPDATE booking
     SET status = 'cancelled', 
@@ -776,50 +751,63 @@ CREATE DEFINER=`root`@`localhost` EVENT `ev_pre_usage_handler` ON SCHEDULE EVERY
       AND TIMESTAMPADD(MINUTE, -5, CAST(CONCAT(date_booked, ' ', time_end) AS DATETIME)) <= NOW();
 
     -- =========================================================================
-    -- Logic Pipeline B: 時序感知 JIT 分配引擎 (逐列游標運算)
+    -- Logic Pipeline B: 時序感知 JIT 分配引擎 (檢驗員自動防撞指派)
     -- =========================================================================
     OPEN cur_pending_assignments;
-
     assignment_loop: LOOP
         FETCH cur_pending_assignments INTO v_bid, v_date_booked, v_time_end;
-        
-        IF done THEN
-            LEAVE assignment_loop;
-        END IF;
+        IF done THEN LEAVE assignment_loop; END IF;
 
-        -- 初始化最優檢驗員變數
         SET v_optimal_sid = NULL;
 
-        -- 💡 執行防撞演算法與負載均衡，擷取單一最佳節點
         SELECT s.sid INTO v_optimal_sid
         FROM staff s
         WHERE s.position = 'inspector' AND s.status = 'active'
           AND s.sid NOT IN (
               SELECT i2.sid
-              FROM inspection i2
-              JOIN booking b2 ON i2.bid = b2.bid
+              FROM inspection i2 JOIN booking b2 ON i2.bid = b2.bid
               WHERE i2.ins_status = 'pending'
                 AND b2.date_booked = v_date_booked
                 AND ABS(TIMESTAMPDIFF(MINUTE, b2.time_end, v_time_end)) < 30
           )
         ORDER BY (
-            SELECT COUNT(*) 
-            FROM inspection i3 
-            JOIN booking b3 ON i3.bid = b3.bid 
-            WHERE i3.sid = s.sid 
-              AND b3.date_booked = v_date_booked
-        ) ASC
-        LIMIT 1;
+            SELECT COUNT(*) FROM inspection i3 JOIN booking b3 ON i3.bid = b3.bid 
+            WHERE i3.sid = s.sid AND b3.date_booked = v_date_booked
+        ) ASC LIMIT 1;
 
-        -- 若尋獲合格檢驗員，即刻寫入矩陣
         IF v_optimal_sid IS NOT NULL THEN
-            INSERT INTO inspection (bid, sid, ins_status) 
-            VALUES (v_bid, v_optimal_sid, 'pending');
+            INSERT INTO inspection (bid, sid, ins_status) VALUES (v_bid, v_optimal_sid, 'pending');
         END IF;
-
     END LOOP;
-
     CLOSE cur_pending_assignments;
+
+    -- =========================================================================
+    -- Logic Pipeline C: Inspection SLA 收斂 (檢驗逾期自動標記與金融押金退還)
+    -- 觸發閾值：預約結束後 30 分鐘檢驗員仍未執行 (ins_status = 'pending')
+    -- =========================================================================
+    
+    -- C.1 產生退款報告 (利用 NOT EXISTS 確保金融操作冪等性 Idempotency)
+    INSERT INTO report (ins_id, final_deduct, refund_status, penalty_status, created_at)
+    SELECT i.ins_id, 0.00, 'pending', 'none', CURDATE()
+    FROM inspection i
+    JOIN booking b ON i.bid = b.bid
+    WHERE i.ins_status = 'pending'
+      AND TIMESTAMPADD(MINUTE, 30, CAST(CONCAT(b.date_booked, ' ', b.time_end) AS DATETIME)) <= NOW()
+      AND NOT EXISTS (SELECT 1 FROM report r WHERE r.ins_id = i.ins_id);
+
+    -- C.2 標記檢驗狀態為逾期失效
+    UPDATE inspection i
+    JOIN booking b ON i.bid = b.bid
+    SET i.ins_status = 'overdue',
+        i.damage_desc = 'SLA Violation: Inspector Timeout. Auto-released.'
+    WHERE i.ins_status = 'pending'
+      AND TIMESTAMPADD(MINUTE, 30, CAST(CONCAT(b.date_booked, ' ', b.time_end) AS DATETIME)) <= NOW();
+      
+    -- C.3 封閉預約生命週期 (推進至 completed)
+    UPDATE booking b
+    JOIN inspection i ON b.bid = i.bid
+    SET b.status = 'completed'
+    WHERE i.ins_status = 'overdue' AND b.status = 'approved';
 
     COMMIT;
 END$$
