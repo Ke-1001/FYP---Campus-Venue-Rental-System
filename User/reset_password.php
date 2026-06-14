@@ -33,12 +33,27 @@ if (!$user) {
     <div class="relative z-10 flex items-center justify-center min-h-screen px-4">
         <div class="w-full max-w-sm glass-panel rounded-2xl p-8 shadow-2xl">
             <h2 class="text-white text-xl font-bold mb-6 text-center">Set New Password</h2>
-            
-            <?php if ($_SERVER["REQUEST_METHOD"] == "POST"): 
-                $new_pass = password_hash($_POST['password'], PASSWORD_DEFAULT);
-                $conn->prepare("UPDATE user SET password = ? WHERE email = ?")->execute([$new_pass, $user['email']]);
-                $conn->prepare("DELETE FROM password_resets WHERE email = ?")->execute([$user['email']]);
-            ?>
+                <?php if ($_SERVER["REQUEST_METHOD"] == "POST"): 
+                    $password = $_POST['password'] ?? '';
+
+                    $pattern = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/';
+
+                    if (!preg_match($pattern, $password)) {
+                        die("<div class='text-white p-10 text-center'>Password does not meet the security requirements.<br><a href='reset_password.php?token=" . htmlspecialchars($token) . "' class='text-blue-400'>Try again</a></div>");
+                    }
+
+                    $new_pass = password_hash($password, PASSWORD_DEFAULT);
+
+                    $stmt = $conn->prepare("UPDATE user SET password = ? WHERE email = ?");
+                    $stmt->bind_param("ss", $new_pass, $user['email']);
+                    $stmt->execute();
+                    $stmt->close();
+
+                    $stmt = $conn->prepare("DELETE FROM password_resets WHERE email = ?");
+                    $stmt->bind_param("s", $user['email']);
+                    $stmt->execute();
+                    $stmt->close();
+                ?>
                 <p class="text-emerald-400 font-bold text-center">Password updated successfully!</p>
                 <div class="mt-4 text-center"><a href="user_login.php" class="text-slate-400 hover:text-white font-bold">Back to Login</a></div>
             <?php else: ?>

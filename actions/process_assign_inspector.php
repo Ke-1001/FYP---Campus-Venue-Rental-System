@@ -2,6 +2,16 @@
 // File: actions/process_assign_inspector.php
 session_start();
 require_once '../config/db.php';
+require_once '../includes/admin_auth.php';
+
+if (!in_array($_SESSION['role'] ?? '', ['admin', 'super_admin'], true)) {
+    $_SESSION['toast'] = [
+        'type' => 'error',
+        'msg' => 'Access denied. Only admin can assign inspectors.'
+    ];
+    header("Location: ../admin/dashboard.php?error=access_denied");
+    exit;
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $bid = intval($_POST['bid']);

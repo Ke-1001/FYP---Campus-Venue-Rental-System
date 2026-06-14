@@ -1,8 +1,8 @@
 <?php
 // File: actions/process_add_staff.php
 session_start();
-require_once '../includes/admin_auth.php'; 
 require_once '../config/db.php';
+require_once '../includes/admin_auth.php'; 
 require_once '../includes/mailer.php'; // 💡 注入 SMTP 引擎 (僅宣告，不執行)
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

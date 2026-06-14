@@ -2,11 +2,9 @@
 // File: actions/process_forgot_password.php
 session_start();
 require_once '../config/db.php';
+require_once '../config/app.php';
 require_once '../includes/mailer.php';
 
-// ∴ 動態路由指標 (Dynamic Routing Pointer)
-// 擷取 HTTP 請求來源，確保雙向相容性 (Bi-directional Compatibility)
-// 若來源為 profile.php 則回傳 profile.php；若為 forgot_password.php 則反之
 $source_node = $_SERVER['HTTP_REFERER'] ?? '../login.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -23,11 +21,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $conn->begin_transaction();
 
     try {
-        // 💡 1. 跨表實體解析 (Polymorphic Resolution)
         $entity_name = null;
         $entity_found = false;
+        $account_type = null;
 
-        // A. 檢查 Admin 表
+        // A. Check Admin table
         $stmt = $conn->prepare("SELECT admin_name FROM admin WHERE email = ? AND status = 'active'");
         $stmt->bind_param("s", $email);
         $stmt->execute();
@@ -35,10 +33,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($res->num_rows > 0) {
             $entity_name = $res->fetch_assoc()['admin_name'];
             $entity_found = true;
+            $account_type = 'admin';
         }
         $stmt->close();
 
-        // B. 檢查 Staff 表
+        // B. Check Staff table
         if (!$entity_found) {
             $stmt = $conn->prepare("SELECT staff_name FROM staff WHERE email = ? AND status = 'active'");
             $stmt->bind_param("s", $email);
@@ -47,19 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($res->num_rows > 0) {
                 $entity_name = $res->fetch_assoc()['staff_name'];
                 $entity_found = true;
-            }
-            $stmt->close();
-        }
-
-        // C. 檢查 Student (User) 表
-        if (!$entity_found) {
-            $stmt = $conn->prepare("SELECT username FROM user WHERE email = ?");
-            $stmt->bind_param("s", $email);
-            $stmt->execute();
-            $res = $stmt->get_result();
-            if ($res->num_rows > 0) {
-                $entity_name = $res->fetch_assoc()['username'];
-                $entity_found = true;
+                $account_type = 'staff';
             }
             $stmt->close();
         }
@@ -83,8 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt_token->close();
 
             // 💡 3. SMTP 派發協議
-            $app_domain = "http://localhost/FYP"; 
-            $reset_link = $app_domain . "/admin/setup_password.php?token=" . $token;
+            $reset_link = getAppBaseUrl() . "/admin/setup_password.php?token=" . $token;
 
             $subject = "Security Alert: CVBMS System Credential Recovery";
             $message = "Hello {$entity_name},\n\n" .
