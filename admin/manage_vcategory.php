@@ -48,7 +48,7 @@ $result = $categoryRepo->getAllCategories($filterBuilder);
 |--------------------------------------------------------------------------
 */
 $constraint_error = '';
-if (isset($_SESSION['error']) && strpos($_SESSION['error'], 'Constraint Violation') !== false) {
+if (isset($_SESSION['error']) && strpos($_SESSION['error'], 'Failed to Delete') !== false) {
     // 提取異常向量並清理 Session，剝奪 layout.php 渲染 Toast 的權限
     $constraint_error = $_SESSION['error'];
     unset($_SESSION['error']); 

@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // 防護邏輯：若該類別下仍有場地，則拒絕刪除
         $check = $conn->query("SELECT COUNT(*) FROM venue WHERE category = '" . $conn->real_escape_string($del_cat) . "'")->fetch_row()[0];
         if ($check > 0) {
-            $_SESSION['toast'] = ['type' => 'error', 'msg' => "Constraint Violation: Category is currently in use by $check venue(s)."];
+            $_SESSION['toast'] = ['type' => 'error', 'msg' => "Failed to Delete: Category is currently in use by $check venue(s)."];
         } else {
             $stmt = $conn->prepare("DELETE FROM venue_category WHERE category_name = ?");
             $stmt->bind_param("s", $del_cat);

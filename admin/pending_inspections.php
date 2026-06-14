@@ -186,7 +186,7 @@ ob_start();
                 // 阻斷預設跳轉行為
                 e.preventDefault(); 
                 const stateText = invalidBadge.textContent.trim().toLowerCase();
-                const errMsg = `Security Fault: Temporal constraint violation. Booking is currently [${stateText}]. Assessment cannot commence until the reserved slot has concluded.`;
+                const errMsg = `Warning: Booking is currently [${stateText}]. Assessment cannot commence until the reserved slot has concluded.`;
                 showTemporalModal(errMsg);
             }
         });
@@ -195,7 +195,7 @@ ob_start();
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('err') && urlParams.get('err') === 'temporal') {
             const state = urlParams.get('state') || 'unauthorized';
-            showTemporalModal(`Security Fault: Temporal constraint violation. Assessment cannot commence. Booking state: [${state}].`);
+            showTemporalModal(`Warning: Assessment cannot commence. Booking state: [${state}].`);
             // 清理 URL 參數以維持純淨狀態
             window.history.replaceState({}, document.title, "pending_inspections.php");
         }

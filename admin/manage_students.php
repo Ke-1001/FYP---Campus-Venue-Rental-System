@@ -48,6 +48,19 @@ if ($result && $result->num_rows > 0) {
     }
 }
 
+
+/*
+|--------------------------------------------------------------------------
+| E: Preemptive Error Interception (Constraint Guard)
+|--------------------------------------------------------------------------
+*/
+$constraint_error = '';
+if (isset($_SESSION['error']) && strpos($_SESSION['error'], 'Failed to Delete') !== false) {
+    $constraint_error = $_SESSION['error'];
+    unset($_SESSION['error']); // 剝奪全域 Toast 渲染權限，轉交給專用模態框
+}
+
+
 /*
 |--------------------------------------------------------------------------
 | C: Configuration & OOP Schema Definitions
@@ -89,6 +102,54 @@ ob_start();
 
 <?php echo $filterBuilder->render(); ?>
 <?php echo $gridBuilder->render($records); ?>
+
+<div id="constraint-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center transition-opacity opacity-0">
+    <div class="bg-white rounded-md shadow-2xl border border-slate-200 w-full max-w-lg p-6 transform scale-95 transition-transform" id="constraint-panel">
+        
+        <div class="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-amber-50 rounded-full border border-amber-100">
+            <i data-lucide="shield-alert" class="w-6 h-6 text-amber-600"></i>
+        </div>
+        
+        <h3 class="text-lg font-black text-slate-800 mb-2 text-center tracking-tight">System Action Intercepted</h3>
+        
+        <p class="text-xs font-mono text-slate-600 leading-relaxed mb-6 bg-slate-50 p-4 rounded border border-slate-200" id="constraint-msg">
+            </p>
+        
+        <div class="flex justify-center">
+            <button type="button" onclick="closeConstraintModal()" class="px-6 py-2.5 text-sm font-semibold text-white rounded-md shadow-sm transition-colors bg-slate-800 hover:bg-slate-700">
+                Acknowledge & Close
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const closeConstraintModal = () => {
+        const modal = document.getElementById('constraint-modal');
+        const panel = document.getElementById('constraint-panel');
+        modal.classList.add('opacity-0');
+        panel.classList.add('scale-95');
+        setTimeout(() => { modal.classList.add('hidden'); }, 200);
+    };
+
+    // ∴ 條件觸發引導引擎
+    <?php if (!empty($constraint_error)): ?>
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('constraint-modal');
+        const panel = document.getElementById('constraint-panel');
+        const msgNode = document.getElementById('constraint-msg');
+        
+        msgNode.innerText = <?php echo json_encode($constraint_error); ?>;
+        
+        modal.classList.remove('hidden');
+        void modal.offsetWidth; // 強制瀏覽器 Reflow 重繪
+        modal.classList.remove('opacity-0');
+        panel.classList.remove('scale-95');
+        
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    });
+    <?php endif; ?>
+</script>
 
 <?php
 $page_content = ob_get_clean();

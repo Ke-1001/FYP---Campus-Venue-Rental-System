@@ -80,7 +80,7 @@ class CategoryRepository {
         
         if ($row && $row['dependency_count'] > 0) {
             // 拋出明確的異常，阻斷刪除程序
-            throw new \Exception("Constraint Violation: One or more selected caegories are currently tied to existing venues. Please reassign those venues before deleting.");
+            throw new \Exception("Failed to Delete: One or more selected caegories are currently tied to existing venues. Please reassign those venues before deleting.");
         }
 
         // 若無關聯，則安全執行物理刪除
