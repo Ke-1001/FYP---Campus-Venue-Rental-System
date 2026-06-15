@@ -3,11 +3,12 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 15, 2026 at 04:28 PM
+-- Generation Time: Jun 15, 2026 at 10:01 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+SET GLOBAL event_scheduler = ON;
 START TRANSACTION;
 SET time_zone = "+00:00";
 
@@ -84,7 +85,7 @@ CREATE TABLE `admin` (
 INSERT INTO `admin` (`aid`, `admin_name`, `email`, `password`, `phone_num`, `profile_pic`, `role`, `status`, `created_at`) VALUES
 (8000, 'SuperAdmin', 'SA@mmu.edu.my', '$2y$10$0av5Zh5QYMrLJyALrb8O5u60U292chJEz7SdcwfkthLTmx0j1RCw2', '06123456789', '', 'super_admin', 'active', '2026-04-28 09:43:39'),
 (8002, 'Siti', 'Siti@mmu.edu.my', '$2y$10$Q3kh7pg/gGCiw.JnpGremOrH26gnUTq.y3LZohGD9qpaPt/k4YZyu', '0122233456', '', 'admin', 'active', '2026-04-28 15:55:39'),
-(8013, 'Kam JIa Sheng', 'kam.jia.sheng@student.mmu.edu.my', '$2y$10$jjvMv/Ki742r2GC6dhSSdOHNh6ZkHMssu4l7a3Gf0xOAcNevkCAnm', '01298293812', '', 'admin', 'active', '2026-06-10 07:23:20');
+(8013, 'Kam JIa Sheng', 'kam.jia.sheng@student.mmu.edu.my', '$2y$10$lQfIQyNEpl4ToZitw0e3Sul17km5kwqreopbPs1I8D7HZ5nBna2b6', '01298293812', '', 'admin', 'inactive', '2026-06-10 07:23:20');
 
 -- --------------------------------------------------------
 
@@ -119,7 +120,7 @@ CREATE TABLE `booking` (
 
 INSERT INTO `booking` (`bid`, `uid`, `vid`, `date_booked`, `time_start`, `time_end`, `status`, `payment_status`, `payment_method`, `payment_due_at`, `cancelled_at`, `cancel_reason`, `transaction_ref`, `paid_at`, `purpose`, `aid`, `approve_date`, `created_at`) VALUES
 (20000039, '242DT2430C', 'MSMR3014', '2026-06-08', '09:00:00', '09:30:00', 'cancelled', 'refunded', NULL, '2026-06-08 09:21:44', '2026-06-08 09:30:44', 'SYS_TIMEOUT_ADMIN', 'TXN-97EC9959', NULL, 'test', NULL, NULL, '2026-06-08 01:06:44'),
-(20000040, '242DT2429C', 'MSMX2002', '2026-06-30', '10:30:00', '11:30:00', 'approved', 'paid', NULL, '2026-06-10 10:28:55', NULL, NULL, 'TXN-0C145680', NULL, 'Group discussion', 8000, '2026-06-10 14:07:28', '2026-06-10 02:13:55'),
+(20000040, '242DT2429C', 'MSMX2002', '2026-06-30', '10:30:00', '11:30:00', 'completed', 'paid', NULL, '2026-06-10 10:28:55', NULL, NULL, 'TXN-0C145680', NULL, 'Group discussion', 8000, '2026-06-10 14:07:28', '2026-06-10 02:13:55'),
 (20000045, '242DT2429C', 'MSMX0002', '2026-06-10', '13:00:00', '14:00:00', 'completed', 'paid', NULL, '2026-06-10 12:58:26', NULL, NULL, 'TXN-57FC36A8', NULL, 'teae', 8002, '2026-06-10 12:47:21', '2026-06-10 04:43:26'),
 (20000046, '242DT2429C', 'MSMR2016', '2026-06-11', '10:30:00', '11:30:00', 'rejected', 'refunded', 'card', '2026-06-10 13:47:04', NULL, NULL, 'TXN-CARD-EABF7154', '2026-06-10 13:32:45', 'Group discussion', 8000, '2026-06-10 14:07:34', '2026-06-10 05:32:04'),
 (20000047, '242DT2429C', 'MSMR3016', '2026-06-27', '13:00:00', '14:00:00', 'cancelled', 'unpaid', NULL, '2026-06-10 13:48:06', '2026-06-10 13:48:59', 'Payment deadline expired', NULL, NULL, 'Group discussion', NULL, NULL, '2026-06-10 05:33:06'),
@@ -134,8 +135,7 @@ INSERT INTO `booking` (`bid`, `uid`, `vid`, `date_booked`, `time_start`, `time_e
 (20000056, '242DT24123', 'MSMX2002', '2026-06-13', '12:00:00', '12:30:00', 'cancelled', 'paid', 'tng', '2026-06-13 12:27:27', NULL, 'SLA Violation: Automated threshold expiration purge.', 'TXN-TNG-3CCE0866', '2026-06-13 12:12:28', 'test', NULL, NULL, '2026-06-13 04:12:27'),
 (20000057, '242DT24123', 'MSMX0001', '2026-06-13', '12:30:00', '13:00:00', 'completed', 'paid', 'tng', '2026-06-13 12:48:10', NULL, NULL, 'TXN-TNG-8B3A4D31', '2026-06-13 12:33:12', 'test', 8000, '2026-06-13 12:42:14', '2026-06-13 04:33:10'),
 (20000058, '242DT24123', 'MSMX0002', '2026-06-13', '14:00:00', '14:30:00', 'completed', 'paid', 'tng', '2026-06-13 12:56:06', NULL, NULL, 'TXN-TNG-4EA49C75', '2026-06-13 12:41:08', 'test', 8000, '2026-06-13 12:42:03', '2026-06-13 04:41:06'),
-(20000059, '242DT24123', 'MSMX0003', '2026-06-13', '12:30:00', '13:00:00', 'completed', 'paid', 'tng', '2026-06-13 12:56:31', NULL, NULL, 'TXN-TNG-CF19008B', '2026-06-13 12:41:33', 'test', 8000, '2026-06-13 12:46:53', '2026-06-13 04:41:31'),
-(20000060, '242DT2429C', 'MSMR2012', '2026-06-28', '12:30:00', '13:30:00', 'pending', 'paid', 'tng', '2026-06-15 18:38:13', NULL, NULL, 'TXN-TNG-222DC586', '2026-06-15 18:23:20', 'Team project', NULL, NULL, '2026-06-15 10:23:13');
+(20000059, '242DT24123', 'MSMX0003', '2026-06-13', '12:30:00', '13:00:00', 'completed', 'paid', 'tng', '2026-06-13 12:56:31', NULL, NULL, 'TXN-TNG-CF19008B', '2026-06-13 12:41:33', 'test', 8000, '2026-06-13 12:46:53', '2026-06-13 04:41:31');
 
 -- --------------------------------------------------------
 
@@ -160,7 +160,8 @@ CREATE TABLE `damage_report` (
 --
 
 INSERT INTO `damage_report` (`report_id`, `bid`, `uid`, `vid`, `damage_description`, `damage_photo`, `report_status`, `admin_remark`, `created_at`) VALUES
-(1, 20000045, '242DT2429C', 'MSMX0002', 'The mic was not function.', 'damage_20000045_1781069384.png', 'reviewed', '', '2026-06-10 05:29:44');
+(1, 20000045, '242DT2429C', 'MSMX0002', 'The mic was not function.', 'damage_20000045_1781069384.png', 'reviewed', '', '2026-06-10 05:29:44'),
+(2, 20000040, '242DT2429C', 'MSMX2002', 'test', NULL, 'reviewed', '', '2026-06-10 06:56:39');
 
 -- --------------------------------------------------------
 
@@ -226,6 +227,7 @@ CREATE TABLE `password_resets` (
 --
 
 INSERT INTO `password_resets` (`id`, `email`, `token_hash`, `expires_at`, `created_at`) VALUES
+(14, 'kam.jia.sheng@student.mmu.edu.my', '71fb9b04a25d37178b5c14af256b4243264f8990b7827e5adfb5d3304352678e', '2026-06-10 16:24:36', '2026-06-10 07:24:36'),
 (16, 'SA@mmu.edu.my', '650768a287cb19666e3f8849c3199b203cb456828c1217e0028af45a04e7841b', '2026-06-10 16:55:00', '2026-06-10 07:55:00');
 
 -- --------------------------------------------------------
@@ -381,6 +383,7 @@ CREATE TABLE `venue` (
 --
 
 INSERT INTO `venue` (`vid`, `vname`, `vcid`, `max_cap`, `deposit`, `status`, `description`) VALUES
+('MBMR4015', 'Discussion Room C1', 1, 30, 10.00, 'available', ''),
 ('MSMR2012', 'Tutorial Room B5', 1, 25, 5.00, 'available', 'A small room which is good for small group discussion.'),
 ('MSMR2013', 'Tutorial Room B4', 1, 40, 5.00, 'available', 'A small room which is good for small group discussion.'),
 ('MSMR2014', 'Tutorial Room B3', 1, 35, 5.00, 'available', 'A small room which is good for small group discussion.'),
@@ -397,7 +400,8 @@ INSERT INTO `venue` (`vid`, `vname`, `vcid`, `max_cap`, `deposit`, `status`, `de
 ('MSMX0004', 'Lecture Hall A4', 3, 380, 20.00, 'maintenance', 'A large hall for large events and exams.'),
 ('MSMX2001', 'Lecture Hall B1', 2, 100, 10.00, 'maintenance', 'Lecture hall that can accommodate 100 people.'),
 ('MSMX2002', 'Lecture Hall B2', 2, 90, 10.00, 'available', 'Lecture hall that can accommodate 90 people.'),
-('MSMX2003', 'Lecture Hall B3', 2, 100, 10.00, 'available', 'A lecture hall with 100 person of capacity.');
+('MSMX2003', 'Lecture Hall B3', 2, 100, 10.00, 'available', 'A lecture hall with 100 person of capacity.'),
+('TEST1000', 'test', 1, 20, 5.00, 'available', '');
 
 -- --------------------------------------------------------
 
@@ -603,13 +607,13 @@ ALTER TABLE `admin`
 -- AUTO_INCREMENT for table `booking`
 --
 ALTER TABLE `booking`
-  MODIFY `bid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20000061;
+  MODIFY `bid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20000060;
 
 --
 -- AUTO_INCREMENT for table `damage_report`
 --
 ALTER TABLE `damage_report`
-  MODIFY `report_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `report_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `inspection`
@@ -627,7 +631,7 @@ ALTER TABLE `inspic`
 -- AUTO_INCREMENT for table `password_resets`
 --
 ALTER TABLE `password_resets`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `report`
@@ -639,7 +643,7 @@ ALTER TABLE `report`
 -- AUTO_INCREMENT for table `staff`
 --
 ALTER TABLE `staff`
-  MODIFY `sid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9004;
+  MODIFY `sid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9003;
 
 --
 -- AUTO_INCREMENT for table `vcategory`
@@ -735,17 +739,49 @@ CREATE DEFINER=`root`@`localhost` EVENT `ev_master_sla_daemon` ON SCHEDULE EVERY
 
     START TRANSACTION;
 
-    -- =========================================================================
-    -- Logic Pipeline A: Booking SLA 收斂 (超時未批准之硬性取消與退款)
-    -- =========================================================================
-    UPDATE booking
-    SET status = 'cancelled', 
-        payment_status = 'refunded', 
-        cancel_reason = 'SYS_TIMEOUT_ADMIN',
-        cancelled_at = NOW()
-    WHERE status = 'pending' 
-      AND payment_status = 'paid'
-      AND TIMESTAMPADD(MINUTE, -5, CAST(CONCAT(date_booked, ' ', time_start) AS DATETIME)) <= NOW();
+  -- =========================================================================
+  -- Logic Pipeline A: Booking SLA 收斂
+  -- =========================================================================
+  UPDATE booking
+  SET status = 'cancelled',
+      payment_status = 'refunded',
+      cancel_reason = 'SLA Violation: Admin Timeout or Slot Expiration.',
+      cancelled_at = NOW()
+  WHERE status = 'pending'
+    AND payment_status = 'paid'
+    AND (
+        -- 1. 常規提前預約：
+        -- 如果 booking 是在 time_start 之前建立的，
+        -- 到 time_start 前 5 分鐘還是 pending，就自動取消
+        (
+            created_at < CAST(CONCAT(date_booked, ' ', time_start) AS DATETIME)
+            AND TIMESTAMPADD(
+                MINUTE,
+                -5,
+                CAST(CONCAT(date_booked, ' ', time_start) AS DATETIME)
+            ) <= NOW()
+        )
+
+        OR
+
+        -- 2. 延遲預約：
+        -- 如果學生是在 booking 開始後才 request，
+        -- admin 只有 15 分鐘處理
+        (
+            created_at >= CAST(CONCAT(date_booked, ' ', time_start) AS DATETIME)
+            AND TIMESTAMPADD(MINUTE, 15, created_at) <= NOW()
+        )
+
+        OR
+
+        -- 3. 絕對截止線：
+        -- 到 time_end 前 5 分鐘仍未批准，也取消，避免剩太少時間才 approve
+        TIMESTAMPADD(
+            MINUTE,
+            -5,
+            CAST(CONCAT(date_booked, ' ', time_end) AS DATETIME)
+        ) <= NOW()
+    );
 
     -- =========================================================================
     -- Logic Pipeline B: 時序感知 JIT 分配引擎 (檢驗員自動防撞指派)

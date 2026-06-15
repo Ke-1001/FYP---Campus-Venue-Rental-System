@@ -303,3 +303,50 @@ html { scroll-behavior: smooth; }
 .venue-card.hover-lift:hover {
     box-shadow: 0 18px 34px -20px rgba(0, 0, 0, 0.5);
 }
+
+
+/* ===== Final user visual unification ===== */
+:root {
+    --user-bg: #f6f8fb;
+    --user-card: #ffffff;
+    --user-border: #e2e8f0;
+    --user-text: #0f172a;
+}
+
+body {
+    background: var(--user-bg) !important;
+    color: var(--user-text);
+}
+
+main {
+    background: var(--user-bg);
+}
+
+.user-site-nav {
+    background: #ffffff !important;
+    color: #0f172a;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08) !important;
+}
+
+.homepage-hero {
+    min-height: 560px;
+}
+
+.glass-card {
+    background: #ffffff !important;
+    border: 1px solid var(--user-border) !important;
+    box-shadow: 0 10px 24px -18px rgba(15, 23, 42, 0.35) !important;
+    backdrop-filter: none !important;
+}
+
+.venue-card {
+    box-shadow: 0 12px 28px -22px rgba(15, 23, 42, 0.45) !important;
+}
+
+.venue-card:hover {
+    box-shadow: 0 18px 34px -24px rgba(15, 23, 42, 0.55) !important;
+}
+
+.input-locked {
+    cursor: not-allowed;
+}
