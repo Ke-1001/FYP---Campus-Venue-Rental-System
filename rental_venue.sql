@@ -739,17 +739,49 @@ CREATE DEFINER=`root`@`localhost` EVENT `ev_master_sla_daemon` ON SCHEDULE EVERY
 
     START TRANSACTION;
 
-    -- =========================================================================
-    -- Logic Pipeline A: Booking SLA 收斂 (超時未批准之硬性取消與退款)
-    -- =========================================================================
-    UPDATE booking
-    SET status = 'cancelled', 
-        payment_status = 'refunded', 
-        cancel_reason = 'SYS_TIMEOUT_ADMIN',
-        cancelled_at = NOW()
-    WHERE status = 'pending' 
-      AND payment_status = 'paid'
-      AND TIMESTAMPADD(MINUTE, -5, CAST(CONCAT(date_booked, ' ', time_start) AS DATETIME)) <= NOW();
+  -- =========================================================================
+  -- Logic Pipeline A: Booking SLA 收斂
+  -- =========================================================================
+  UPDATE booking
+  SET status = 'cancelled',
+      payment_status = 'refunded',
+      cancel_reason = 'SLA Violation: Admin Timeout or Slot Expiration.',
+      cancelled_at = NOW()
+  WHERE status = 'pending'
+    AND payment_status = 'paid'
+    AND (
+        -- 1. 常規提前預約：
+        -- 如果 booking 是在 time_start 之前建立的，
+        -- 到 time_start 前 5 分鐘還是 pending，就自動取消
+        (
+            created_at < CAST(CONCAT(date_booked, ' ', time_start) AS DATETIME)
+            AND TIMESTAMPADD(
+                MINUTE,
+                -5,
+                CAST(CONCAT(date_booked, ' ', time_start) AS DATETIME)
+            ) <= NOW()
+        )
+
+        OR
+
+        -- 2. 延遲預約：
+        -- 如果學生是在 booking 開始後才 request，
+        -- admin 只有 15 分鐘處理
+        (
+            created_at >= CAST(CONCAT(date_booked, ' ', time_start) AS DATETIME)
+            AND TIMESTAMPADD(MINUTE, 15, created_at) <= NOW()
+        )
+
+        OR
+
+        -- 3. 絕對截止線：
+        -- 到 time_end 前 5 分鐘仍未批准，也取消，避免剩太少時間才 approve
+        TIMESTAMPADD(
+            MINUTE,
+            -5,
+            CAST(CONCAT(date_booked, ' ', time_end) AS DATETIME)
+        ) <= NOW()
+    );
 
     -- =========================================================================
     -- Logic Pipeline B: 時序感知 JIT 分配引擎 (檢驗員自動防撞指派)
