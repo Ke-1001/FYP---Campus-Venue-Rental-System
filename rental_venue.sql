@@ -3,12 +3,12 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 10, 2026 at 11:00 AM
+-- Generation Time: Jun 15, 2026 at 10:01 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-SET GLOBAL event_scheduler =ON;
+SET GLOBAL event_scheduler = ON;
 START TRANSACTION;
 SET time_zone = "+00:00";
 
@@ -119,39 +119,23 @@ CREATE TABLE `booking` (
 --
 
 INSERT INTO `booking` (`bid`, `uid`, `vid`, `date_booked`, `time_start`, `time_end`, `status`, `payment_status`, `payment_method`, `payment_due_at`, `cancelled_at`, `cancel_reason`, `transaction_ref`, `paid_at`, `purpose`, `aid`, `approve_date`, `created_at`) VALUES
-(20000014, '242DT2430C', 'MSMR2016', '2026-04-29', '13:30:00', '14:30:00', 'completed', 'paid', NULL, NULL, NULL, NULL, 'TXN-9203A980', NULL, 'test', 8002, '2026-04-29 12:44:41', '2026-04-28 17:31:13'),
-(20000015, '242DT2429C', 'MSMR2016', '2026-07-02', '11:00:00', '14:30:00', 'cancelled', 'unpaid', NULL, '2026-05-06 10:48:41', '2026-06-03 10:21:14', 'Payment deadline expired', NULL, NULL, 'test', NULL, NULL, '2026-05-06 02:33:41'),
-(20000016, '242DT2429C', 'MSMR2016', '2026-05-08', '09:30:00', '10:30:00', 'cancelled', 'unpaid', NULL, '2026-05-06 10:48:52', '2026-06-03 10:21:14', 'Payment deadline expired', NULL, NULL, 'test', NULL, NULL, '2026-05-06 02:33:52'),
-(20000017, '242DT2421C', 'MSMR2016', '2026-05-06', '16:30:00', '18:30:00', 'completed', 'paid', NULL, NULL, NULL, NULL, 'TXN-C80129AA', NULL, 'Discussion', 8000, '2026-05-06 14:47:59', '2026-05-06 06:33:38'),
-(20000018, '242DT2429C', 'MSMR2016', '2026-05-07', '16:30:00', '17:30:00', 'rejected', 'paid', NULL, NULL, NULL, NULL, 'TXN-7538644A', NULL, 'teae', NULL, NULL, '2026-05-06 06:45:07'),
-(20000019, '242DT2429C', 'MSMX0003', '2026-05-13', '12:30:00', '18:30:00', 'rejected', 'paid', NULL, NULL, NULL, NULL, 'TXN-WO89K1Z6', NULL, 'For large event discussion', NULL, NULL, '2026-05-11 10:42:36'),
-(20000020, '242DT2429C', 'MSMX2001', '2026-05-16', '09:00:00', '10:30:00', 'completed', 'paid', NULL, NULL, NULL, NULL, 'TXN-D5TU789Q', NULL, 'For project video recording', 8002, '2026-05-12 08:37:40', '2026-05-11 10:44:26'),
-(20000021, '242DT2431X', 'MSMR2012', '2026-05-19', '18:30:00', '19:30:00', 'completed', 'paid', NULL, NULL, NULL, NULL, 'TXN-156FD6DE', NULL, 'test semester', NULL, NULL, '2026-05-19 10:38:54'),
-(20000022, '242DT2431X', 'MSMR2012', '2026-05-19', '20:00:00', '21:00:00', 'rejected', 'paid', NULL, NULL, NULL, NULL, NULL, NULL, 'test123', NULL, NULL, '2026-05-19 11:56:40'),
-(20000023, '242DT2431X', 'MSMR2012', '2026-05-19', '21:00:00', '22:00:00', 'cancelled', 'unpaid', NULL, '2026-05-19 20:12:29', '2026-06-03 10:21:14', 'Payment deadline expired', NULL, NULL, 'test123', NULL, NULL, '2026-05-19 11:57:29'),
-(20000024, '242DT2431X', 'MSMR2012', '2026-05-19', '22:00:00', '22:30:00', 'cancelled', 'unpaid', NULL, '2026-05-19 20:13:43', '2026-06-03 10:21:14', 'Payment deadline expired', NULL, NULL, 'test123', NULL, NULL, '2026-05-19 11:58:43'),
-(20000025, '242DT2431X', 'MSMR2012', '2026-05-19', '22:30:00', '23:00:00', 'cancelled', 'unpaid', NULL, '2026-05-19 20:14:14', '2026-06-03 10:21:14', 'Payment deadline expired', NULL, NULL, 'test123', NULL, NULL, '2026-05-19 11:59:14'),
-(20000026, '242DT2431X', 'MSMR2012', '2026-05-19', '23:00:00', '23:30:00', 'cancelled', 'unpaid', NULL, '2026-05-19 20:16:59', '2026-06-03 10:21:14', 'Payment deadline expired', NULL, NULL, 'test123', NULL, NULL, '2026-05-19 12:01:59'),
-(20000027, '242DT2431X', 'MSMR2012', '2026-05-19', '23:30:00', '00:00:00', 'rejected', 'paid', NULL, NULL, NULL, NULL, 'TXN-72711AB7', NULL, 'test123', NULL, NULL, '2026-05-19 12:02:44'),
-(20000028, '242DT2431X', 'MSMR2013', '2026-05-19', '20:00:00', '20:30:00', 'cancelled', 'unpaid', NULL, '2026-05-19 20:18:13', '2026-06-03 10:21:14', 'Payment deadline expired', NULL, NULL, 'test123', NULL, NULL, '2026-05-19 12:03:13'),
-(20000029, '242DT2431X', 'MSMR2013', '2026-05-19', '20:30:00', '21:00:00', 'cancelled', 'unpaid', NULL, '2026-05-19 20:19:08', '2026-06-03 10:21:14', 'Payment deadline expired', NULL, NULL, 'test123', NULL, NULL, '2026-05-19 12:04:08'),
-(20000030, '242DT2431X', 'MSMX0001', '2026-05-20', '14:30:00', '15:30:00', 'completed', 'paid', NULL, NULL, NULL, NULL, NULL, NULL, 'ter', NULL, NULL, '2026-05-20 06:33:59'),
-(20000031, '242DT2431X', 'MSMX0001', '2026-05-20', '15:30:00', '16:00:00', 'cancelled', 'unpaid', NULL, NULL, NULL, NULL, NULL, NULL, 'ter', NULL, NULL, '2026-05-20 06:35:07'),
-(20000032, '242DT2429C', 'MSMX0001', '2026-06-17', '10:30:00', '12:00:00', 'cancelled', 'unpaid', NULL, NULL, NULL, NULL, NULL, NULL, 'test', NULL, NULL, '2026-06-03 02:02:21'),
-(20000033, '242DT2429C', 'MSMX0001', '2026-06-17', '13:30:00', '15:00:00', 'cancelled', 'unpaid', NULL, '2026-06-03 10:23:05', '2026-06-03 10:23:09', 'Payment deadline expired', NULL, NULL, 'test', NULL, NULL, '2026-06-03 02:08:05'),
-(20000034, '242DT2430C', 'MSMX0001', '2026-06-08', '12:00:00', '12:30:00', 'completed', 'paid', NULL, '2026-06-08 09:19:49', NULL, NULL, 'TXN-43338C76', NULL, 'test', 8000, '2026-06-08 09:05:04', '2026-06-08 01:04:49'),
-(20000035, '242DT2430C', 'MSMX0002', '2026-06-08', '09:00:00', '09:30:00', 'rejected', 'paid', NULL, '2026-06-08 09:20:25', NULL, NULL, 'TXN-283F5585', NULL, 'test', 8000, '2026-06-08 09:10:25', '2026-06-08 01:05:25'),
-(20000036, '242DT2430C', 'MSMX0003', '2026-06-08', '09:00:00', '09:30:00', 'cancelled', 'refunded', NULL, '2026-06-08 09:20:45', '2026-06-08 09:30:44', 'SYS_TIMEOUT_ADMIN', 'TXN-07BD9FA5', NULL, 'test', NULL, NULL, '2026-06-08 01:05:45'),
-(20000037, '242DT2430C', 'MSMX2002', '2026-06-08', '09:00:00', '09:30:00', 'cancelled', 'refunded', NULL, '2026-06-08 09:21:04', '2026-06-08 09:30:44', 'SYS_TIMEOUT_ADMIN', 'TXN-52A14C22', NULL, 'test', NULL, NULL, '2026-06-08 01:06:04'),
-(20000038, '242DT2430C', 'MSMX2003', '2026-06-08', '09:00:00', '09:30:00', 'cancelled', 'refunded', NULL, '2026-06-08 09:21:24', '2026-06-08 09:30:44', 'SYS_TIMEOUT_ADMIN', 'TXN-6DD34D71', NULL, 'test', NULL, NULL, '2026-06-08 01:06:24'),
 (20000039, '242DT2430C', 'MSMR3014', '2026-06-08', '09:00:00', '09:30:00', 'cancelled', 'refunded', NULL, '2026-06-08 09:21:44', '2026-06-08 09:30:44', 'SYS_TIMEOUT_ADMIN', 'TXN-97EC9959', NULL, 'test', NULL, NULL, '2026-06-08 01:06:44'),
 (20000040, '242DT2429C', 'MSMX2002', '2026-06-30', '10:30:00', '11:30:00', 'completed', 'paid', NULL, '2026-06-10 10:28:55', NULL, NULL, 'TXN-0C145680', NULL, 'Group discussion', 8000, '2026-06-10 14:07:28', '2026-06-10 02:13:55'),
 (20000045, '242DT2429C', 'MSMX0002', '2026-06-10', '13:00:00', '14:00:00', 'completed', 'paid', NULL, '2026-06-10 12:58:26', NULL, NULL, 'TXN-57FC36A8', NULL, 'teae', 8002, '2026-06-10 12:47:21', '2026-06-10 04:43:26'),
 (20000046, '242DT2429C', 'MSMR2016', '2026-06-11', '10:30:00', '11:30:00', 'rejected', 'refunded', 'card', '2026-06-10 13:47:04', NULL, NULL, 'TXN-CARD-EABF7154', '2026-06-10 13:32:45', 'Group discussion', 8000, '2026-06-10 14:07:34', '2026-06-10 05:32:04'),
 (20000047, '242DT2429C', 'MSMR3016', '2026-06-27', '13:00:00', '14:00:00', 'cancelled', 'unpaid', NULL, '2026-06-10 13:48:06', '2026-06-10 13:48:59', 'Payment deadline expired', NULL, NULL, 'Group discussion', NULL, NULL, '2026-06-10 05:33:06'),
 (20000048, '242DT2429C', 'MSMR2012', '2026-07-12', '13:00:00', '14:00:00', 'rejected', 'refunded', 'tng', '2026-06-10 14:00:13', NULL, NULL, 'TXN-TNG-4D2B377F', '2026-06-10 13:49:00', 'Group discussion', 8013, '2026-06-10 15:27:45', '2026-06-10 05:45:13'),
-(20000049, '242DT2429C', 'MSMR3014', '2026-06-29', '12:30:00', '13:30:00', 'pending', 'paid', 'tng', '2026-06-10 14:06:04', NULL, NULL, 'TXN-TNG-E0F1050C', '2026-06-10 13:51:44', 'Group discussion', NULL, NULL, '2026-06-10 05:51:04'),
-(20000050, '242DT2429C', 'MSMR2016', '2026-06-10', '15:00:00', '16:00:00', 'approved', 'paid', 'tng', '2026-06-10 15:29:57', NULL, NULL, 'TXN-TNG-CB37DDB1', '2026-06-10 15:17:04', 'test', 8013, '2026-06-10 15:27:39', '2026-06-10 07:14:57');
+(20000049, '242DT2429C', 'MSMR3014', '2026-06-29', '12:30:00', '13:30:00', 'approved', 'paid', 'tng', '2026-06-10 14:06:04', NULL, NULL, 'TXN-TNG-E0F1050C', '2026-06-10 13:51:44', 'Group discussion', 8000, '2026-06-13 11:51:52', '2026-06-10 05:51:04'),
+(20000050, '242DT2429C', 'MSMR2016', '2026-06-10', '15:00:00', '16:00:00', 'completed', 'paid', 'tng', '2026-06-10 15:29:57', NULL, NULL, 'TXN-TNG-CB37DDB1', '2026-06-10 15:17:04', 'test', 8013, '2026-06-10 15:27:39', '2026-06-10 07:14:57'),
+(20000051, '242DT24123', 'MSMX0001', '2026-06-13', '11:30:00', '12:00:00', 'completed', 'paid', 'tng', '2026-06-13 12:09:16', NULL, NULL, 'TXN-TNG-B844525D', '2026-06-13 11:54:19', 'test', 8000, '2026-06-13 11:54:30', '2026-06-13 03:54:16'),
+(20000052, '242DT24123', 'MSMX0002', '2026-06-13', '12:00:00', '12:30:00', 'completed', 'paid', 'tng', '2026-06-13 12:24:11', NULL, NULL, 'TXN-TNG-D4E97DB2', '2026-06-13 12:09:13', 'test', 8000, '2026-06-13 12:11:30', '2026-06-13 04:09:11'),
+(20000053, '242DT24123', 'MSMX0002', '2026-06-13', '13:00:00', '13:30:00', 'completed', 'paid', 'tng', '2026-06-13 12:25:44', NULL, NULL, 'TXN-TNG-A0825331', '2026-06-13 12:10:46', 'test', 8000, '2026-06-13 12:11:33', '2026-06-13 04:10:44'),
+(20000054, '242DT24123', 'MSMX0003', '2026-06-13', '12:00:00', '12:30:00', 'completed', 'paid', 'tng', '2026-06-13 12:26:05', NULL, NULL, 'TXN-TNG-577BE044', '2026-06-13 12:11:06', 'test', 8000, '2026-06-13 12:12:36', '2026-06-13 04:11:05'),
+(20000055, '242DT24123', 'MSMR2012', '2026-06-13', '12:00:00', '12:30:00', 'cancelled', 'paid', 'tng', '2026-06-13 12:26:46', NULL, 'SLA Violation: Automated threshold expiration purge.', 'TXN-TNG-6E7986DE', '2026-06-13 12:11:48', 'test', NULL, NULL, '2026-06-13 04:11:46'),
+(20000056, '242DT24123', 'MSMX2002', '2026-06-13', '12:00:00', '12:30:00', 'cancelled', 'paid', 'tng', '2026-06-13 12:27:27', NULL, 'SLA Violation: Automated threshold expiration purge.', 'TXN-TNG-3CCE0866', '2026-06-13 12:12:28', 'test', NULL, NULL, '2026-06-13 04:12:27'),
+(20000057, '242DT24123', 'MSMX0001', '2026-06-13', '12:30:00', '13:00:00', 'completed', 'paid', 'tng', '2026-06-13 12:48:10', NULL, NULL, 'TXN-TNG-8B3A4D31', '2026-06-13 12:33:12', 'test', 8000, '2026-06-13 12:42:14', '2026-06-13 04:33:10'),
+(20000058, '242DT24123', 'MSMX0002', '2026-06-13', '14:00:00', '14:30:00', 'completed', 'paid', 'tng', '2026-06-13 12:56:06', NULL, NULL, 'TXN-TNG-4EA49C75', '2026-06-13 12:41:08', 'test', 8000, '2026-06-13 12:42:03', '2026-06-13 04:41:06'),
+(20000059, '242DT24123', 'MSMX0003', '2026-06-13', '12:30:00', '13:00:00', 'completed', 'paid', 'tng', '2026-06-13 12:56:31', NULL, NULL, 'TXN-TNG-CF19008B', '2026-06-13 12:41:33', 'test', 8000, '2026-06-13 12:46:53', '2026-06-13 04:41:31');
 
 -- --------------------------------------------------------
 
@@ -176,8 +160,8 @@ CREATE TABLE `damage_report` (
 --
 
 INSERT INTO `damage_report` (`report_id`, `bid`, `uid`, `vid`, `damage_description`, `damage_photo`, `report_status`, `admin_remark`, `created_at`) VALUES
-(1, 20000045, '242DT2429C', 'MSMX0002', 'The mic was not function.', 'damage_20000045_1781069384.png', 'submitted', NULL, '2026-06-10 05:29:44'),
-(2, 20000040, '242DT2429C', 'MSMX2002', 'test', NULL, 'submitted', NULL, '2026-06-10 06:56:39');
+(1, 20000045, '242DT2429C', 'MSMX0002', 'The mic was not function.', 'damage_20000045_1781069384.png', 'reviewed', '', '2026-06-10 05:29:44'),
+(2, 20000040, '242DT2429C', 'MSMX2002', 'test', NULL, 'reviewed', '', '2026-06-10 06:56:39');
 
 -- --------------------------------------------------------
 
@@ -201,11 +185,15 @@ CREATE TABLE `inspection` (
 --
 
 INSERT INTO `inspection` (`ins_id`, `bid`, `sid`, `ins_status`, `damage_desc`, `damage_cost`, `penalty`, `inspected_at`) VALUES
-(30000009, 20000014, 9000, 'failed', '', 0.00, 0.00, NULL),
-(30000012, 20000021, 9000, 'passed', 'SYS_TIMEOUT_24H_RELEASE', 0.00, 0.00, '2026-06-09 20:09:05'),
-(30000013, 20000034, 9000, 'passed', 'SYS_TIMEOUT_24H_RELEASE', 0.00, 0.00, '2026-06-09 20:09:05'),
 (30000014, 20000045, 9000, 'failed', 'test', 0.00, 100.00, '2026-06-10 14:09:09'),
-(30000015, 20000050, 9000, 'pending', NULL, 0.00, 0.00, NULL);
+(30000015, 20000050, 9000, 'passed', 'SYS_TIMEOUT_24H_RELEASE', 0.00, 0.00, '2026-06-13 03:59:05'),
+(30000016, 20000051, 9002, 'passed', 'No damage. Venue is in standard condition.', 0.00, 0.00, '2026-06-13 12:33:26'),
+(30000017, 20000054, 9002, 'overdue', 'SLA Violation: Inspector Timeout. Auto-released.', 0.00, 0.00, NULL),
+(30000018, 20000052, 9000, 'overdue', 'SLA Violation: Inspector Timeout. Auto-released.', 0.00, 0.00, NULL),
+(30000019, 20000057, 9000, 'overdue', 'SLA Violation: Inspector Timeout. Auto-released.', 0.00, 0.00, NULL),
+(30000020, 20000059, 9002, 'overdue', 'SLA Violation: Inspector Timeout. Auto-released.', 0.00, 0.00, NULL),
+(30000021, 20000053, 9000, 'overdue', 'SLA Violation: Inspector Timeout. Auto-released.', 0.00, 0.00, NULL),
+(30000022, 20000058, 9000, 'overdue', 'SLA Violation: Inspector Timeout. Auto-released.', 0.00, 0.00, NULL);
 
 -- --------------------------------------------------------
 
@@ -262,10 +250,15 @@ CREATE TABLE `report` (
 --
 
 INSERT INTO `report` (`rid`, `ins_id`, `final_deduct`, `refund_status`, `penalty_status`, `created_at`) VALUES
-(40000004, 30000009, 0.00, '', 'none', '0000-00-00'),
-(40000005, 30000012, 0.00, 'pending', 'none', '2026-06-09'),
-(40000006, 30000013, 0.00, 'pending', 'none', '2026-06-09'),
-(40000008, 30000014, 100.00, 'none', 'pending', '2026-06-10');
+(40000008, 30000014, 100.00, 'none', 'pending', '2026-06-10'),
+(40000009, 30000015, 0.00, 'pending', 'none', '2026-06-13'),
+(40000010, 30000016, 0.00, 'pending', 'none', '2026-06-13'),
+(40000011, 30000017, 0.00, 'pending', 'none', '2026-06-14'),
+(40000012, 30000018, 0.00, 'pending', 'none', '2026-06-14'),
+(40000013, 30000019, 0.00, 'pending', 'none', '2026-06-14'),
+(40000014, 30000020, 0.00, 'pending', 'none', '2026-06-14'),
+(40000015, 30000021, 0.00, 'pending', 'none', '2026-06-14'),
+(40000016, 30000022, 0.00, 'pending', 'none', '2026-06-14');
 
 -- --------------------------------------------------------
 
@@ -338,6 +331,7 @@ CREATE TABLE `user` (
 --
 
 INSERT INTO `user` (`uid`, `username`, `email`, `password`, `phone_num`, `profile_pic`, `outstanding_debt`, `account_status`, `created_at`) VALUES
+('242DT24123', 'LIM', 'LIM.LI.GUAN@student.mmu.edu.my', '$2y$10$f7na0PcAMGz5ce/kSlabA.Qm8Q4Rn3bGytyhWSjDRQwaS8GbMwm3y', '0122341241', '', 0.00, 'active', '2026-06-13 03:53:11'),
 ('242DT2421C', 'test', 'test@gmail.com', '$2y$10$TjGMkbwlVVQO.fRym2HgAOWAv3yrUL3/a0GyZjYu5LwPZZjRg6wmm', '01241241124', '', 0.00, 'active', '2026-05-06 06:21:11'),
 ('242DT2429C', 'KamJS', 'kam@gmail.com', '$2y$10$b9IdO4GLAwsebemQD0x1Q.MKQL1UlyAn6ZhVyKtRkbYRghAbt4VMC', '01156811078', '', 80.00, 'active', '2026-05-05 02:46:08'),
 ('242DT242CL', 'KamJS', 'kam.jia.sheng@student.mmu.edu.my', '$2y$10$5SH.S0PrucSvkhJg6Mcdwe5OX/WTcibTOZ62ftvc8j1grDGyTbzFq', '01234567533', 'uploads/1781073919_0.jpg', 0.00, 'active', '2026-06-10 06:41:41'),
@@ -613,7 +607,7 @@ ALTER TABLE `admin`
 -- AUTO_INCREMENT for table `booking`
 --
 ALTER TABLE `booking`
-  MODIFY `bid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20000051;
+  MODIFY `bid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20000060;
 
 --
 -- AUTO_INCREMENT for table `damage_report`
@@ -625,7 +619,7 @@ ALTER TABLE `damage_report`
 -- AUTO_INCREMENT for table `inspection`
 --
 ALTER TABLE `inspection`
-  MODIFY `ins_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30000016;
+  MODIFY `ins_id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30000023;
 
 --
 -- AUTO_INCREMENT for table `inspic`
@@ -643,7 +637,7 @@ ALTER TABLE `password_resets`
 -- AUTO_INCREMENT for table `report`
 --
 ALTER TABLE `report`
-  MODIFY `rid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40000009;
+  MODIFY `rid` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40000018;
 
 --
 -- AUTO_INCREMENT for table `staff`
@@ -725,38 +719,29 @@ DELIMITER $$
 --
 -- Events
 --
-CREATE DEFINER=`root`@`localhost` EVENT `ev_inspection_lifecycle_manager` ON SCHEDULE EVERY 5 MINUTE STARTS '2026-06-08 08:54:05' ON COMPLETION NOT PRESERVE ENABLE DO BEGIN
+CREATE DEFINER=`root`@`localhost` EVENT `ev_master_sla_daemon` ON SCHEDULE EVERY 1 MINUTE STARTS '2026-06-14 14:14:33' ON COMPLETION PRESERVE ENABLE DO BEGIN
+    -- [變數與游標宣告區] (供 Pipeline B 使用)
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE v_bid INT;
+    DECLARE v_date_booked DATE;
+    DECLARE v_time_end TIME;
+    DECLARE v_optimal_sid INT;
+    
+    DECLARE cur_pending_assignments CURSOR FOR 
+        SELECT b.bid, b.date_booked, b.time_end 
+        FROM booking b
+        LEFT JOIN inspection i ON b.bid = i.bid
+        WHERE b.status = 'approved' 
+          AND i.ins_id IS NULL 
+          AND TIMESTAMPDIFF(MINUTE, NOW(), CONCAT(b.date_booked, ' ', b.time_end)) <= 15;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
     START TRANSACTION;
 
-    INSERT IGNORE INTO report (ins_id, final_deduct, refund_status, penalty_status, created_at)
-    SELECT i.ins_id, 0.00, 'pending', 'none', CURDATE()
-    FROM inspection i
-    JOIN booking b ON i.bid = b.bid
-    WHERE i.ins_status = 'overdue'
-      AND TIMESTAMPADD(HOUR, 24, CAST(CONCAT(b.date_booked, ' ', b.time_end) AS DATETIME)) <= NOW();
-
-    UPDATE inspection i
-    JOIN booking b ON i.bid = b.bid
-    SET i.ins_status = 'passed',
-        i.damage_desc = 'SYS_TIMEOUT_24H_RELEASE',
-        i.penalty = 0.00,
-        i.inspected_at = NOW()
-    WHERE i.ins_status = 'overdue'
-      AND TIMESTAMPADD(HOUR, 24, CAST(CONCAT(b.date_booked, ' ', b.time_end) AS DATETIME)) <= NOW();
-
-    UPDATE inspection i
-    JOIN booking b ON i.bid = b.bid
-    SET i.ins_status = 'overdue',
-        i.damage_desc = 'SYS_TIMEOUT_30M_LOCK'
-    WHERE i.ins_status = 'pending'
-      AND TIMESTAMPADD(MINUTE, 30, CAST(CONCAT(b.date_booked, ' ', b.time_end) AS DATETIME)) <= NOW();
-
-    COMMIT;
-END$$
-
-CREATE DEFINER=`root`@`localhost` EVENT `ev_pre_usage_handler` ON SCHEDULE EVERY 1 MINUTE STARTS '2026-06-08 09:30:44' ON COMPLETION NOT PRESERVE ENABLE DO BEGIN
-    START TRANSACTION;
-
+    -- =========================================================================
+    -- Logic Pipeline A: Booking SLA 收斂 (超時未批准之硬性取消與退款)
+    -- =========================================================================
     UPDATE booking
     SET status = 'cancelled', 
         payment_status = 'refunded', 
@@ -766,25 +751,64 @@ CREATE DEFINER=`root`@`localhost` EVENT `ev_pre_usage_handler` ON SCHEDULE EVERY
       AND payment_status = 'paid'
       AND TIMESTAMPADD(MINUTE, -5, CAST(CONCAT(date_booked, ' ', time_end) AS DATETIME)) <= NOW();
 
-    INSERT INTO inspection (bid, sid, ins_status)
-    SELECT target_booking.bid, optimal_staff.sid, 'pending'
-    FROM (
-        SELECT b.bid
-        FROM booking b
-        LEFT JOIN inspection i ON b.bid = i.bid
-        WHERE b.status = 'approved' 
-          AND i.ins_id IS NULL
-          AND TIMESTAMPADD(MINUTE, -5, CAST(CONCAT(b.date_booked, ' ', b.time_end) AS DATETIME)) <= NOW()
-    ) AS target_booking
-    CROSS JOIN (
-        SELECT s.sid
+    -- =========================================================================
+    -- Logic Pipeline B: 時序感知 JIT 分配引擎 (檢驗員自動防撞指派)
+    -- =========================================================================
+    OPEN cur_pending_assignments;
+    assignment_loop: LOOP
+        FETCH cur_pending_assignments INTO v_bid, v_date_booked, v_time_end;
+        IF done THEN LEAVE assignment_loop; END IF;
+
+        SET v_optimal_sid = NULL;
+
+        SELECT s.sid INTO v_optimal_sid
         FROM staff s
-        LEFT JOIN inspection i ON s.sid = i.sid AND i.ins_status = 'pending'
         WHERE s.position = 'inspector' AND s.status = 'active'
-        GROUP BY s.sid
-        ORDER BY COUNT(i.ins_id) ASC
-        LIMIT 1
-    ) AS optimal_staff;
+          AND s.sid NOT IN (
+              SELECT i2.sid
+              FROM inspection i2 JOIN booking b2 ON i2.bid = b2.bid
+              WHERE i2.ins_status = 'pending'
+                AND b2.date_booked = v_date_booked
+                AND ABS(TIMESTAMPDIFF(MINUTE, b2.time_end, v_time_end)) < 30
+          )
+        ORDER BY (
+            SELECT COUNT(*) FROM inspection i3 JOIN booking b3 ON i3.bid = b3.bid 
+            WHERE i3.sid = s.sid AND b3.date_booked = v_date_booked
+        ) ASC LIMIT 1;
+
+        IF v_optimal_sid IS NOT NULL THEN
+            INSERT INTO inspection (bid, sid, ins_status) VALUES (v_bid, v_optimal_sid, 'pending');
+        END IF;
+    END LOOP;
+    CLOSE cur_pending_assignments;
+
+    -- =========================================================================
+    -- Logic Pipeline C: Inspection SLA 收斂 (檢驗逾期自動標記與金融押金退還)
+    -- 觸發閾值：預約結束後 30 分鐘檢驗員仍未執行 (ins_status = 'pending')
+    -- =========================================================================
+    
+    -- C.1 產生退款報告 (利用 NOT EXISTS 確保金融操作冪等性 Idempotency)
+    INSERT INTO report (ins_id, final_deduct, refund_status, penalty_status, created_at)
+    SELECT i.ins_id, 0.00, 'pending', 'none', CURDATE()
+    FROM inspection i
+    JOIN booking b ON i.bid = b.bid
+    WHERE i.ins_status = 'pending'
+      AND TIMESTAMPADD(MINUTE, 30, CAST(CONCAT(b.date_booked, ' ', b.time_end) AS DATETIME)) <= NOW()
+      AND NOT EXISTS (SELECT 1 FROM report r WHERE r.ins_id = i.ins_id);
+
+    -- C.2 標記檢驗狀態為逾期失效
+    UPDATE inspection i
+    JOIN booking b ON i.bid = b.bid
+    SET i.ins_status = 'overdue',
+        i.damage_desc = 'SLA Violation: Inspector Timeout. Auto-released.'
+    WHERE i.ins_status = 'pending'
+      AND TIMESTAMPADD(MINUTE, 30, CAST(CONCAT(b.date_booked, ' ', b.time_end) AS DATETIME)) <= NOW();
+      
+    -- C.3 封閉預約生命週期 (推進至 completed)
+    UPDATE booking b
+    JOIN inspection i ON b.bid = i.bid
+    SET b.status = 'completed'
+    WHERE i.ins_status = 'overdue' AND b.status = 'approved';
 
     COMMIT;
 END$$
