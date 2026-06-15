@@ -264,6 +264,7 @@ html { scroll-behavior: smooth; }
         .hover-lift:hover { 
             transform: translateY(-6px); 
             box-shadow: 0 14px 30px -16px rgba(0, 0, 0, 0.45);
+            box-shadow: 0 14px 30px -16px rgba(0, 0, 0, 0.45);
             border-color: rgba(59, 130, 246, 0.5);
         }
 

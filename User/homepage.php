@@ -1,6 +1,7 @@
 <?php
-session_start();
 require_once __DIR__ . '/../config/db.php';
+
+$page_title = "CVBMS | Campus Venue Booking";
 
 $page_title = "CVBMS | Campus Venue Booking";
 

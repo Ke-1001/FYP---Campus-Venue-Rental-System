@@ -47,3 +47,4 @@ if (!empty($_FILES['profile_pic']['name']) && is_uploaded_file($_FILES['profile_
 
 http_response_code(200);
 ?>
+

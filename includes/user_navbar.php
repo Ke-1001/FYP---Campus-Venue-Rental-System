@@ -55,6 +55,7 @@ $nav_position_class = $is_homepage
             </div>
 
             <div class="flex items-center gap-3">
+            <div class="flex items-center gap-3">
                 <?php if ($is_logged_in): ?>
                     <a href="profile.php" class="flex items-center gap-2 bg-slate-900 py-1.5 px-4 rounded-full border border-slate-700 hover:bg-slate-800 transition-all" title="View Profile">
                         <i data-lucide="user" class="w-4 h-4 text-mmu-glow"></i>
