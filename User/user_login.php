@@ -12,12 +12,7 @@
             theme: { extend: { colors: { mmu: { core: '#004aad', glow: '#3b82f6' } } } }
         }
     </script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
-        .glass-panel { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
-        .input-glass { background: rgba(255, 255, 255, 0.95); border: 2px solid transparent; transition: all 0.3s; }
-        .input-glass:focus { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.25); outline: none; }
-    </style>
+    <link rel="stylesheet" href="../assets/css/user_css.css?v=1.1">
 </head>
 <body class="font-sans antialiased min-h-screen relative overflow-y-auto">
 

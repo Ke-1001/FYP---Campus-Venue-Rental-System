@@ -49,19 +49,17 @@ if (!isset($extra_js)) {
                             dark: '#1e293b',
                             accent: '#38bdf8'
                         }
+                    },
+                    fontFamily: {
+                        sans: ['Century Gothic', 'CenturyGothic', 'Century', 'Arial', 'sans-serif']
                     }
                 }
             }
         }
     </script>
 
-    <!-- Global CSS -->
-    <link rel="stylesheet" href="../assets/css/layout.css?v=1.2">
-
-    <!-- Dynamic CSS -->
-    <?php foreach ($extra_css as $css): ?>
-        <link rel="stylesheet" href="<?php echo $css; ?>">
-    <?php endforeach; ?>
+    <!-- Global Admin CSS -->
+    <link rel="stylesheet" href="../assets/css/admin_css.css?v=1.1">
 </head>
 
 <body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden">

@@ -31,8 +31,7 @@ $stmt->close();
     <script>
         tailwind.config = { theme: { extend: { colors: { fiori: { text: '#1d2d3e', label: '#6b7280', blue: '#0a6ed1' } } } } }
     </script>
-    <link rel="stylesheet" href="layout.css?v=1.2">
-    <link rel="stylesheet" href="../assets/css/fiori_forms.css">
+    <link rel="stylesheet" href="../assets/css/admin_css.css?v=1.1">
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
 

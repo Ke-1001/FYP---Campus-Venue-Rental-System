@@ -8,7 +8,7 @@ expireUnpaidBookings($conn);
 $user_id = $_SESSION['uid'];
 
 if (!isset($_GET['bid']) || !ctype_digit($_GET['bid'])) {
-    die("<div style='font-family:sans-serif; text-align:center; margin-top:50px; color:#ef4444;'><h2>Invalid Payment Access.</h2></div>");
+    die("<div style='font-family:'Century Gothic', CenturyGothic, Century, Arial, sans-serif; text-align:center; margin-top:50px; color:#ef4444;'><h2>Invalid Payment Access.</h2></div>");
 }
 
 $bid = intval($_GET['bid']);
@@ -43,7 +43,7 @@ $booking = $result->fetch_assoc();
 $stmt->close();
 
 if (!$booking) {
-    die("<div style='font-family:sans-serif; text-align:center; margin-top:50px; color:#ef4444;'><h2>Booking not found or access denied.</h2></div>");
+    die("<div style='font-family:'Century Gothic', CenturyGothic, Century, Arial, sans-serif; text-align:center; margin-top:50px; color:#ef4444;'><h2>Booking not found or access denied.</h2></div>");
 }
 
 $status = strtolower($booking['status']);
@@ -57,7 +57,7 @@ if ($payment_status === 'paid') {
 }
 
 if ($status === 'cancelled') {
-    die("<div style='font-family:sans-serif; text-align:center; margin-top:50px; color:#ef4444;'>
+    die("<div style='font-family:'Century Gothic', CenturyGothic, Century, Arial, sans-serif; text-align:center; margin-top:50px; color:#ef4444;'>
             <h2>Booking Cancelled</h2>
             <p>This booking was cancelled because the payment deadline expired.</p>
             <p><a href='venues.php'>Book another venue</a></p>
@@ -83,19 +83,7 @@ $hash = hash('sha256', $qr_seed);
     <title>Sandbox Payment Gateway</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        .qr-grid {
-            display: grid;
-            grid-template-columns: repeat(13, 1fr);
-            gap: 3px;
-        }
-        .qr-cell {
-            aspect-ratio: 1 / 1;
-            border-radius: 2px;
-        }
-        .method-panel { display: none; }
-        .method-panel.active { display: block; }
-    </style>
+    <link rel="stylesheet" href="../assets/css/user_css.css?v=1.1">
 </head>
 
 <body class="bg-slate-50 min-h-screen font-sans antialiased px-4 py-10">

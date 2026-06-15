@@ -309,6 +309,3 @@ $result = $stmt->get_result();
 </script>
 
 <?php include("../includes/user_footer.php"); ?>
-
-</body>
-</html>

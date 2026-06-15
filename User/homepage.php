@@ -32,53 +32,13 @@ $result = $conn->query($sql);
                         }
                     },
                     fontFamily: {
-                        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                        sans: ['Century Gothic', 'CenturyGothic', 'Century', 'Arial', 'sans-serif'],
                     }
                 }
             }
         }
     </script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap');
-        html { scroll-behavior: smooth; }
-        
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-        
-        .glass-nav {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(16px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .input-glass {
-            background: rgba(255, 255, 255, 0.95);
-            border: 2px solid transparent;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .input-glass:focus {
-            border-color: #3b82f6; 
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.25);
-            outline: none;
-        }
-
-        .hover-lift { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s ease, border-color 0.4s ease; }
-        .hover-lift:hover { 
-            transform: translateY(-6px); 
-            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.7);
-            border-color: rgba(59, 130, 246, 0.5);
-        }
-
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
-    </style>
+    <link rel="stylesheet" href="../assets/css/user_css.css?v=1.1">
 </head>
 <body class="font-sans antialiased selection:bg-mmu-glow selection:text-white min-h-screen relative overflow-x-hidden text-slate-200">
 
@@ -211,7 +171,7 @@ $result = $conn->query($sql);
     </div>
 </div>
 
-<footer style="position: relative; z-index: 50; background-color: #020617; border-top: 1px solid rgba(255, 255, 255, 0.1); padding: 40px 24px; margin-top: 80px; font-family: sans-serif;">
+<footer style="position: relative; z-index: 50; background-color: #020617; border-top: 1px solid rgba(255, 255, 255, 0.1); padding: 40px 24px; margin-top: 80px; font-family: 'Century Gothic', CenturyGothic, Century, Arial, sans-serif;">
     <div style="max-width: 1280px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px;">
         <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 32px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 24px;">
             <div>

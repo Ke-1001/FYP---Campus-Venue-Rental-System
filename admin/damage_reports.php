@@ -78,13 +78,16 @@ while ($row = $result->fetch_assoc()) {
 $stmt->close();
 
 $page_title = "Damage Reports";
-$page_description = "View damage reports submitted by users before venue usage.";
+$page_description = "View damage reports submitted by users during their booking time.";
+$current_role = $_SESSION['role'] ?? '';
+$back_url = ($current_role === 'staff') ? 'inspections.php' : 'dashboard.php';
+$can_resolve_damage = ($current_role !== 'staff');
 $topbar_content = '
 <div class="flex items-center">
-    <a href="manage_bookings.php" class="text-sm font-bold text-[#004aad] hover:text-[#003882] flex items-center mr-4 transition-colors">
+    <a href="' . $back_url . '" class="text-sm font-bold text-[#004aad] hover:text-[#003882] flex items-center mr-4 transition-colors">
         <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i> Back
     </a>
-    <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Bookings / Damage Reports</h2>
+    <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Operations / Damage Reports</h2>
 </div>';
 
 ob_start();
@@ -194,7 +197,7 @@ ob_start();
                             <?php endif; ?>
                         </td>
                         <td class="px-5 py-4 text-right">
-                            <?php if ($report['report_status'] === 'submitted'): ?>
+                            <?php if ($report['report_status'] === 'submitted' && $can_resolve_damage): ?>
                                 <form action="../actions/process_damage.php" method="POST" class="flex flex-col items-end gap-2">
                                     <input type="hidden" name="report_id" value="<?php echo htmlspecialchars($report['report_id']); ?>">
                                     <textarea name="admin_remark" placeholder="Enter remark (optional)..." class="w-48 px-2 py-1.5 text-xs border border-slate-200 rounded focus:outline-none focus:ring-1 focus:ring-[#004aad] resize-none" rows="2"></textarea>
@@ -202,6 +205,10 @@ ob_start();
                                         Resolve & Acknowledge
                                     </button>
                                 </form>
+                            <?php elseif ($report['report_status'] === 'submitted'): ?>
+                                <span class="px-2 py-0.5 border bg-amber-50 text-amber-700 border-amber-200 rounded text-[10px] font-black uppercase tracking-widest inline-block">
+                                    SUBMITTED
+                                </span>
                             <?php else: ?>
                                 <span class="px-2 py-0.5 border bg-emerald-50 text-emerald-600 border-emerald-200 rounded text-[10px] font-black uppercase tracking-widest inline-block">
                                     REVIEWED

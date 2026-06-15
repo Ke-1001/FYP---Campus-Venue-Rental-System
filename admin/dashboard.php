@@ -17,7 +17,7 @@ syncCompletedBookings($conn);
 
 $page_title = "System Dashboard";
 $page_description = "Centralized overview of all system modules and operational metrics.";
-$extra_css = ["../assets/css/fiori-tile.css"];
+$extra_css = [];
 $topbar_content = '
 <div class="flex items-center text-slate-500 bg-white px-4 py-2 rounded-lg border border-slate-200 focus-within:border-[#004aad] shadow-sm transition-all">
     <i data-lucide="search" class="w-4 h-4 mr-2"></i>
@@ -78,17 +78,19 @@ echo TileBuilder::renderSection('Assets & Academic Matrix', 'Configure physical 
     ]
 ]);
 
-// 模組 4: Identity & Personnel
-echo TileBuilder::renderSection('Identity Directory', 'Manage system access for staff, administrators, and students.', [
-    [
-        'url' => 'staff_directory.php', 'title' => 'Staff Directory', 'icon' => 'shield',
-        'desc' => 'Manage operational staff and system administrators.', 'kpi' => $kpi['combined_personnel'], 'action' => 'View Personnel'
-    ],
-    [
-        'url' => 'manage_students.php', 'title' => 'Student Entities', 'icon' => 'graduation-cap',
-        'desc' => 'Monitor registered student accounts and contacts.', 'kpi' => $kpi['total_students'], 'action' => 'View Students'
-    ]
-]);
+// 模組 4: Identity & Personnel (Super Admin only)
+if (($_SESSION['role'] ?? '') === 'super_admin') {
+    echo TileBuilder::renderSection('Identity Directory', 'Manage system access for staff, administrators, and students.', [
+        [
+            'url' => 'staff_directory.php', 'title' => 'Staff Directory', 'icon' => 'shield',
+            'desc' => 'Manage operational staff and system administrators.', 'kpi' => $kpi['combined_personnel'], 'action' => 'View Personnel'
+        ],
+        [
+            'url' => 'manage_students.php', 'title' => 'Student Entities', 'icon' => 'graduation-cap',
+            'desc' => 'Monitor registered student accounts and contacts.', 'kpi' => $kpi['total_students'], 'action' => 'View Students'
+        ]
+    ]);
+}
 
 $page_content = ob_get_clean();
 require_once __DIR__ . '/../core/layout.php';

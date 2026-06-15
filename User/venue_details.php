@@ -302,6 +302,3 @@ document.addEventListener('keydown', function (event) {
 </script>
 
 <?php include("../includes/user_footer.php"); ?>
-
-</body>
-</html>

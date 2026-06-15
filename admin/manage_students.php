@@ -69,7 +69,7 @@ if (isset($_SESSION['error']) && strpos($_SESSION['error'], 'Failed to Delete') 
 $page_title = "Student Directory";
 $page_description = "Manage registered student accounts and review their contacts.";
 $topbar_content = '<h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Identity Management / Student Directory</h2>';
-$extra_css = ["../assets/css/fiori_forms.css", "../assets/css/table.css"];
+$extra_css = [];
 
 // ∴ 啟動 DataGridBuilder 渲染引擎
 $gridBuilder = new DataGridBuilder('uid', '../actions/process_student.php', 'student entity');

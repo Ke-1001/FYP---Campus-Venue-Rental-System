@@ -1,8 +1,12 @@
 <?php
 require_once __DIR__ . '/../includes/user_auth.php';
+$page_title = "Booking Details | CVBMS";
+require_once __DIR__ . '/../includes/user_header.php';
 require_once __DIR__ . '/../includes/user_navbar.php';
 require_once __DIR__ . '/../includes/booking_functions.php';
 require_once __DIR__ . '/../config/db.php';
+
+date_default_timezone_set('Asia/Kuala_Lumpur');
 
 syncCompletedBookings($conn);
 
@@ -90,9 +94,32 @@ if ($damage_result && $damage_result->num_rows > 0) {
     
 $damage_stmt->close();
 
-$can_report_damage = (
-    strtolower($booking['status']) === 'approved' && !$damage_report
+$damage_window_start_ts = strtotime($booking['date_booked'] . ' ' . $booking['time_start']);
+$damage_window_end_ts = strtotime($booking['date_booked'] . ' ' . $booking['time_end']);
+$now_ts = time();
+$is_damage_window_open = (
+    $damage_window_start_ts !== false &&
+    $damage_window_end_ts !== false &&
+    $now_ts >= $damage_window_start_ts &&
+    $now_ts <= $damage_window_end_ts
 );
+
+$can_report_damage = (
+    strtolower($booking['status']) === 'approved' &&
+    !$damage_report &&
+    $is_damage_window_open
+);
+
+$damage_window_message = 'Damage report is only available from booking start time until booking end time.';
+if ($damage_report) {
+    $damage_window_message = 'Damage report has already been submitted.';
+} elseif (strtolower($booking['status']) !== 'approved') {
+    $damage_window_message = 'Damage report is only available for approved bookings.';
+} elseif ($damage_window_start_ts !== false && $now_ts < $damage_window_start_ts) {
+    $damage_window_message = 'Damage report will be available when your booking starts at ' . date('d M Y, h:i A', $damage_window_start_ts) . '.';
+} elseif ($damage_window_end_ts !== false && $now_ts > $damage_window_end_ts) {
+    $damage_window_message = 'Damage report is no longer available because the booking time has ended.';
+}
 
 $status = strtolower((string)$booking['status']);
 $paymentStatus = strtolower((string)$booking['payment_status']);
@@ -358,8 +385,6 @@ $flowSteps[] = [
 ];
 ?>
 
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://unpkg.com/lucide@latest"></script>
 
 <div class="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
     <div class="max-w-5xl mx-auto">
@@ -426,6 +451,9 @@ $flowSteps[] = [
                             <i data-lucide="lock" class="w-4 h-4 mr-2"></i>
                             Report Existing Damage Not Available
                         </button>
+                        <p class="text-xs text-slate-500 mt-2 text-center max-w-sm">
+                            <?php echo htmlspecialchars($damage_window_message); ?>
+                        </p>
                     <?php endif; ?>
                 </div>
 
@@ -695,8 +723,9 @@ $flowSteps[] = [
     </div>
 </div>
 
-<?php include("../includes/user_footer.php"); ?>
 
 <script>
 lucide.createIcons();
 </script>
+
+<?php include("../includes/user_footer.php"); ?>

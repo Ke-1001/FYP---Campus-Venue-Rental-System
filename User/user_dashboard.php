@@ -27,7 +27,7 @@ $damage_booking_stmt = $conn->prepare("
     LEFT JOIN damage_report dr ON b.bid = dr.bid AND b.uid = dr.uid
     WHERE b.uid = ?
       AND b.status = 'approved'
-      AND b.date_booked >= CURDATE()
+      AND NOW() BETWEEN TIMESTAMP(b.date_booked, b.time_start) AND TIMESTAMP(b.date_booked, b.time_end)
     ORDER BY b.date_booked ASC, b.time_start ASC
     LIMIT 5
 ");
@@ -61,11 +61,7 @@ include("../includes/user_header.php");
 include("../includes/user_navbar.php");
 ?>
 
-<style>
-    .dashboard-bg { position: fixed; inset: 0; z-index: -1; background: linear-gradient(to bottom, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.95)), url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80'); background-size: cover; background-position: center; }
-    .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 2.5rem; }
-    .text-mmu-glow { color: #00d4ff; text-shadow: 0 0 15px rgba(0, 212, 255, 0.5); }
-</style>
+
 
 <div class="dashboard-bg"></div>
 
@@ -79,6 +75,7 @@ include("../includes/user_navbar.php");
             <div class="glass-card p-10 text-center"><p class="text-white opacity-70">Pending</p><h3 class="text-4xl font-bold text-white"><?php echo $stats['pending']; ?></h3></div>
         </div>
 
+        <?php if ($damage_booking_result && $damage_booking_result->num_rows > 0): ?>
         <!-- Report Existing Damage Quick Access -->
         <div class="mt-8 bg-white/10 border border-white/10 rounded-2xl shadow-sm overflow-hidden backdrop-blur">
             <div class="px-6 py-5 border-b border-white/10">
@@ -88,7 +85,7 @@ include("../includes/user_navbar.php");
                 </h2>
 
                 <p class="text-sm text-slate-300 mt-1">
-                    Report damage before using the venue to avoid being charged for damage you did not cause.
+                    Report existing damage during your active booking time to avoid being charged for damage you did not cause.
                 </p>
             </div>
 
@@ -134,22 +131,10 @@ include("../includes/user_navbar.php");
                         <?php endwhile; ?>
                     </div>
 
-                <?php else: ?>
-                    <div class="text-center py-8 text-slate-300">
-                        <i data-lucide="shield-check" class="w-10 h-10 mx-auto mb-3 text-slate-400"></i>
-
-                        <p class="font-semibold text-white">
-                            No approved upcoming booking available for damage report.
-                        </p>
-
-                        <p class="text-sm text-slate-400 mt-1">
-                            This option will appear when you have an approved upcoming booking.
-                        </p>
-                    </div>
                 <?php endif; ?>
             </div>
         </div>
-        
+        <?php endif; ?>        
         <div class="glass-card p-8 text-white">
             <h3 class="text-2xl font-bold mb-6">Recent Activity</h3>
             <table class="w-full text-left">

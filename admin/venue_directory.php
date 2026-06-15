@@ -22,7 +22,7 @@ $topbar_content = '
     </a>
     <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Asset Management / Directory</h2>
 </div>';
-$extra_css = ["../assets/css/fiori_forms.css", "../assets/css/table.css"];
+$extra_css = [];
 
 $controller_config = [
     'edit_url_base' => 'register_venue.php?vid=',

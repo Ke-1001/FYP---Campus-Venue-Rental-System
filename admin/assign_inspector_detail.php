@@ -64,7 +64,7 @@ $topbar_content = '
 </div>';
 
 // ∴ 注入特定的 Fiori 表單樣式
-$extra_css = ["../assets/css/fiori_forms.css"];
+$extra_css = [];
 
 // ∴ 引入表單建構矩陣
 require_once __DIR__ . '/../core/components/FioriFormBuilder.php';

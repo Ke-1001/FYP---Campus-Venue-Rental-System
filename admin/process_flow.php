@@ -84,14 +84,7 @@ if (!function_exists('translateSystemText')) {
     <script>
         tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b' } } } } }
     </script>
-    <link rel="stylesheet" href="../assets/css/layout.css?v=1.2">
-    <link rel="stylesheet" href="../assets/css/fiori_forms.css">
-    <style>
-        .step-line { content: ''; position: absolute; top: 12px; left: 50%; width: 100%; height: 2px; z-index: -1; }
-        .step-active .step-line { background-color: #4f46e5; }
-        .step-inactive .step-line { background-color: #e2e8f0; }
-        .step-item:last-child .step-line { display: none; }
-    </style>
+    <link rel="stylesheet" href="../assets/css/admin_css.css?v=1.1">
 </head>
 <body class="bg-[#f4f4f4] text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
 

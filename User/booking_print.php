@@ -140,7 +140,7 @@ $document_no = "BR-" . date("Y") . "-" . str_pad((string)$record['bid'], 6, "0",
         }
 
         body {
-            font-family: Arial, sans-serif;
+            font-family: "Century Gothic", CenturyGothic, "Century", Arial, sans-serif;
             background: #f1f5f9;
             color: #0f172a;
             margin: 0;
@@ -324,6 +324,7 @@ $document_no = "BR-" . date("Y") . "-" . str_pad((string)$record['bid'], 6, "0",
             }
         }
     </style>
+    <link rel="stylesheet" href="../assets/css/user_css.css?v=1.1">
 </head>
 
 <body>

@@ -15,7 +15,7 @@ $kpi = $metricsRepo->getVenueKPIs();
 $page_title = "Venue Management";
 $page_description = "Configure physical assets, capacities, and system categories.";
 $topbar_content = '<h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider">System Administration / Manage Venues</h2>';
-$extra_css = ["../assets/css/fiori-tile.css"];
+$extra_css = [];
 
 ob_start();
 

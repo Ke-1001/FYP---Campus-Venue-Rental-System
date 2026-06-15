@@ -15,7 +15,7 @@ $kpi = $metricsRepo->getPersonnelKPIs();
 $page_title = "Identity Management";
 $page_description = "Manage operational personnel, administrators, and student entities.";
 $topbar_content = '<h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Identity Management / Dashboard</h2>';
-$extra_css = ["../assets/css/fiori-tile.css"];
+$extra_css = [];
 
 ob_start();
 

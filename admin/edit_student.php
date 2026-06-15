@@ -83,7 +83,7 @@ $topbar_content = '
     <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Identity Management / Profile Editor</h2>
 </div>';
 
-$extra_css = ["../assets/css/fiori_forms.css", "../assets/css/table.css"];
+$extra_css = [];
 
 // ∴ 下層預約記錄視覺矩陣 (DataGrid) 配置
 $bookingGrid = new DataGridBuilder('booking_id', '#', 'booking record');

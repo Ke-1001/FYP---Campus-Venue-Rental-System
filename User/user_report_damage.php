@@ -2,6 +2,8 @@
 session_start();
 require_once __DIR__ . '/../config/db.php';
 
+date_default_timezone_set('Asia/Kuala_Lumpur');
+
 if (!isset($_SESSION['uid'])) {
     header("Location: login.php");
     exit;
@@ -34,7 +36,24 @@ $booking = $result->fetch_assoc();
 $stmt->close();
 
 if (strtolower($booking['status']) !== 'approved') {
-    die("Damage report is only available for approved bookings.");
+    $_SESSION['error'] = "Damage report is only available for approved bookings.";
+    header("Location: booking_details.php?bid=" . urlencode($bid));
+    exit;
+}
+
+$damage_window_start_ts = strtotime($booking['date_booked'] . ' ' . $booking['time_start']);
+$damage_window_end_ts = strtotime($booking['date_booked'] . ' ' . $booking['time_end']);
+$now_ts = time();
+
+if (
+    $damage_window_start_ts === false ||
+    $damage_window_end_ts === false ||
+    $now_ts < $damage_window_start_ts ||
+    $now_ts > $damage_window_end_ts
+) {
+    $_SESSION['error'] = "Damage report can only be submitted during the booking time.";
+    header("Location: booking_details.php?bid=" . urlencode($bid));
+    exit;
 }
 
 $check = $conn->prepare("SELECT report_id FROM damage_report WHERE bid = ? AND uid = ? LIMIT 1");

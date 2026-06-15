@@ -69,7 +69,7 @@ $topbar_content = '
     <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Venues / Categories</h2>
 </div>';
 
-$extra_css = ["../assets/css/fiori_forms.css", "../assets/css/table.css"];
+$extra_css = [];
 
 // ∴ DataGrid 配置 (下層視覺矩陣)
 $gridBuilder = new DataGridBuilder('vcid', '../actions/process_vcategory.php', 'category entity');

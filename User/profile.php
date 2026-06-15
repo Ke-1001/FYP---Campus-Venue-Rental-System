@@ -16,10 +16,7 @@ $user = $stmt->get_result()->fetch_assoc();
     <title>My Profile | CVBMS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        .glass-panel { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .input-locked { cursor: not-allowed; background: rgba(0,0,0,0.2); }
-    </style>
+    <link rel="stylesheet" href="../assets/css/user_css.css?v=1.1">
 </head>
 <body class="bg-slate-900 font-sans text-slate-200 min-h-screen">
 <div class="fixed inset-0 z-0">

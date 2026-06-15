@@ -1,6 +1,7 @@
 body {
     margin: 0;
-    font-family: Arial, sans-serif;
+    font-family: "Century Gothic", CenturyGothic, "Century", "Century Schoolbook", Arial, sans-serif !important;
+    font-weight: 700;
     background-color: #f4f6f9;
     color: #333;
 }

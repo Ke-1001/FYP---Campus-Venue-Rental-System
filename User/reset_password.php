@@ -20,9 +20,7 @@ if (!$user) {
     <meta charset="UTF-8">
     <title>Set New Password - CVBMS</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .glass-panel { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
-    </style>
+    <link rel="stylesheet" href="../assets/css/user_css.css?v=1.1">
 </head>
 <body class="font-sans antialiased min-h-screen relative">
     <div class="fixed inset-0 z-0">

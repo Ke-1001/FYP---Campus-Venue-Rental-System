@@ -484,7 +484,6 @@ function formatBookingDate($date) {
     </div>
 </div>
 
-<?php include("../includes/user_footer.php"); ?>
 
 <script>
 lucide.createIcons();
@@ -515,3 +514,5 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 </script>
+
+<?php include("../includes/user_footer.php"); ?>

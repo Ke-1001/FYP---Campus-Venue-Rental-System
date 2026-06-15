@@ -1,0 +1,286 @@
+/* Global font requirement: Century Bold */
+html, body, body *, button, input, select, textarea {
+    font-family: "Century Gothic", CenturyGothic, "Century", "Century Schoolbook", Arial, sans-serif !important;
+    font-weight: 700;
+}
+
+body {
+    margin: 0;
+    font-family: "Century Gothic", CenturyGothic, "Century", "Century Schoolbook", Arial, sans-serif !important;
+    font-weight: 700;
+    background-color: #f4f6f9;
+    color: #333;
+}
+
+.navbar {
+    background-color: #1e3a5f;
+    color: white;
+    padding: 15px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav-brand a {
+    color: white;
+    text-decoration: none;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.nav-links a {
+    color: white;
+    text-decoration: none;
+    margin-left: 20px;
+    font-size: 15px;
+}
+
+.nav-links a:hover {
+    text-decoration: underline;
+}
+
+.container {
+    width: 90%;
+    max-width: 1100px;
+    margin: 30px auto;
+}
+
+.card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.card h1,
+.card h2,
+.card h3 {
+    margin-top: 0;
+}
+
+.btn {
+    display: inline-block;
+    background-color: #1e3a5f;
+    color: white;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.btn:hover {
+    background-color: #16304d;
+}
+
+.footer {
+    text-align: center;
+    padding: 20px;
+    background-color: #e9ecef;
+    color: #555;
+    margin-top: 30px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.info-row {
+    margin-bottom: 10px;
+}
+
+.status {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-approved {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-returned {
+    background-color: #d1ecf1;
+    color: #0c5460;
+}
+
+input[type="date"],
+input[type="time"] {
+    width: 100%;
+    padding: 10px;
+    margin-top: 6px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-sizing: border-box;
+}
+
+.glass {
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(to right, #3b82f6, #6366f1);
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        .input-dark {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        .input-dark::placeholder {
+            color: #aaa;
+        }
+
+/* File: assets/css/user_css.css
+   Centralized user stylesheet for CVBMS.
+*/
+/* Global font requirement: Century Bold */
+html, body, body *, button, input, select, textarea {
+    font-family: "Century Gothic", CenturyGothic, "Century", "Century Schoolbook", Arial, sans-serif !important;
+    font-weight: 700;
+}
+
+.dashboard-bg {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(to bottom, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.95)), url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80');
+    background-size: cover;
+    background-position: center;
+}
+.glass-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 2.5rem;
+}
+.text-mmu-glow {
+    color: #00d4ff;
+    text-shadow: 0 0 15px rgba(0, 212, 255, 0.5);
+}
+.auth-dark-bg {
+    background: radial-gradient(circle at top left, rgba(37, 99, 235, 0.25), transparent 35%), #0f172a;
+}
+
+
+/* ===== Extracted inline styles ===== */
+
+/* Source: User/change_password.php */
+.bg-fixed-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+        .bg-img { width: 100%; height: 100%; object-fit: cover; opacity: 0.3; }
+        .glass-panel { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+        .input-wrapper { position: relative; width: 100%; display: flex; align-items: center; }
+        .input-glass { background: rgba(255, 255, 255, 0.95); border: 2px solid transparent; transition: all 0.3s ease; color: #1e293b; width: 100%; padding: 12px 40px 12px 16px; border-radius: 12px; font-weight: bold; }
+        .input-glass:focus { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.25); outline: none; }
+        .toggle-btn { position: absolute; right: 12px; cursor: pointer; color: #64748b; height: 20px; width: 20px; }
+        .entropy-container { width: 100%; height: 6px; background: rgba(255, 255, 255, 0.1); border-radius: 9999px; overflow: hidden; margin: 12px 0; }
+        .entropy-bar { height: 100%; width: 0%; transition: all 0.4s ease; }
+        .entropy-weak { background: #ef4444; }
+        .entropy-fair { background: #f59e0b; }
+        .entropy-strong { background: #10b981; }
+        .rule-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .rule-item { display: flex; align-items: center; font-size: 11px; font-weight: 600; }
+        .rule-invalid { color: #94a3b8; }
+        .rule-valid { color: #34d399; }
+
+/* Source: User/forgot_password.php */
+.glass-panel { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+        .validation-error { color: #ef4444; font-size: 14px; font-weight: 700; display: none; }
+
+/* Source: User/homepage.php */
+html { scroll-behavior: smooth; }
+        
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        
+        .glass-nav {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .input-glass {
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid transparent;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .input-glass:focus {
+            border-color: #3b82f6; 
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.25);
+            outline: none;
+        }
+
+        .hover-lift { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s ease, border-color 0.4s ease; }
+        .hover-lift:hover { 
+            transform: translateY(-6px); 
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.7);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+
+/* Source: User/mock_payment.php */
+.qr-grid {
+            display: grid;
+            grid-template-columns: repeat(13, 1fr);
+            gap: 3px;
+        }
+        .qr-cell {
+            aspect-ratio: 1 / 1;
+            border-radius: 2px;
+        }
+        .method-panel { display: none; }
+        .method-panel.active { display: block; }
+
+/* Source: User/profile.php */
+.glass-panel { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .input-locked { cursor: not-allowed; background: rgba(0,0,0,0.2); }
+
+/* Source: User/reset_password.php */
+.glass-panel { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+
+/* Source: User/user_login.php */
+.glass-panel { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+        .input-glass { background: rgba(255, 255, 255, 0.95); border: 2px solid transparent; transition: all 0.3s; }
+        .input-glass:focus { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.25); outline: none; }
+
+/* Source: User/user_register.php */
+.glass-panel { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+        .input-glass { background: rgba(255, 255, 255, 0.95); border: 2px solid transparent; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .input-glass:focus { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.25); outline: none; }
+        .entropy-container { width: 100%; height: 6px; background: rgba(255, 255, 255, 0.15); border-radius: 9999px; overflow: hidden; margin: 12px 0; border: 1px solid rgba(255,255,255,0.05); }
+        .entropy-bar { height: 100%; width: 0%; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .entropy-weak { background-color: #ef4444; } .entropy-fair { background-color: #f59e0b; } .entropy-strong { background-color: #10b981; }
+        .rule-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 12px; }
+        .rule-item { display: flex; align-items: center; font-size: 11px; font-weight: 600; }
+        .rule-invalid { color: #94a3b8; } .rule-valid { color: #34d399; }
+        .rule-icon { margin-right: 6px; width: 14px; text-align: center; }
+        .validation-error { color: #ef4444; font-size: 14px; font-weight: 700; display: none; }

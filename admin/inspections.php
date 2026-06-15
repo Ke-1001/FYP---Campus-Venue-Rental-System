@@ -28,7 +28,7 @@ $kpi = $metricsRepo->getInspectionKPIs();
 $page_title = "Inspection Dashboard";
 $page_description = "Select a module below to execute post-usage assessments and track inspection history.";
 $topbar_content = '<h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Operations / Inspections Dashboard</h2>';
-$extra_css = ["../assets/css/fiori-tile.css"];
+$extra_css = [];
 
 /*
 |--------------------------------------------------------------------------

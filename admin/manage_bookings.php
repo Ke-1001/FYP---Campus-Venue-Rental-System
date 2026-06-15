@@ -34,7 +34,7 @@ $kpi = $metricsRepo->getBookingKPIs();
 $page_title = "Manage Bookings";
 $page_description = "Select a module below to manage venue bookings, assign inspectors, and track records.";
 $topbar_content = '<h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Bookings / Dashboard</h2>';
-$extra_css = ["../assets/css/fiori-tile.css"];
+$extra_css = [];
 
 /*
 |--------------------------------------------------------------------------
@@ -69,16 +69,7 @@ echo TileBuilder::renderSection('Operational Modules', 'Execute booking approval
         'desc' => 'Monitor ongoing bookings and view completed records.', 
         'kpi' => ($kpi['ongoing_bookings'] + $kpi['completed_bookings']), 
         'action' => 'View Bookings'
-    ],
-    [
-        'url' => 'damage_reports.php', 
-        'title' => 'Damage Reports', 
-        'icon' => 'triangle-alert',
-        'desc' => 'View damage reports submitted by users before venue usage.', 
-        'kpi' => $kpi['damage_reports'], 
-        'action' => 'View Reports'
-    ]
-]);
+    ]]);
 
 $page_content = ob_get_clean();
 

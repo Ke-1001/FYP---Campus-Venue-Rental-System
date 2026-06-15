@@ -12,25 +12,12 @@
             theme: {
                 extend: {
                     colors: { mmu: { core: '#004aad', glow: '#3b82f6' } },
-                    fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'] }
+                    fontFamily: { sans: ['Century Gothic', 'CenturyGothic', 'Century', 'Arial', 'sans-serif'] }
                 }
             }
         }
     </script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap');
-        .glass-panel { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
-        .input-glass { background: rgba(255, 255, 255, 0.95); border: 2px solid transparent; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .input-glass:focus { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.25); outline: none; }
-        .entropy-container { width: 100%; height: 6px; background: rgba(255, 255, 255, 0.15); border-radius: 9999px; overflow: hidden; margin: 12px 0; border: 1px solid rgba(255,255,255,0.05); }
-        .entropy-bar { height: 100%; width: 0%; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-        .entropy-weak { background-color: #ef4444; } .entropy-fair { background-color: #f59e0b; } .entropy-strong { background-color: #10b981; }
-        .rule-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 12px; }
-        .rule-item { display: flex; align-items: center; font-size: 11px; font-weight: 600; }
-        .rule-invalid { color: #94a3b8; } .rule-valid { color: #34d399; }
-        .rule-icon { margin-right: 6px; width: 14px; text-align: center; }
-        .validation-error { color: #ef4444; font-size: 14px; font-weight: 700; display: none; }
-    </style>
+    <link rel="stylesheet" href="../assets/css/user_css.css?v=1.1">
 </head>
 <body class="font-sans antialiased min-h-screen relative overflow-y-auto">
 

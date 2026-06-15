@@ -59,13 +59,12 @@ $topbar_content = '
     </a>
     <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Identity Management / Staff Directory</h2>
 </div>';
-$extra_css = ["../assets/css/fiori_forms.css", "../assets/css/table.css"];
+$extra_css = [];
 
 // ∴ 啟動 DataGridBuilder：徹底接管 HTML 節點的生成
 $gridBuilder = new DataGridBuilder('compound_id', '../actions/process_personnel_deletion.php', 'personnel entity');
 $gridBuilder->setCreateAction('add_staff.php', 'Register Staff')
     ->setRowActionUrl('route_personnel.php?ref=%s')
-    ->disableAction('edit')
     ->addColumn('entity_id', 'Reference', 'text_mono', ['width' => 'w-28 text-center'])
     ->addColumn('name', 'Personnel Name', 'text_bold', ['width' => 'w-48'])
     ->addColumn('entity_type', 'Entity', 'badge', ['width' => 'w-24 text-center'])
@@ -83,6 +82,7 @@ $gridBuilder->setCreateAction('add_staff.php', 'Register Staff')
 
 // ∴ 注入全域控制器字典：徹底接管 JavaScript 與 Modal 邏輯
 $controller_config = [
+    'edit_url_base' => 'route_personnel.php?ref=',
     'delete_entity_name' => 'personnel entity'
 ];
 require_once __DIR__ . '/../core/components/datagrid_controller.php';

@@ -34,10 +34,7 @@ if (!empty($token)) {
     <script>
         tailwind.config = { theme: { extend: { colors: { fiori: { text: '#1d2d3e', label: '#6b7280', blue: '#0a6ed1' } } } } }
     </script>
-    <style>
-        .validation-tag { color: #94a3b8; transition: color 0.2s; }
-        .validation-tag.valid { color: #059669; }
-    </style>
+    <link rel="stylesheet" href="../assets/css/admin_css.css?v=1.1">
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex items-center justify-center">
 

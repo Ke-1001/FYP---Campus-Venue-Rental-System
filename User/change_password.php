@@ -12,25 +12,7 @@ if (!isset($_SESSION['uid'])) { header("Location: user_login.php"); exit(); }
     <title>Secure Password Update | CVBMS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
-        .bg-fixed-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
-        .bg-img { width: 100%; height: 100%; object-fit: cover; opacity: 0.3; }
-        .glass-panel { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
-        .input-wrapper { position: relative; width: 100%; display: flex; align-items: center; }
-        .input-glass { background: rgba(255, 255, 255, 0.95); border: 2px solid transparent; transition: all 0.3s ease; color: #1e293b; width: 100%; padding: 12px 40px 12px 16px; border-radius: 12px; font-weight: bold; }
-        .input-glass:focus { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.25); outline: none; }
-        .toggle-btn { position: absolute; right: 12px; cursor: pointer; color: #64748b; height: 20px; width: 20px; }
-        .entropy-container { width: 100%; height: 6px; background: rgba(255, 255, 255, 0.1); border-radius: 9999px; overflow: hidden; margin: 12px 0; }
-        .entropy-bar { height: 100%; width: 0%; transition: all 0.4s ease; }
-        .entropy-weak { background: #ef4444; }
-        .entropy-fair { background: #f59e0b; }
-        .entropy-strong { background: #10b981; }
-        .rule-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-        .rule-item { display: flex; align-items: center; font-size: 11px; font-weight: 600; }
-        .rule-invalid { color: #94a3b8; }
-        .rule-valid { color: #34d399; }
-    </style>
+    <link rel="stylesheet" href="../assets/css/user_css.css?v=1.1">
 </head>
 <body class="bg-slate-950 font-sans antialiased min-h-screen flex items-center justify-center p-4">
 

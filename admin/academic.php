@@ -15,7 +15,7 @@ $kpi = $metricsRepo->getAcademicKPIs();
 $page_title = "Academic Arrangement";
 $page_description = "Select a module below to manage semester bounds and schedule logic.";
 $topbar_content = '<h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Academic / Dashboard</h2>';
-$extra_css = ["../assets/css/fiori-tile.css"];
+$extra_css = [];
 
 ob_start();
 

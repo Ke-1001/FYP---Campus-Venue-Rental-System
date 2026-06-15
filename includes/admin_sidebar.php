@@ -6,20 +6,19 @@ $current_role = $_SESSION['role'] ?? '';
 $is_staff_user = ($current_role === 'staff');
 $is_admin_user = ($current_role === 'admin');
 $is_super_admin_user = ($current_role === 'super_admin');
+$sidebar_brand_label = $is_staff_user ? 'CVBMS Staff' : 'CVBMS Admin';
 
-// 💡 2. 動態 Badge 計算 (精確化過濾)
 $pending_bookings_count = 0;
 $pending_inspections_count = 0;
+$damage_reports_count = 0;
 
 if (isset($conn)) {
-    // Metric A
     $sql_bookings_count = "SELECT COUNT(*) FROM booking WHERE status = 'pending' AND payment_status = 'paid'";
     $res_bookings = $conn->query($sql_bookings_count);
     if ($res_bookings) {
         $pending_bookings_count = $res_bookings->fetch_row()[0];
     }
 
-    // Metric B
     $sql_inspections_count = "
         SELECT COUNT(*) 
         FROM inspection i 
@@ -30,18 +29,19 @@ if (isset($conn)) {
     if ($res_inspections) {
         $pending_inspections_count = $res_inspections->fetch_row()[0];
     }
+
+    $sql_damage_count = "SELECT COUNT(*) FROM damage_report WHERE report_status = 'submitted'";
+    $res_damage = $conn->query($sql_damage_count);
+    if ($res_damage) {
+        $damage_reports_count = $res_damage->fetch_row()[0];
+    }
 }
 ?>
-<style>
-    /* Scrollbar Suppression Logic */
-    .scrollbar-hide::-webkit-scrollbar { display: none; }
-    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-</style>
 
 <aside id="system-sidebar" class="sidebar bg-[#1e293b] text-white flex flex-col shadow-xl z-20 shrink-0 border-r border-slate-800">
     
     <div class="brand-header h-16 flex items-center px-5 border-b border-slate-700/50 shrink-0 transition-all bg-[#0f172a]/30">
-        <span class="text-sm font-black tracking-widest text-slate-100 uppercase brand-text">CVBMS Admin</span>
+        <span class="text-sm font-black tracking-widest text-slate-100 uppercase brand-text"><?php echo htmlspecialchars($sidebar_brand_label, ENT_QUOTES, 'UTF-8'); ?></span>
     </div>
     
     <nav class="flex-1 overflow-y-auto py-4 scrollbar-hide">
@@ -56,7 +56,7 @@ if (isset($conn)) {
             </li>
             
             <li>
-                <a href="manage_bookings.php" class="nav-item flex items-center px-3 py-2.5 text-sm font-semibold <?php echo (in_array($current_page, ['manage_bookings.php', 'pending_requests.php', 'assign_inspector.php', 'assign_inspector_detail.php', 'track_bookings.php', 'process_flow.php', 'damage_reports.php'])) ? 'bg-cstyle-blue text-white shadow-sm' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'; ?> rounded-md transition-all">
+                <a href="manage_bookings.php" class="nav-item flex items-center px-3 py-2.5 text-sm font-semibold <?php echo (in_array($current_page, ['manage_bookings.php', 'pending_requests.php', 'assign_inspector.php', 'assign_inspector_detail.php', 'track_bookings.php', 'process_flow.php'])) ? 'bg-cstyle-blue text-white shadow-sm' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'; ?> rounded-md transition-all">
                     <i data-lucide="calendar-check" class="w-4 h-4 shrink-0"></i>
                     <span class="ml-3 nav-text">Manage Bookings</span>
                     <?php if ($pending_bookings_count > 0): ?>
@@ -64,7 +64,6 @@ if (isset($conn)) {
                     <?php endif; ?>
                 </a>
             </li>
-
             <?php endif; ?>
 
             <?php if (!$is_admin_user): ?>
@@ -77,7 +76,18 @@ if (isset($conn)) {
                     <?php endif; ?>
                 </a>
             </li>
+            <?php endif; ?>
 
+            <?php if ($is_staff_user || $is_super_admin_user || $is_admin_user): ?>
+            <li>
+                <a href="damage_reports.php" class="nav-item flex items-center px-3 py-2.5 text-sm font-semibold <?php echo ($current_page == 'damage_reports.php') ? 'bg-cstyle-blue text-white shadow-sm' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'; ?> rounded-md transition-all">
+                    <i data-lucide="triangle-alert" class="w-4 h-4 shrink-0"></i>
+                    <span class="ml-3 nav-text">Damage Reports</span>
+                    <?php if ($damage_reports_count > 0): ?>
+                        <span class="ml-auto bg-amber-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm nav-badge"><?php echo $damage_reports_count; ?></span>
+                    <?php endif; ?>
+                </a>
+            </li>
             <?php endif; ?>
 
             <?php if (!$is_staff_user): ?>
@@ -87,23 +97,20 @@ if (isset($conn)) {
                     <span class="ml-3 nav-text">Venue Registry</span>
                 </a>
             </li>
+            <?php endif; ?>
             
+            <?php if ($is_super_admin_user): ?>
             <li class="pt-5 pb-1.5 px-3 text-[11px] font-bold text-slate-500 uppercase tracking-widest nav-header">Identity Matrix</li>
             
             <li>
-                <a href="manage_admins.php" class="nav-item flex items-center px-3 py-2.5 text-sm font-semibold <?php echo (in_array($current_page, ['manage_admins.php', 'add_admin.php', 'admin_directory.php', 'add_staff.php', 'staff_directory.php'])) ? 'bg-cstyle-blue text-white shadow-sm' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'; ?> rounded-md transition-all">
+                <a href="manage_admins.php" class="nav-item flex items-center px-3 py-2.5 text-sm font-semibold <?php echo (in_array($current_page, ['manage_admins.php', 'add_admin.php', 'admin_directory.php', 'add_staff.php', 'staff_directory.php', 'edit_admin.php', 'edit_staff.php'])) ? 'bg-cstyle-blue text-white shadow-sm' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'; ?> rounded-md transition-all">
                     <i data-lucide="shield" class="w-4 h-4 shrink-0"></i>
                     <span class="ml-3 nav-text">Personnel Directory</span>
                 </a>
             </li>
+            <?php endif; ?>
             
-            <li>
-                <a href="manage_students.php" class="nav-item flex items-center px-3 py-2.5 text-sm font-semibold <?php echo (in_array($current_page, ['manage_students.php', 'add_student.php'])) ? 'bg-cstyle-blue text-white shadow-sm' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'; ?> rounded-md transition-all">
-                    <i data-lucide="users" class="w-4 h-4 shrink-0"></i>
-                    <span class="ml-3 nav-text">Student Directory</span>
-                </a>
-            </li>
-            
+            <?php if (!$is_staff_user): ?>
             <li class="pt-5 pb-1.5 px-3 text-[11px] font-bold text-slate-500 uppercase tracking-widest nav-header">Analytics & Operations</li>
                 
             <li>
@@ -119,7 +126,6 @@ if (isset($conn)) {
                     <span class="ml-3 nav-text">Academic Schedule</span>
                 </a>
             </li>
-
             <?php endif; ?>
 
             <li class="mt-6 border-t border-slate-700/50 pt-2">

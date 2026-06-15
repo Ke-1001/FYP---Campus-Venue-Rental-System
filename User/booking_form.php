@@ -3,13 +3,14 @@
 session_start();
 $page_title = "Book Venue";
 require_once __DIR__ . '/../config/db.php';
-require_once __DIR__ . '/../includes/user_header.php';
-require_once __DIR__ . '/../includes/user_navbar.php';
 
 if (!isset($_SESSION['uid'])) {
     header("Location: ../user/user_login.php?error=access_denied");
     exit();
 }
+
+require_once __DIR__ . '/../includes/user_header.php';
+require_once __DIR__ . '/../includes/user_navbar.php';
 
 $vid = $_GET['vid'] ?? '';
 
@@ -188,7 +189,6 @@ if (!$venue) {
     </div>
 </div>
 
-<?php include("../includes/user_footer.php"); ?>
 
 <!-- Rules and Regulations Modal -->
 <div 
@@ -638,3 +638,5 @@ if (!$venue) {
         });
     });
 </script>
+
+<?php include("../includes/user_footer.php"); ?>

@@ -132,7 +132,7 @@ $html = '
 
     <style>
         body {
-            font-family: DejaVu Sans, Arial, sans-serif;
+            font-family: "Century Gothic", "DejaVu Sans", Arial, sans-serif;
             color: #0f172a;
             font-size: 12px;
             margin: 0;
@@ -249,6 +249,7 @@ $html = '
             color: #64748b;
         }
     </style>
+    <link rel="stylesheet" href="../assets/css/user_css.css?v=1.1">
 </head>
 
 <body>

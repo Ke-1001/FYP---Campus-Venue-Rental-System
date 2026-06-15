@@ -86,7 +86,7 @@ $topbar_content = '
     <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Operations / Execute Inspection / BID: ' . $bid . '</h2>
 </div>';
 
-$extra_css = ["../assets/css/fiori_forms.css"];
+$extra_css = [];
 
 require_once __DIR__ . '/../core/components/FioriFormBuilder.php';
 use Core\Components\FioriFormBuilder as FB;
