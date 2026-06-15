@@ -86,6 +86,7 @@ $login_link_class = $is_light_user_page
                         </span>
                     </a>
 
+
                     <a href="user_logout.php" class="text-red-400 hover:text-red-300 transition-colors" title="Logout">
                         <i data-lucide="log-out" class="w-5 h-5"></i>
                     </a>
@@ -99,6 +100,7 @@ $login_link_class = $is_light_user_page
                     </a>
                 <?php endif; ?>
             </div>
+
 
         </div>
     </div>

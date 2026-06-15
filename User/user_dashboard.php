@@ -65,24 +65,24 @@ include("../includes/user_navbar.php");
 
 <div class="relative z-10 w-full pt-16 pb-20 px-6">
     <div class="max-w-7xl mx-auto">
-        <h1 class="text-5xl font-black text-white mb-14">Welcome back, <span class="text-mmu-glow"><?php echo htmlspecialchars($display_name); ?>!</span></h1>
+        <h1 class="text-5xl font-black text-slate-900 mb-14">Welcome back, <span class="text-mmu-core"><?php echo htmlspecialchars($display_name); ?>!</span></h1>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-            <div class="glass-card p-10 text-center"><p class="text-white opacity-70">Total Bookings</p><h3 class="text-4xl font-bold text-white"><?php echo $stats['total']; ?></h3></div>
-            <div class="glass-card p-10 text-center"><p class="text-white opacity-70">Approved</p><h3 class="text-4xl font-bold text-white"><?php echo $stats['approved']; ?></h3></div>
-            <div class="glass-card p-10 text-center"><p class="text-white opacity-70">Pending</p><h3 class="text-4xl font-bold text-white"><?php echo $stats['pending']; ?></h3></div>
+            <div class="glass-card p-10 text-center"><p class="text-slate-500">Total Bookings</p><h3 class="text-4xl font-bold text-slate-900"><?php echo $stats['total']; ?></h3></div>
+            <div class="glass-card p-10 text-center"><p class="text-slate-500">Approved</p><h3 class="text-4xl font-bold text-slate-900"><?php echo $stats['approved']; ?></h3></div>
+            <div class="glass-card p-10 text-center"><p class="text-slate-500">Pending</p><h3 class="text-4xl font-bold text-slate-900"><?php echo $stats['pending']; ?></h3></div>
         </div>
 
         <?php if ($damage_booking_result && $damage_booking_result->num_rows > 0): ?>
         <!-- Report Existing Damage Quick Access -->
-        <div class="mt-8 bg-white/10 border border-white/10 rounded-2xl shadow-sm overflow-hidden backdrop-blur">
-            <div class="px-6 py-5 border-b border-white/10">
-                <h2 class="text-xl font-black text-white flex items-center">
+        <div class="mt-8 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+            <div class="px-6 py-5 border-b border-slate-200">
+                <h2 class="text-xl font-black text-slate-900 flex items-center">
                     <i data-lucide="triangle-alert" class="w-5 h-5 mr-2 text-amber-400"></i>
                     Report Existing Damage
                 </h2>
 
-                <p class="text-sm text-slate-300 mt-1">
+                <p class="text-sm text-slate-500 mt-1">
                     Report existing damage during your active booking time to avoid being charged for damage you did not cause.
                 </p>
             </div>
@@ -91,13 +91,13 @@ include("../includes/user_navbar.php");
                 <?php if ($damage_booking_result && $damage_booking_result->num_rows > 0): ?>
                     <div class="space-y-3">
                         <?php while ($damage_booking = $damage_booking_result->fetch_assoc()): ?>
-                            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white/10 border border-white/10 rounded-xl p-4">
+                            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-slate-50 border border-slate-200 rounded-xl p-4">
                                 <div>
-                                    <p class="text-white font-bold">
+                                    <p class="text-slate-900 font-bold">
                                         <?php echo htmlspecialchars($damage_booking['vname']); ?>
                                     </p>
 
-                                    <p class="text-sm text-slate-300 mt-1">
+                                    <p class="text-sm text-slate-500 mt-1">
                                         <?php echo date("d M Y", strtotime($damage_booking['date_booked'])); ?>
                                         ·
                                         <?php echo substr($damage_booking['time_start'], 0, 5); ?>
@@ -133,13 +133,13 @@ include("../includes/user_navbar.php");
             </div>
         </div>
         <?php endif; ?>        
-        <div class="glass-card p-8 text-white">
-            <h3 class="text-2xl font-bold mb-6">Recent Activity</h3>
+        <div class="glass-card p-8 text-slate-700">
+            <h3 class="text-2xl font-bold mb-6 text-slate-900">Recent Activity</h3>
             <table class="w-full text-left">
-                <thead><tr class="text-gray-400 border-b border-white/10"><th class="pb-4">Venue</th><th class="pb-4">Date</th><th class="pb-4">Status</th></tr></thead>
+                <thead><tr class="text-slate-500 border-b border-slate-200"><th class="pb-4">Venue</th><th class="pb-4">Date</th><th class="pb-4">Status</th></tr></thead>
                 <tbody>
                     <?php while($row = $history_result->fetch_assoc()): ?>
-                    <tr class="border-b border-white/5"><td class="py-4"><?php echo htmlspecialchars($row['vname']); ?></td><td class="py-4"><?php echo htmlspecialchars($row['date_booked']); ?></td><td class="py-4 uppercase text-sm"><?php echo htmlspecialchars($row['status']); ?></td></tr>
+                    <tr class="border-b border-slate-100"><td class="py-4"><?php echo htmlspecialchars($row['vname']); ?></td><td class="py-4"><?php echo htmlspecialchars($row['date_booked']); ?></td><td class="py-4 uppercase text-sm"><?php echo htmlspecialchars($row['status']); ?></td></tr>
                     <?php endwhile; ?>
                 </tbody>
             </table>
