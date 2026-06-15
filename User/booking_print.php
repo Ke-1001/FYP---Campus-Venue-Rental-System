@@ -324,10 +324,10 @@ $document_no = "BR-" . date("Y") . "-" . str_pad((string)$record['bid'], 6, "0",
             }
         }
     </style>
-    <link rel="stylesheet" href="../assets/css/user_css.css?v=1.1">
+    <link rel="stylesheet" href="../assets/css/user_css.css?v=2.4">
 </head>
 
-<body>
+<body class="user-light-theme bg-white text-slate-900">
 
 <div class="top-actions">
     <a class="btn" href="booking_details.php?bid=<?php echo urlencode($record['bid']); ?>">

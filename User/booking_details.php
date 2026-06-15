@@ -386,10 +386,10 @@ $flowSteps[] = [
 ?>
 
 
-<div class="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
+<div class="min-h-screen bg-transparent py-12 px-4 sm:px-6 lg:px-8 font-sans">
     <div class="max-w-5xl mx-auto">
         <div class="mb-8">
-            <a href="my_bookings.php" class="inline-flex items-center text-sm text-indigo-600 font-bold hover:underline">
+            <a href="my_bookings.php" class="inline-flex items-center text-sm text-blue-700 font-bold hover:text-blue-900 transition">
                 <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i>
                 Back to My Bookings
             </a>
@@ -400,11 +400,11 @@ $flowSteps[] = [
                         Booking #<?php echo htmlspecialchars($booking['bid']); ?>
                     </p>
 
-                    <h1 class="text-3xl font-extrabold text-slate-800 mt-1">
+                    <h1 class="text-3xl font-extrabold text-slate-900 mt-1">
                         Booking Details & Progress
                     </h1>
 
-                    <p class="text-sm text-slate-500 mt-1">
+                    <p class="text-sm text-slate-600 mt-1">
                         Track your booking status from request submission until final settlement.
                     </p>
                 </div>
@@ -497,7 +497,7 @@ $flowSteps[] = [
                         <h2 class="text-xl font-bold text-slate-800">
                             Booking Process Flow
                         </h2>
-                        <p class="text-sm text-slate-500 mt-1">
+                        <p class="text-sm text-slate-600 mt-1">
                             This progress is updated based on payment, admin approval, usage, inspection and report records.
                         </p>
                     </div>

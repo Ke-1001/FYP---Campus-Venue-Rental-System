@@ -159,7 +159,7 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
             theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b', accent: '#38bdf8' } } } }
         }
     </script>
-    <link rel="stylesheet" href="../assets/css/admin_css.css?v=1.1">
+    <link rel="stylesheet" href="../assets/css/admin_css.css?v=2.0">
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
 

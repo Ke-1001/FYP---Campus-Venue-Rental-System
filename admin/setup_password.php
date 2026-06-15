@@ -34,7 +34,7 @@ if (!empty($token)) {
     <script>
         tailwind.config = { theme: { extend: { colors: { fiori: { text: '#1d2d3e', label: '#6b7280', blue: '#0a6ed1' } } } } }
     </script>
-    <link rel="stylesheet" href="../assets/css/admin_css.css?v=1.1">
+    <link rel="stylesheet" href="../assets/css/admin_css.css?v=2.0">
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex items-center justify-center">
 

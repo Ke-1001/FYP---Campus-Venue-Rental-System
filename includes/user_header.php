@@ -6,6 +6,14 @@ if (session_status() === PHP_SESSION_NONE) {
 if (!isset($page_title)) {
     $page_title = "CVBMS | Campus Venue Booking";
 }
+
+$current_page = basename($_SERVER['PHP_SELF']);
+$is_homepage = ($current_page === 'homepage.php');
+$is_dashboard = ($current_page === 'user_dashboard.php');
+$is_light_user_page = (!$is_homepage && !$is_dashboard);
+$body_theme_class = $is_light_user_page
+    ? 'bg-white text-slate-900 user-light-theme'
+    : 'bg-slate-950 text-slate-100 user-dark-theme';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -37,6 +45,6 @@ if (!isset($page_title)) {
             }
         }
     </script>
-    <link rel="stylesheet" href="../assets/css/user_css.css?v=1.1">
+    <link rel="stylesheet" href="../assets/css/user_css.css?v=2.8">
 </head>
-<body class="font-sans antialiased selection:bg-mmu-glow selection:text-white min-h-screen relative overflow-x-hidden">
+<body class="font-sans antialiased selection:bg-mmu-glow selection:text-white min-h-screen relative overflow-x-hidden <?php echo $body_theme_class; ?>">

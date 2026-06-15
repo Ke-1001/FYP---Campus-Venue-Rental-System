@@ -54,7 +54,7 @@ if (!$venue) {
     tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b' } } } } }
 </script>
 
-<div class="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
+<div class="min-h-screen bg-transparent py-12 px-4 sm:px-6 lg:px-8 font-sans">
     <div class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         <div class="lg:col-span-1">

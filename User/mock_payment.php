@@ -83,18 +83,19 @@ $hash = hash('sha256', $qr_seed);
     <title>Sandbox Payment Gateway</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="../assets/css/user_css.css?v=1.1">
+    <link rel="stylesheet" href="../assets/css/user_css.css?v=2.4">
 </head>
 
-<body class="bg-slate-50 min-h-screen font-sans antialiased px-4 py-10">
-    <div class="max-w-5xl mx-auto">
+<body class="user-light-theme min-h-screen font-sans antialiased px-4 py-10 relative overflow-x-hidden">
+    <div class="user-page-bg" aria-hidden="true"></div>
+    <div class="relative z-10 max-w-5xl mx-auto">
         <div class="mb-6 flex items-center justify-between">
-            <a href="my_bookings.php" class="inline-flex items-center text-sm font-bold text-slate-500 hover:text-indigo-600 transition">
+            <a href="my_bookings.php" class="inline-flex items-center text-sm font-bold text-mmu-glow hover:text-white transition">
                 <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
                 Back to My Bookings
             </a>
 
-            <div class="inline-flex items-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
+            <div class="inline-flex items-center text-[10px] font-black text-slate-300 uppercase tracking-widest">
                 <i data-lucide="shield-check" class="w-4 h-4 mr-1 text-emerald-500"></i>
                 Sandbox Environment
             </div>

@@ -740,28 +740,47 @@ CREATE DEFINER=`root`@`localhost` EVENT `ev_master_sla_daemon` ON SCHEDULE EVERY
     START TRANSACTION;
 
   -- =========================================================================
-  -- Logic Pipeline A: Booking SLA 收斂 (雙重動態錨點矩陣重構)
-  -- 演算法等價: C_cancel ≡ (t_now ≥ t_end - 5) ∨ (t_now ≥ max(t_start, t_create) + 15)
+  -- Logic Pipeline A: Booking SLA 收斂
   -- =========================================================================
   UPDATE booking
   SET status = 'cancelled',
       payment_status = 'refunded',
-      cancel_reason = 'SLA Violation: Admin Timeout or Slot Minimum Viability Expiration.',
+      cancel_reason = 'SLA Violation: Admin Timeout or Slot Expiration.',
       cancelled_at = NOW()
   WHERE status = 'pending'
     AND payment_status = 'paid'
     AND (
-        -- 邊界 1: 系統絕對可用價值極限 (Minimum Viability Threshold)
-        -- 確保剩餘場地時間少於 5 分鐘時強制釋放，完美涵蓋並懲罰「極限遲延預約」
-        TIMESTAMPADD(MINUTE, -5, CAST(CONCAT(date_booked, ' ', time_end) AS DATETIME)) <= NOW()
+        -- 1. 常規提前預約：
+        -- 如果 booking 是在 time_start 之前建立的，
+        -- 到 time_start 前 5 分鐘還是 pending，就自動取消
+        (
+            created_at < CAST(CONCAT(date_booked, ' ', time_start) AS DATETIME)
+            AND TIMESTAMPADD(
+                MINUTE,
+                -5,
+                CAST(CONCAT(date_booked, ' ', time_start) AS DATETIME)
+            ) <= NOW()
+        )
 
         OR
 
-        -- 邊界 2: UX 防呆保護網 (Dynamic Anchor Matrix)
-        -- 利用 GREATEST 函數動態切換時間錨點。
-        -- 提前預約 ⇒ 錨點為 t_start，確保開場後 15 分鐘未批即取消。
-        -- 遲延預約 ⇒ 錨點為 t_create，確保下單後 15 分鐘未批即取消。
-        TIMESTAMPADD(MINUTE, 15, GREATEST(CAST(CONCAT(date_booked, ' ', time_start) AS DATETIME), created_at)) <= NOW()
+        -- 2. 延遲預約：
+        -- 如果學生是在 booking 開始後才 request，
+        -- admin 只有 15 分鐘處理
+        (
+            created_at >= CAST(CONCAT(date_booked, ' ', time_start) AS DATETIME)
+            AND TIMESTAMPADD(MINUTE, 15, created_at) <= NOW()
+        )
+
+        OR
+
+        -- 3. 絕對截止線：
+        -- 到 time_end 前 5 分鐘仍未批准，也取消，避免剩太少時間才 approve
+        TIMESTAMPADD(
+            MINUTE,
+            -5,
+            CAST(CONCAT(date_booked, ' ', time_end) AS DATETIME)
+        ) <= NOW()
     );
 
     -- =========================================================================

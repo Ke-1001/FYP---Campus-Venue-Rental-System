@@ -91,21 +91,21 @@ $result = $stmt->get_result();
     tailwind.config = { theme: { extend: { colors: { mmu: { blue: '#004aad', dark: '#1e293b' } } } } }
 </script>
 
-<div class="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
+<div class="min-h-screen bg-transparent py-12 px-4 sm:px-6 lg:px-8 font-sans">
     <div class="max-w-6xl mx-auto">
         
         <div class="mb-10 text-center">
-            <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Available Venues</h1>
-            <p class="text-sm text-slate-500 mt-2">Select a venue below to view details and proceed with your booking.</p>
+            <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Available Venues</h1>
+            <p class="text-sm text-slate-600 mt-2">Select a venue below to view details and proceed with your booking.</p>
         </div>
 
         <!-- Search, Filter and Sort Section -->
-        <form method="GET" action="venues.php" id="venueFilterForm" class="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 mb-8">
+        <form method="GET" action="venues.php" id="venueFilterForm" class="bg-white/95 backdrop-blur-sm border border-slate-200 rounded-2xl shadow-sm p-6 mb-8">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 
                 <!-- Search -->
                 <div>
-                    <label class="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">
+                    <label class="block text-xs font-black uppercase tracking-widest text-slate-700 mb-2">
                         Search Venue
                     </label>
                     <div class="relative">
@@ -116,19 +116,19 @@ $result = $stmt->get_result();
                             id="venueSearchInput"
                             value="<?php echo htmlspecialchars($search); ?>"
                             placeholder="Search by name or venue ID..."
-                            class="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            class="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-700 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         >
                     </div>
                 </div>
 
                 <!-- Category Filter -->
                 <div>
-                    <label class="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">
+                    <label class="block text-xs font-black uppercase tracking-widest text-slate-700 mb-2">
                         Filter by Category
                     </label>
                     <select 
                         name="category"
-                        class="auto-submit w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        class="auto-submit w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     >
                         <option value="">All Categories</option>
 
@@ -147,12 +147,12 @@ $result = $stmt->get_result();
 
                 <!-- Sort -->
                 <div>
-                    <label class="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">
+                    <label class="block text-xs font-black uppercase tracking-widest text-slate-700 mb-2">
                         Sort by
                     </label>
                     <select 
                         name="sort"
-                        class="auto-submit w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        class="auto-submit w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     >
                         <option value="" <?php echo ($sort === '') ? 'selected' : ''; ?>>Default</option>
                         <option value="capacity_asc" <?php echo ($sort === 'capacity_asc') ? 'selected' : ''; ?>>Capacity: Low to High</option>

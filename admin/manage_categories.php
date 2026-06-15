@@ -45,7 +45,7 @@ $result = $conn->query("SELECT * FROM venue_category ORDER BY category_name ASC"
     <script>
         tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b' } } } } }
     </script>
-    <link rel="stylesheet" href="../assets/css/admin_css.css?v=1.1">
+    <link rel="stylesheet" href="../assets/css/admin_css.css?v=2.0">
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
 

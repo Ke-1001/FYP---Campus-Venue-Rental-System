@@ -9,7 +9,7 @@
     <script>
         tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b' } } } } }
     </script>
-    <link rel="stylesheet" href="../assets/css/admin_css.css?v=1.0">
+    <link rel="stylesheet" href="../assets/css/admin_css.css?v=2.0">
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
 

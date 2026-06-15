@@ -249,10 +249,10 @@ $html = '
             color: #64748b;
         }
     </style>
-    <link rel="stylesheet" href="../assets/css/user_css.css?v=1.1">
+    <link rel="stylesheet" href="../assets/css/user_css.css?v=2.4">
 </head>
 
-<body>
+<body class="user-light-theme bg-white text-slate-900">
 
     <div class="header">
         <h1 class="system-title">Campus Venue Booking Management System</h1>

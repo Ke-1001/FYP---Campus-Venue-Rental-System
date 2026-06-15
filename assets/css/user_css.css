@@ -1,3 +1,228 @@
+
+/* CVBMS global user adjustment: increase all rem-based text by around 2pt */
+:root {
+    font-size: 100%;
+}
+
+html, body {
+    background-color: #ffffff !important;
+}
+
+body.user-dark-theme {
+    background-color: #020617 !important;
+    color: #e5e7eb;
+}
+
+
+
+/* Light theme for all user pages except homepage and user dashboard */
+body.user-light-theme {
+    background: #ffffff !important;
+    color: #0f172a !important;
+}
+
+body.user-light-theme > main,
+body.user-light-theme .min-h-screen.bg-transparent {
+    background: #ffffff !important;
+    color: #0f172a !important;
+}
+
+body.user-light-theme .user-site-nav {
+    color: #0f172a;
+}
+
+/* Force light navbar on user pages except homepage and dashboard */
+body.user-light-theme .user-site-nav.user-nav-light,
+.user-site-nav.user-nav-light {
+    background: #f1f5f9 !important;
+    color: #0f172a !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    box-shadow: 0 1px 8px rgba(15, 23, 42, 0.08) !important;
+}
+
+body.user-light-theme .user-site-nav.user-nav-light a:not(.bg-mmu-core):not([class*="bg-blue-600"]),
+.user-site-nav.user-nav-light a:not(.bg-mmu-core):not([class*="bg-blue-600"]) {
+    color: #334155 !important;
+}
+
+body.user-light-theme .user-site-nav.user-nav-light a:hover:not([class*="bg-blue-600"]),
+.user-site-nav.user-nav-light a:hover:not([class*="bg-blue-600"]) {
+    color: #0f172a !important;
+    background-color: #e2e8f0 !important;
+}
+
+body.user-light-theme .user-site-nav.user-nav-light span,
+.user-site-nav.user-nav-light span {
+    color: #0f172a !important;
+}
+
+body.user-light-theme .user-site-nav.user-nav-light .bg-mmu-core,
+.user-site-nav.user-nav-light .bg-mmu-core {
+    background-color: #004aad !important;
+    color: #ffffff !important;
+}
+
+body.user-light-theme .user-site-nav.user-nav-light [title="View Profile"],
+.user-site-nav.user-nav-light [title="View Profile"] {
+    background: #ffffff !important;
+    border-color: #cbd5e1 !important;
+}
+
+body.user-light-theme .page-heading-light,
+body.user-light-theme .text-center .text-white:not([class*="bg-"]),
+body.user-light-theme .absolute.top-6 span.text-white {
+    color: #0f172a !important;
+}
+
+body.user-light-theme .page-subtitle-light,
+body.user-light-theme .text-center .text-slate-300,
+body.user-light-theme .glass-panel label.text-slate-300,
+body.user-light-theme .glass-panel p.text-slate-300,
+body.user-light-theme .glass-panel .text-slate-300 {
+    color: #475569 !important;
+}
+
+body.user-light-theme .glass-panel {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.12) !important;
+}
+
+body.user-light-theme .rule-grid {
+    background: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+}
+
+body.user-light-theme .hover\:text-white:hover {
+    color: #1d4ed8 !important;
+}
+
+body.user-light-theme .glass-panel .text-white:not([class*="bg-"]) {
+    color: #0f172a !important;
+}
+
+body.user-light-theme .glass-panel [class*="bg-white/5"],
+body.user-light-theme .glass-panel [class*="bg-white/10"],
+body.user-light-theme .glass-panel [class*="bg-black/20"],
+body.user-light-theme .glass-panel [class*="bg-black/30"] {
+    background-color: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+}
+
+body.user-light-theme .glass-panel input,
+body.user-light-theme .glass-panel textarea,
+body.user-light-theme .glass-panel select {
+    color: #0f172a !important;
+}
+
+body.user-light-theme .bg-fixed-container {
+    background: #ffffff !important;
+}
+
+/* Shared plain white background for non-homepage user pages */
+.user-page-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+
+/* Homepage-style photo background for login and sign up pages */
+.auth-home-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+    background:
+        linear-gradient(to bottom, rgba(15, 23, 42, 0.65), rgba(2, 6, 23, 0.86)),
+        url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+}
+
+.auth-home-bg::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 25%;
+    width: 31rem;
+    height: 31rem;
+    border-radius: 9999px;
+    background: rgba(0, 74, 173, 0.10);
+    filter: blur(120px);
+}
+
+.auth-home-bg::after {
+    content: "";
+    position: absolute;
+    right: 25%;
+    bottom: 0;
+    width: 25rem;
+    height: 25rem;
+    border-radius: 9999px;
+    background: rgba(59, 130, 246, 0.08);
+    filter: blur(100px);
+}
+
+/* Campus photo background: only for user dashboard. Homepage keeps its own image markup. */
+.user-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+    background:
+        linear-gradient(to bottom, rgba(15, 23, 42, 0.65), rgba(2, 6, 23, 0.86)),
+        url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+}
+
+.user-bg::before {
+    content: "";
+    position: absolute;
+    top: -8rem;
+    left: 18%;
+    width: 32rem;
+    height: 32rem;
+    border-radius: 9999px;
+    background: rgba(96, 165, 250, 0.22);
+    filter: blur(120px);
+}
+
+.user-bg::after {
+    content: "";
+    position: absolute;
+    right: 16%;
+    bottom: -6rem;
+    width: 28rem;
+    height: 28rem;
+    border-radius: 9999px;
+    background: rgba(125, 211, 252, 0.16);
+    filter: blur(100px);
+}
+
+body.user-dark-theme > main {
+    background: transparent !important;
+}
+
+
+.user-site-nav a {
+    text-decoration: none;
+}
+
+.user-dark-theme .dashboard-bg {
+    background: linear-gradient(to bottom, rgba(34, 40, 70, 0.88), rgba(31, 47, 120, 0.96)), url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80');
+    background-size: cover;
+    background-position: center;
+}
+
 /* Global font requirement: Century Bold */
 html, body, body *, button, input, select, textarea {
     font-family: "Century Gothic", CenturyGothic, "Century", "Century Schoolbook", Arial, sans-serif !important;
@@ -8,8 +233,8 @@ body {
     margin: 0;
     font-family: "Century Gothic", CenturyGothic, "Century", "Century Schoolbook", Arial, sans-serif !important;
     font-weight: 700;
-    background-color: #f4f6f9;
-    color: #333;
+    background-color: #ffffff;
+    color: #0f172a;
 }
 
 .navbar {
@@ -163,10 +388,11 @@ html, body, body *, button, input, select, textarea {
 .dashboard-bg {
     position: fixed;
     inset: 0;
-    z-index: -1;
-    background: linear-gradient(to bottom, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.95)), url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80');
+    z-index: 0;
+    background: linear-gradient(to bottom, rgba(15, 23, 42, 0.65), rgba(2, 6, 23, 0.86)), url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80');
     background-size: cover;
     background-position: center;
+    background-attachment: fixed;
 }
 .glass-card {
     background: rgba(255, 255, 255, 0.03);
@@ -186,8 +412,8 @@ html, body, body *, button, input, select, textarea {
 /* ===== Extracted inline styles ===== */
 
 /* Source: User/change_password.php */
-.bg-fixed-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
-        .bg-img { width: 100%; height: 100%; object-fit: cover; opacity: 0.3; }
+.bg-fixed-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; background: radial-gradient(circle at top left, rgba(59, 130, 246, 0.18), transparent 34%), linear-gradient(to bottom, #020617, #0f172a); }
+        .bg-img { display: none; }
         .glass-panel { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
         .input-wrapper { position: relative; width: 100%; display: flex; align-items: center; }
         .input-glass { background: rgba(255, 255, 255, 0.95); border: 2px solid transparent; transition: all 0.3s ease; color: #1e293b; width: 100%; padding: 12px 40px 12px 16px; border-radius: 12px; font-weight: bold; }
@@ -238,7 +464,7 @@ html { scroll-behavior: smooth; }
         .hover-lift { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s ease, border-color 0.4s ease; }
         .hover-lift:hover { 
             transform: translateY(-6px); 
-            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.7);
+            box-shadow: 0 14px 30px -16px rgba(0, 0, 0, 0.45);
             border-color: rgba(59, 130, 246, 0.5);
         }
 
@@ -284,3 +510,172 @@ html { scroll-behavior: smooth; }
         .rule-invalid { color: #94a3b8; } .rule-valid { color: #34d399; }
         .rule-icon { margin-right: 6px; width: 14px; text-align: center; }
         .validation-error { color: #ef4444; font-size: 14px; font-weight: 700; display: none; }
+
+
+/* ===== User shared header refinement ===== */
+.user-site-nav {
+    background: #020617 !important;
+    color: #ffffff !important;
+    border-bottom: 1px solid #1e293b !important;
+}
+
+.user-site-nav a {
+    color: #cbd5e1;
+}
+
+.user-site-nav a:hover {
+    color: #ffffff;
+}
+
+.user-site-nav span {
+    color: #ffffff;
+}
+
+body {
+    background: #020617;
+}
+
+/* Homepage visual refinements */
+.venue-card.glass-panel {
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 16px 32px -18px rgba(0, 0, 0, 0.45);
+}
+.venue-card.hover-lift:hover {
+    box-shadow: 0 18px 34px -20px rgba(0, 0, 0, 0.5);
+}
+
+/* Navbar tone final adjustment */
+body.user-dark-theme .user-site-nav.user-nav-dark,
+.user-site-nav.user-nav-dark {
+    background: #263345 !important;
+    color: #ffffff !important;
+    border-bottom: 1px solid #334155 !important;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.20) !important;
+}
+
+body.user-dark-theme .user-site-nav.user-nav-dark a:not([class*="bg-blue-600"]),
+.user-site-nav.user-nav-dark a:not([class*="bg-blue-600"]),
+body.user-dark-theme .user-site-nav.user-nav-dark span,
+.user-site-nav.user-nav-dark span {
+    color: #ffffff !important;
+}
+
+body.user-dark-theme .user-site-nav.user-nav-dark a:hover:not([class*="bg-blue-600"]),
+.user-site-nav.user-nav-dark a:hover:not([class*="bg-blue-600"]) {
+    background-color: #334155 !important;
+    color: #ffffff !important;
+}
+
+body.user-dark-theme .user-site-nav.user-nav-dark [title="View Profile"],
+.user-site-nav.user-nav-dark [title="View Profile"] {
+    background: #1f2937 !important;
+    border-color: #475569 !important;
+    color: #ffffff !important;
+}
+
+body.user-light-theme .user-site-nav.user-nav-light,
+.user-site-nav.user-nav-light {
+    background: #d1d5db !important;
+    color: #000000 !important;
+    border-bottom: 1px solid #9ca3af !important;
+    box-shadow: 0 1px 8px rgba(15, 23, 42, 0.10) !important;
+}
+
+body.user-light-theme .user-site-nav.user-nav-light a:not([class*="bg-blue-600"]):not(.bg-mmu-core),
+.user-site-nav.user-nav-light a:not([class*="bg-blue-600"]):not(.bg-mmu-core),
+body.user-light-theme .user-site-nav.user-nav-light span,
+.user-site-nav.user-nav-light span {
+    color: #000000 !important;
+}
+
+body.user-light-theme .user-site-nav.user-nav-light a:hover:not([class*="bg-blue-600"]):not(.bg-mmu-core),
+.user-site-nav.user-nav-light a:hover:not([class*="bg-blue-600"]):not(.bg-mmu-core) {
+    background-color: #9ca3af !important;
+    color: #000000 !important;
+}
+
+body.user-light-theme .user-site-nav.user-nav-light a[class*="bg-blue-600"],
+.user-site-nav.user-nav-light a[class*="bg-blue-600"] {
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+    border-color: #2563eb !important;
+}
+
+body.user-light-theme .user-site-nav.user-nav-light [title="View Profile"],
+.user-site-nav.user-nav-light [title="View Profile"] {
+    background: #ffffff !important;
+    border-color: #9ca3af !important;
+    color: #000000 !important;
+}
+
+
+/* Profile page keeps original dark background */
+body.profile-dark-theme {
+    background: #020617 !important;
+    color: #e5e7eb !important;
+}
+
+.profile-page-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at top left, rgba(59, 130, 246, 0.18), transparent 34%),
+        radial-gradient(circle at bottom right, rgba(0, 74, 173, 0.12), transparent 35%),
+        linear-gradient(to bottom, #020617, #0f172a 55%, #020617);
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+}
+
+.profile-page-bg::before {
+    content: "";
+    position: absolute;
+    top: -8rem;
+    left: 18%;
+    width: 32rem;
+    height: 32rem;
+    border-radius: 9999px;
+    background: rgba(0, 74, 173, 0.14);
+    filter: blur(120px);
+}
+
+.profile-page-bg::after {
+    content: "";
+    position: absolute;
+    right: 16%;
+    bottom: -6rem;
+    width: 28rem;
+    height: 28rem;
+    border-radius: 9999px;
+    background: rgba(59, 130, 246, 0.10);
+    filter: blur(100px);
+}
+
+body.profile-dark-theme .glass-panel {
+    background: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+}
+
+body.profile-dark-theme .glass-panel .text-white:not([class*="bg-"]),
+body.profile-dark-theme .glass-panel p.text-white,
+body.profile-dark-theme .glass-panel h1.text-white {
+    color: #ffffff !important;
+}
+
+body.profile-dark-theme .glass-panel [class*="bg-white/5"],
+body.profile-dark-theme .glass-panel [class*="bg-white/10"],
+body.profile-dark-theme .glass-panel [class*="bg-black/20"],
+body.profile-dark-theme .glass-panel [class*="bg-black/30"] {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+body.profile-dark-theme .glass-panel input {
+    color: #ffffff !important;
+}

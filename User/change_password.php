@@ -12,14 +12,11 @@ if (!isset($_SESSION['uid'])) { header("Location: user_login.php"); exit(); }
     <title>Secure Password Update | CVBMS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="../assets/css/user_css.css?v=1.1">
+    <link rel="stylesheet" href="../assets/css/user_css.css?v=2.8">
 </head>
-<body class="bg-slate-950 font-sans antialiased min-h-screen flex items-center justify-center p-4">
+<body class="profile-dark-theme bg-slate-900 font-sans antialiased min-h-screen flex items-center justify-center p-4">
 
-<div class="bg-fixed-container">
-    <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80" class="bg-img">
-    <div class="absolute inset-0 bg-slate-900/60"></div>
-</div>
+<div class="profile-page-bg" aria-hidden="true"></div>
 
 <div id="toast-success" class="fixed top-10 z-50 bg-emerald-600 text-white px-6 py-3 rounded-xl shadow-2xl font-bold hidden animate-pulse">Password updated!</div>
 <div id="toast-error" class="fixed top-10 z-50 bg-red-600 text-white px-6 py-3 rounded-xl shadow-2xl font-bold hidden animate-pulse">Incorrect current password!</div>

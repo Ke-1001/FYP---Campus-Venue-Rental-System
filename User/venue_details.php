@@ -54,12 +54,12 @@ $is_available = $row && strtolower($row['status']) === 'available';
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
 
-<div class="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
+<div class="min-h-screen bg-transparent py-12 px-4 sm:px-6 lg:px-8 font-sans">
     <div class="max-w-4xl mx-auto">
         
         <?php if ($row): ?>
             <div class="mb-6 flex items-center">
-                <a href="venues.php" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 flex items-center transition">
+                <a href="venues.php" class="text-sm font-bold text-blue-700 hover:text-blue-900 flex items-center transition">
                     <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i> Back to Venues
                 </a>
             </div>

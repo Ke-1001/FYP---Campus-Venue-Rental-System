@@ -17,9 +17,9 @@
             }
         }
     </script>
-    <link rel="stylesheet" href="../assets/css/user_css.css?v=1.1">
+    <link rel="stylesheet" href="../assets/css/user_css.css?v=2.8">
 </head>
-<body class="font-sans antialiased min-h-screen relative overflow-y-auto">
+<body class="user-dark-theme font-sans antialiased min-h-screen relative overflow-y-auto">
 
 <?php if (isset($_GET['status'])): ?>
     <div id='toast' class='fixed top-5 right-5 z-50 px-6 py-4 rounded-xl text-white font-bold shadow-2xl <?php echo $_GET['status'] == 'success' ? 'bg-emerald-500' : 'bg-red-500'; ?>'>
@@ -34,13 +34,21 @@
     </script>
 <?php endif; ?>
 
-<div class="fixed inset-0 z-0">
-    <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80" alt="Campus" class="w-full h-full object-cover">
-    <div class="absolute inset-0 bg-slate-900/80 mix-blend-multiply"></div>
-</div>
+<div class="auth-home-bg" aria-hidden="true"></div>
 
 <div class="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 py-12">
-    <div class="w-full max-w-lg glass-panel rounded-2xl p-8 shadow-2xl">
+    <div class="absolute top-6 left-6 flex items-center gap-2">
+        <div class="w-8 h-8 bg-mmu-core rounded-md flex items-center justify-center text-white font-bold shadow-lg">C</div>
+        <span class="font-bold text-white text-xl tracking-tight">CVBMS</span>
+    </div>
+
+    <div class="w-full max-w-lg">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-extrabold text-white tracking-tight mb-2">Create <span class="text-mmu-glow">Account.</span></h1>
+            <p class="text-slate-300 font-medium text-sm">Sign up to start booking campus venues.</p>
+        </div>
+
+        <div class="glass-panel rounded-2xl p-8 shadow-2xl">
         <form action="../User/user_register_process.php" method="POST" id="regForm" class="space-y-4">
             <div>
                 <div class="flex justify-between items-center mb-1.5">
@@ -83,6 +91,7 @@
             </div>
             <button type="submit" id="submitBtn" class="w-full mt-6 bg-mmu-core hover:bg-blue-800 text-white font-bold py-3.5 rounded-xl transition-all">Create Account</button>
         </form>
+        </div>
     </div>
 </div>
 

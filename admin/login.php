@@ -24,7 +24,7 @@ if ($admin_identifier && in_array($admin_role, ['admin', 'super_admin'], true)) 
     <script>
         tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#0f172a', accent: '#38bdf8' } } } } }
     </script>
-    <link rel="stylesheet" href="../assets/css/admin_css.css?v=1.1">
+    <link rel="stylesheet" href="../assets/css/admin_css.css?v=2.0">
 </head>
 <body class="bg-cstyle-dark flex items-center justify-center min-h-screen font-sans selection:bg-mmu-accent selection:text-white relative overflow-hidden">
 

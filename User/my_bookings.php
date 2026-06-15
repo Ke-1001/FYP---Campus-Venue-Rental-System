@@ -138,16 +138,16 @@ function formatBookingDate($date) {
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
 
-<div class="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
+<div class="min-h-screen bg-transparent py-12 px-4 sm:px-6 lg:px-8 font-sans">
     <div class="max-w-6xl mx-auto">
 
         <!-- Page Header -->
         <div class="mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
             <div>
-                <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">
+                <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">
                     My Bookings
                 </h1>
-                <p class="text-sm text-slate-500 mt-2">
+                <p class="text-sm text-slate-600 mt-2">
                     View your booking records and track each booking progress.
                 </p>
             </div>
@@ -161,12 +161,12 @@ function formatBookingDate($date) {
 
         <!-- Booking Filter Section -->
         <?php if ($total_bookings > 0): ?>
-            <form method="GET" action="my_bookings.php" id="bookingFilterForm" class="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 mb-8">
+            <form method="GET" action="my_bookings.php" id="bookingFilterForm" class="bg-white/95 backdrop-blur-sm border border-slate-200 rounded-2xl shadow-sm p-6 mb-8">
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
 
                     <!-- Search -->
                     <div>
-                        <label class="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">
+                        <label class="block text-xs font-black uppercase tracking-widest text-slate-700 mb-2">
                             Search
                         </label>
                         <div class="relative">
@@ -177,19 +177,19 @@ function formatBookingDate($date) {
                                 id="bookingSearchInput"
                                 value="<?php echo htmlspecialchars($search); ?>"
                                 placeholder="Booking ID or venue..."
-                                class="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                class="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-700 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                             >
                         </div>
                     </div>
 
                     <!-- Status Filter -->
                     <div>
-                        <label class="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">
+                        <label class="block text-xs font-black uppercase tracking-widest text-slate-700 mb-2">
                             Booking Status
                         </label>
                         <select 
                             name="status"
-                            class="auto-submit w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            class="auto-submit w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         >
                             <option value="">All Status</option>
                             <option value="pending" <?php echo ($status_filter === 'pending') ? 'selected' : ''; ?>>Pending</option>
@@ -202,12 +202,12 @@ function formatBookingDate($date) {
 
                     <!-- Payment Filter -->
                     <div>
-                        <label class="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">
+                        <label class="block text-xs font-black uppercase tracking-widest text-slate-700 mb-2">
                             Payment Status
                         </label>
                         <select 
                             name="payment"
-                            class="auto-submit w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            class="auto-submit w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         >
                             <option value="">All Payment</option>
                             <option value="unpaid" <?php echo ($payment_filter === 'unpaid') ? 'selected' : ''; ?>>Unpaid</option>
@@ -218,12 +218,12 @@ function formatBookingDate($date) {
 
                     <!-- Date Filter -->
                     <div>
-                        <label class="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">
+                        <label class="block text-xs font-black uppercase tracking-widest text-slate-700 mb-2">
                             Date
                         </label>
                         <select 
                             name="date_filter"
-                            class="auto-submit w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            class="auto-submit w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         >
                             <option value="">All Dates</option>
                             <option value="upcoming" <?php echo ($date_filter === 'upcoming') ? 'selected' : ''; ?>>Upcoming</option>
@@ -233,7 +233,7 @@ function formatBookingDate($date) {
                 </div>
 
                 <div class="flex items-center justify-between mt-5">
-                    <p class="text-xs text-slate-400 font-semibold">
+                    <p class="text-xs text-slate-600 font-semibold">
                         Search and filters will be applied automatically.
                     </p>
 

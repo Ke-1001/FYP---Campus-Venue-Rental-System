@@ -72,10 +72,10 @@ include("../includes/user_header.php");
 include("../includes/user_navbar.php");
 ?>
 
-<div class="max-w-4xl mx-auto px-4 py-10">
+<div class="relative z-10 max-w-4xl mx-auto px-4 py-10">
     <div class="mb-8">
         <a href="booking_details.php?bid=<?php echo urlencode($booking['bid']); ?>" 
-           class="inline-flex items-center text-sm font-bold text-slate-500 hover:text-indigo-600 transition">
+           class="inline-flex items-center text-sm font-bold text-blue-700 hover:text-blue-900 transition">
             <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
             Back to Booking Details
         </a>

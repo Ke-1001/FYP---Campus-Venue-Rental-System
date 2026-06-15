@@ -1,3 +1,9 @@
+
+/* CVBMS global admin adjustment: increase all rem-based text by around 2pt */
+:root {
+    font-size: 100%;
+}
+
 /* File: assets/css/admin_css.css
    Centralized admin stylesheet for CVBMS.
 */
