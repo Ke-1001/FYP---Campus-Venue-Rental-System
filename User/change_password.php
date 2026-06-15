@@ -12,7 +12,7 @@ if (!isset($_SESSION['uid'])) { header("Location: user_login.php"); exit(); }
     <title>Secure Password Update | CVBMS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="../assets/css/user_css.css?v=1.1">
+    <link rel="stylesheet" href="../assets/css/user_css.css?v=2.0">
 </head>
 <body class="bg-slate-950 font-sans antialiased min-h-screen flex items-center justify-center p-4">
 

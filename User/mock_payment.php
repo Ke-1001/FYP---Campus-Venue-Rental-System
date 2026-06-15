@@ -83,7 +83,7 @@ $hash = hash('sha256', $qr_seed);
     <title>Sandbox Payment Gateway</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="../assets/css/user_css.css?v=1.1">
+    <link rel="stylesheet" href="../assets/css/user_css.css?v=2.0">
 </head>
 
 <body class="bg-slate-50 min-h-screen font-sans antialiased px-4 py-10">

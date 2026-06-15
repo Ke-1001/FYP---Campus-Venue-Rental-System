@@ -12,7 +12,7 @@
             theme: { extend: { colors: { mmu: { core: '#004aad', glow: '#3b82f6' } } } }
         }
     </script>
-    <link rel="stylesheet" href="../assets/css/user_css.css?v=1.1">
+    <link rel="stylesheet" href="../assets/css/user_css.css?v=2.0">
 </head>
 <body class="font-sans antialiased min-h-screen relative overflow-y-auto">
 

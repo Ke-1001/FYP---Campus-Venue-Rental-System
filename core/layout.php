@@ -59,7 +59,7 @@ if (!isset($extra_js)) {
     </script>
 
     <!-- Global Admin CSS -->
-    <link rel="stylesheet" href="../assets/css/admin_css.css?v=1.1">
+    <link rel="stylesheet" href="../assets/css/admin_css.css?v=2.0">
 </head>
 
 <body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden">

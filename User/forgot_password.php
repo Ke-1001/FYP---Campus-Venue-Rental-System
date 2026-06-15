@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <title>Forgot Password - CVBMS</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="../assets/css/user_css.css?v=1.1">
+    <link rel="stylesheet" href="../assets/css/user_css.css?v=2.0">
 </head>
 <body class="font-sans antialiased min-h-screen relative">
 

@@ -141,7 +141,7 @@ $document_no = "BR-" . date("Y") . "-" . str_pad((string)$record['bid'], 6, "0",
 
         body {
             font-family: "Century Gothic", CenturyGothic, "Century", Arial, sans-serif;
-            background: #f1f5f9;
+            background: #ffffff;
             color: #0f172a;
             margin: 0;
             padding: 30px;
@@ -199,7 +199,7 @@ $document_no = "BR-" . date("Y") . "-" . str_pad((string)$record['bid'], 6, "0",
 
         .system-subtitle {
             font-size: 12px;
-            color: #64748b;
+            color: #000000;
             margin-top: 5px;
         }
 
@@ -324,7 +324,7 @@ $document_no = "BR-" . date("Y") . "-" . str_pad((string)$record['bid'], 6, "0",
             }
         }
     </style>
-    <link rel="stylesheet" href="../assets/css/user_css.css?v=1.1">
+    <link rel="stylesheet" href="../assets/css/user_css.css?v=2.0">
 </head>
 
 <body>
