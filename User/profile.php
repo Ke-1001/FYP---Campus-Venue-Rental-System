@@ -49,7 +49,7 @@ if (!empty($user['profile_pic'])) {
 </head>
 <body class="profile-dark-theme bg-slate-900 font-sans text-slate-200 min-h-screen">
 <div class="profile-page-bg" aria-hidden="true"></div>
-<div class="relative z-10 max-w-2xl mx-auto pt-20 pb-16 px-4">
+<div class="relative z-10 max-w-2xl mx-auto pt-20 px-4">
     <a href="homepage.php" class="inline-flex items-center gap-2 text-slate-400 hover:text-white mb-8 transition font-medium">
         <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Homepage
     </a>

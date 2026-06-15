@@ -5,9 +5,9 @@
     <meta charset="UTF-8">
     <title>Forgot Password - CVBMS</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="../assets/css/user_css.css?v=2.4">
+    <link rel="stylesheet" href="../assets/css/user_css.css?v=2.9">
 </head>
-<body class="user-light-theme font-sans antialiased min-h-screen relative">
+<body class="user-dark-theme font-sans antialiased min-h-screen relative overflow-y-auto">
 
 <?php if (isset($_GET['status'])): ?>
     <div id='toast' class='fixed top-5 right-5 z-50 px-6 py-4 rounded-xl text-white font-bold shadow-2xl <?php echo $_GET['status'] == 'success' ? 'bg-emerald-500' : 'bg-red-500'; ?>'>
@@ -16,7 +16,7 @@
     <script>setTimeout(() => { document.getElementById('toast').style.display = 'none'; }, 3000);</script>
 <?php endif; ?>
 
-    <div class="user-page-bg" aria-hidden="true"></div>
+    <div class="auth-home-bg" aria-hidden="true"></div>
 
     <div class="relative z-10 flex items-center justify-center min-h-screen px-4">
         <div class="w-full max-w-sm glass-panel rounded-2xl p-8 shadow-2xl">
