@@ -1,7 +1,10 @@
 <?php
 // File: api/api_fetch_slots.php
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/booking_functions.php';
 header('Content-Type: application/json');
+
+expireUnpaidBookings($conn);
 
 $vid = $_GET['venue_id'] ?? '';
 $date = $_GET['date'] ?? '';

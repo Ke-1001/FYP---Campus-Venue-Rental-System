@@ -76,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt_token->execute();
         $stmt_token->close();
 
-        $reset_link = getBaseUrl() . "/admin/setup_password.php?token=" . $token;
+        $reset_link = getAppBaseUrl() . "/admin/setup_password.php?token=" . $token;
 
         $subject = "Action Required: Complete Your CVBMS password Configuration";
         $message = "Hello {$full_name},\n\n" .

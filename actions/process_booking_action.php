@@ -40,8 +40,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             // 💡 2. SLA Bound Calculation (T_curr < T_end - 5min)
-            $end_timestamp = strtotime($target_booking['date_booked'] . ' ' . $target_booking['time_end']);
-            $critical_timestamp = $end_timestamp - 300; 
+            $start_timestamp = strtotime($target_booking['date_booked'] . ' ' . $target_booking['time_start']);
+            $critical_timestamp = $start_timestamp - 300; 
 
             if (time() >= $critical_timestamp) {
                 throw new Exception("SLA Violation for BID #{$bid}: Threshold expired. System locked for auto-cancellation.");
@@ -92,9 +92,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $stmt_schedule = $conn->prepare($sql_schedule_conflict);
                 $stmt_schedule->bind_param(
-                    "ssss",
+                    "sssss",
                     $target_booking['vid'],
                     $day_name,
+                    $target_booking['date_booked'],
                     $target_booking['time_end'],
                     $target_booking['time_start']
                 );

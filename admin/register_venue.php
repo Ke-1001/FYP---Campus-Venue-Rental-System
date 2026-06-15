@@ -149,12 +149,17 @@ ob_start();
 
 <script>
     document.getElementById('venue_pics').addEventListener('change', function(e) {
+        const venuePics = document.getElementById('venue_pics');
         const fileList = document.getElementById('file-list');
-        if(this.files.length > 0) {
-            fileList.innerHTML = `<i data-lucide="check-circle" class="w-3 h-3 inline text-[#059669] mr-1"></i> ${this.files.length} file(s) selected for upload.`;
-            lucide.createIcons();
-        } else {
-            fileList.innerHTML = '';
+
+        if (venuePics && fileList) {
+            venuePics.addEventListener('change', function(e) {
+                if (this.files.length > 0) {
+                    fileList.innerHTML = `${this.files.length} file(s) selected for upload.`;
+                } else {
+                    fileList.innerHTML = '';
+                }
+            });
         }
     });
 

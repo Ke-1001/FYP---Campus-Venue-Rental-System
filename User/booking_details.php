@@ -67,6 +67,10 @@ $stmt->execute();
 $result = $stmt->get_result();
 $booking = $result->fetch_assoc();
 
+if (!$booking) {
+    die("<div class='p-10 text-center text-slate-600 font-bold'>Booking not found or access denied.</div>");
+}
+
 $damage_report = null;
 
 $damage_stmt = $conn->prepare("
@@ -76,23 +80,19 @@ $damage_stmt = $conn->prepare("
     ORDER BY created_at DESC
     LIMIT 1
 ");
-$damage_stmt->bind_param("ii", $booking['bid'], $_SESSION['uid']);
+$damage_stmt->bind_param("is", $booking['bid'], $_SESSION['uid']);
 $damage_stmt->execute();
 $damage_result = $damage_stmt->get_result();
 
 if ($damage_result && $damage_result->num_rows > 0) {
     $damage_report = $damage_result->fetch_assoc();
-}
-
+    }
+    
 $damage_stmt->close();
 
 $can_report_damage = (
     strtolower($booking['status']) === 'approved' && !$damage_report
 );
-
-if (!$booking) {
-    die("<div class='p-10 text-center text-slate-600 font-bold'>Booking not found or access denied.</div>");
-}
 
 $status = strtolower((string)$booking['status']);
 $paymentStatus = strtolower((string)$booking['payment_status']);
