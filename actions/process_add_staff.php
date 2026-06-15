@@ -2,8 +2,9 @@
 // File: actions/process_add_staff.php
 session_start();
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../config/app.php';
 require_once __DIR__ . '/../includes/admin_auth.php'; 
-require_once __DIR__ . '/../includes/mailer.php'; // 💡 注入 SMTP 引擎 (僅宣告，不執行)
+require_once __DIR__ . '/../includes/mailer.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
@@ -75,10 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt_token->execute();
         $stmt_token->close();
 
-        // 💡 5. SMTP 發送協議 (Email Dispatch)
-        // 注意：這裡必須替換為你實際系統的 URL Domain
-        $app_domain = "http://localhost/FYP"; 
-        $reset_link = $app_domain . "/admin/setup_password.php?token=" . $token;
+        $reset_link = getBaseUrl() . "/admin/setup_password.php?token=" . $token;
 
         $subject = "Action Required: Complete Your CVBMS password Configuration";
         $message = "Hello {$full_name},\n\n" .

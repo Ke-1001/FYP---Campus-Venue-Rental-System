@@ -5,18 +5,79 @@ session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php'; 
 
-// 💡 1. 財務與利用率趨勢模擬 (Data Aggregation)
-$months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-$revenue_data = [0, 0, 0, 0, 0, 0]; 
+// Real monthly deposit collection for the last 6 months
+$month_map = [];
+$months = [];
+$revenue_data = [];
 
+for ($i = 5; $i >= 0; $i--) {
+    $month_key = date('Y-m', strtotime("-$i months"));
+    $month_map[$month_key] = 0.00;
+}
+
+$sql_revenue = "
+    SELECT 
+        DATE_FORMAT(COALESCE(b.paid_at, b.created_at), '%Y-%m') AS month_key,
+        SUM(v.deposit) AS total_revenue
+    FROM booking b
+    JOIN venue v ON b.vid = v.vid
+    WHERE b.payment_status = 'paid'
+      AND COALESCE(b.paid_at, b.created_at) >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 5 MONTH), '%Y-%m-01')
+    GROUP BY month_key
+";
+
+$res_revenue = $conn->query($sql_revenue);
+if ($res_revenue) {
+    while ($row = $res_revenue->fetch_assoc()) {
+        if (isset($month_map[$row['month_key']])) {
+            $month_map[$row['month_key']] = (float)$row['total_revenue'];
+        }
+    }
+}
+
+foreach ($month_map as $month_key => $amount) {
+    $months[] = date('M', strtotime($month_key . '-01'));
+    $revenue_data[] = $amount;
+}
+
+// Real venue utilization for current month
 $venue_labels = [];
 $utilization_percentages = [];
-// 💡 適配新架構：venue, vname, max_cap
-$sql_util = "SELECT vname, max_cap FROM venue LIMIT 5";
+
+$sql_util = "
+    SELECT 
+        v.vname,
+        COALESCE(
+            ROUND(
+                (
+                    SUM(
+                        CASE 
+                            WHEN b.bid IS NOT NULL 
+                            THEN TIME_TO_SEC(TIMEDIFF(b.time_end, b.time_start)) / 60
+                            ELSE 0
+                        END
+                    ) / (DAY(LAST_DAY(CURDATE())) * 24 * 60)
+                ) * 100,
+                2
+            ),
+            0
+        ) AS utilization_percent
+    FROM venue v
+    LEFT JOIN booking b 
+        ON v.vid = b.vid
+       AND b.date_booked BETWEEN DATE_FORMAT(CURDATE(), '%Y-%m-01') AND LAST_DAY(CURDATE())
+       AND b.status IN ('approved', 'completed')
+    GROUP BY v.vid, v.vname
+    ORDER BY utilization_percent DESC
+    LIMIT 5
+";
+
 $res_util = $conn->query($sql_util);
-while($row = $res_util->fetch_assoc()) {
-    $venue_labels[] = $row['vname'];
-    $utilization_percentages[] = min($row['max_cap'] * 2, 100); 
+if ($res_util) {
+    while ($row = $res_util->fetch_assoc()) {
+        $venue_labels[] = $row['vname'];
+        $utilization_percentages[] = (float)$row['utilization_percent'];
+    }
 }
 
 // 💡 2. 財務交易流水矩陣 (Financial Ledger using UNION ALL)

@@ -420,7 +420,7 @@ if (!$venue) {
                 if (isBlocked) {
                     timeGrid.innerHTML += `<div class="p-2 text-center text-xs font-mono font-bold bg-slate-200 text-slate-400 rounded cursor-not-allowed">${timeStr}</div>`;
                 } else {
-                    timeGrid.innerHTML += `<button type="button" onclick="handleSlotClick('${timeStr}', this)" class="time-slot-btn p-2 text-center text-xs font-mono font-bold bg-white border-2 border-slate-200 hover:border-indigo-400 text-slate-600 rounded transition">${timeStr}</button>`;
+                    timeGrid.innerHTML += `<button type="button" data-time="${timeStr}" onclick="handleSlotClick('${timeStr}', this)" class="time-slot-btn p-2 text-center text-xs font-mono font-bold bg-white border-2 border-slate-200 hover:border-indigo-400 text-slate-600 rounded transition">${timeStr}</button>`;
                 }
             }
         }
@@ -462,6 +462,7 @@ if (!$venue) {
             }
 
             selectionState.end = timeStr;
+            paintSelectionRange();
             finalizeSelection();
         } else {
             setStartSlot(timeStr, btnElement);
@@ -471,11 +472,16 @@ if (!$venue) {
     function setStartSlot(timeStr, btnElement) {
         selectionState.start = timeStr;
         selectionState.end = null;
-        resetSlotStyles();
-        btnElement.classList.replace('bg-white', 'bg-indigo-600');
-        btnElement.classList.replace('text-slate-600', 'text-white');
-        btnElement.classList.replace('border-slate-200', 'border-indigo-600');
-        finalizeSelection(true); // 預設單一時塊 (30 mins)
+
+        paintSelectionRange();
+
+        document.getElementById('payload_start').value = '';
+        document.getElementById('payload_end').value = '';
+        document.getElementById('vector-display').innerText = `${timeStr} to --:--`;
+
+        // Do not show booking form yet.
+        // User must select at least two time slots.
+        document.getElementById('asyncBookingForm').classList.add('hidden');
     }
 
     function resetSlotStyles() {
@@ -484,23 +490,35 @@ if (!$venue) {
         });
     }
 
-    function finalizeSelection(isSingle = false) {
-        let actualStart = selectionState.start;
+    function paintSelectionRange() {
+        resetSlotStyles();
 
-        // Single click means minimum 30 minutes booking.
-        let actualEnd = isSingle ? addMinutes(selectionState.start, 30) : selectionState.end;
+        if (!selectionState.start) return;
 
         document.querySelectorAll('.time-slot-btn').forEach(btn => {
-            const slotTime = btn.innerText;
+            const btnTime = btn.dataset.time;
 
-            // Highlight all selected buttons, including the final clicked end slot.
-            // The final clicked slot is used as the inspection buffer slot.
-            if (slotTime >= selectionState.start && slotTime <= (selectionState.end || selectionState.start)) {
-                btn.classList.replace('bg-white', 'bg-indigo-600');
-                btn.classList.replace('text-slate-600', 'text-white');
-                btn.classList.replace('border-slate-200', 'border-indigo-600');
+            if (!selectionState.end) {
+                if (btnTime === selectionState.start) {
+                    btn.className = "time-slot-btn p-2 text-center text-xs font-mono font-bold bg-indigo-600 border-2 border-indigo-600 text-white rounded transition";
+                }
+                return;
+            }
+
+            if (btnTime >= selectionState.start && btnTime <= selectionState.end) {
+                btn.className = "time-slot-btn p-2 text-center text-xs font-mono font-bold bg-indigo-600 border-2 border-indigo-600 text-white rounded transition";
             }
         });
+    }
+
+    function finalizeSelection() {
+        let actualStart = selectionState.start;
+        let actualEnd = selectionState.end;
+
+        if (!actualStart || !actualEnd) {
+            document.getElementById('asyncBookingForm').classList.add('hidden');
+            return;
+        }
 
         document.getElementById('payload_start').value = actualStart;
         document.getElementById('payload_end').value = actualEnd;

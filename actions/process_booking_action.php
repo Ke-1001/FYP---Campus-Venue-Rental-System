@@ -83,7 +83,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     JOIN semester_config sem ON sch.sem_id = sem.sem_id
                     WHERE sch.vid = ?
                     AND sch.day_of_week = ?
-                    AND sem.status = 'active'
+                    AND ? BETWEEN sem.start_date AND sem.end_date
+                    AND sem.is_active = 1
                     AND sch.start_time < ?
                     AND sch.end_time > ?
                     LIMIT 1

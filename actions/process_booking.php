@@ -63,6 +63,12 @@ if (strtotime($end_time) <= strtotime($start_time)) {
     respond_json('error', 'End time must be later than start time.');
 }
 
+$duration_minutes = (strtotime($end_time) - strtotime($start_time)) / 60;
+
+if ($duration_minutes < 30) {
+    respond_json('error', 'Please select at least two time slots.');
+}
+
 if (strlen($purpose) > 100) {
     respond_json('error', 'Booking purpose cannot exceed 100 characters.');
 }

@@ -749,7 +749,7 @@ CREATE DEFINER=`root`@`localhost` EVENT `ev_master_sla_daemon` ON SCHEDULE EVERY
         cancelled_at = NOW()
     WHERE status = 'pending' 
       AND payment_status = 'paid'
-      AND TIMESTAMPADD(MINUTE, -5, CAST(CONCAT(date_booked, ' ', time_end) AS DATETIME)) <= NOW();
+      AND TIMESTAMPADD(MINUTE, -5, CAST(CONCAT(date_booked, ' ', time_start) AS DATETIME)) <= NOW();
 
     -- =========================================================================
     -- Logic Pipeline B: 時序感知 JIT 分配引擎 (檢驗員自動防撞指派)

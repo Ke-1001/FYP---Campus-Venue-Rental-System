@@ -4,8 +4,15 @@ session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 
+function set_toast($type, $msg) {
+    $_SESSION['toast'] = [
+        'type' => $type,
+        'msg' => $msg
+    ];
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    $_SESSION['error'] = "Invalid request method.";
+    set_toast('error', "Invalid request method.");
     header("Location: ../admin/damage_reports.php");
     exit;
 }
@@ -14,7 +21,7 @@ $report_id = intval($_POST['report_id'] ?? 0);
 $admin_remark = trim($_POST['admin_remark'] ?? '');
 
 if ($report_id <= 0) {
-    $_SESSION['error'] = "Invalid Report ID.";
+    set_toast('error', "Invalid Report ID.");
     header("Location: ../admin/damage_reports.php");
     exit;
 }
@@ -74,11 +81,11 @@ try {
     }
 
     $conn->commit();
-    $_SESSION['success'] = $action_msg;
+    set_toast('success', $action_msg);
 
 } catch (Exception $e) {
     $conn->rollback();
-    $_SESSION['error'] = "System Error: " . $e->getMessage();
+    set_toast('error', "System Error: " . $e->getMessage());
 }
 
 header("Location: ../admin/damage_reports.php");
