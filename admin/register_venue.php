@@ -148,20 +148,18 @@ ob_start();
 </form>
 
 <script>
-    document.getElementById('venue_pics').addEventListener('change', function(e) {
-        const venuePics = document.getElementById('venue_pics');
-        const fileList = document.getElementById('file-list');
+    const venuePics = document.getElementById('venue_pics');
+    const fileList = document.getElementById('file-list');
 
-        if (venuePics && fileList) {
-            venuePics.addEventListener('change', function(e) {
-                if (this.files.length > 0) {
-                    fileList.innerHTML = `${this.files.length} file(s) selected for upload.`;
-                } else {
-                    fileList.innerHTML = '';
-                }
-            });
-        }
-    });
+    if (venuePics && fileList) {
+        venuePics.addEventListener('change', function(e) {
+            if (this.files.length > 0) {
+                fileList.innerHTML = `${this.files.length} file(s) selected for upload.`;
+            } else {
+                fileList.innerHTML = '';
+            }
+        });
+    }
 
     document.getElementById('registerVenueForm').addEventListener('submit', function() {
         const btn = document.getElementById('submitBtn');
