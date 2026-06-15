@@ -16,7 +16,7 @@ $user = $stmt->get_result()->fetch_assoc();
     <title>My Profile | CVBMS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="../assets/css/user_css.css?v=1.1">
+    <link rel="stylesheet" href="../assets/css/user_css.css?v=1.2">
 </head>
 <body class="bg-slate-900 font-sans text-slate-200 min-h-screen">
 <div class="fixed inset-0 z-0">
@@ -30,8 +30,8 @@ $user = $stmt->get_result()->fetch_assoc();
     <div class="glass-panel rounded-3xl p-8 shadow-2xl">
         <div class="flex flex-col items-center mb-10">
             <div class="w-24 h-24 rounded-full overflow-hidden mb-4 shadow-[0_0_30px_rgba(37,99,235,0.4)] border-2 border-white/10">
-                <?php if (!empty($user['profile_pic']) && file_exists($user['profile_pic'])): ?>
-                    <img src="<?php echo htmlspecialchars($user['profile_pic']); ?>" class="w-full h-full object-cover">
+                <?php if (!empty($user['profile_pic']) && file_exists(__DIR__ . '/../uploads/user/' . $user['profile_pic'])): ?>
+                    <img src="<?php echo htmlspecialchars(__DIR__ . '/../uploads/user/' . $user['profile_pic']); ?>" class="w-full h-full object-cover">
                 <?php else: ?>
                     <div class="w-full h-full bg-blue-600 flex items-center justify-center text-3xl font-black text-white">
                         <?php echo substr($user['username'], 0, 1); ?>

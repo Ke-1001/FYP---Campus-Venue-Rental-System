@@ -238,7 +238,7 @@ html { scroll-behavior: smooth; }
         .hover-lift { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s ease, border-color 0.4s ease; }
         .hover-lift:hover { 
             transform: translateY(-6px); 
-            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.7);
+            box-shadow: 0 14px 30px -16px rgba(0, 0, 0, 0.45);
             border-color: rgba(59, 130, 246, 0.5);
         }
 
@@ -284,3 +284,22 @@ html { scroll-behavior: smooth; }
         .rule-invalid { color: #94a3b8; } .rule-valid { color: #34d399; }
         .rule-icon { margin-right: 6px; width: 14px; text-align: center; }
         .validation-error { color: #ef4444; font-size: 14px; font-weight: 700; display: none; }
+
+
+/* ===== User shared header refinement ===== */
+.user-site-nav {
+    background: #ffffff !important;
+    color: #0f172a;
+}
+.user-site-nav a {
+    text-decoration: none;
+}
+
+/* Homepage visual refinements */
+.venue-card.glass-panel {
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 16px 32px -18px rgba(0, 0, 0, 0.45);
+}
+.venue-card.hover-lift:hover {
+    box-shadow: 0 18px 34px -20px rgba(0, 0, 0, 0.5);
+}

@@ -38,15 +38,15 @@ $result = $conn->query($sql);
             }
         }
     </script>
-    <link rel="stylesheet" href="../assets/css/user_css.css?v=1.1">
+    <link rel="stylesheet" href="../assets/css/user_css.css?v=1.2">
 </head>
 <body class="font-sans antialiased selection:bg-mmu-glow selection:text-white min-h-screen relative overflow-x-hidden text-slate-200">
 
 <div class="fixed inset-0 z-0">
     <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80" alt="Campus" class="w-full h-full object-cover">
-    <div class="absolute inset-0 bg-slate-900/85 mix-blend-multiply"></div>
-    <div class="absolute top-0 left-1/4 w-[500px] h-[500px] bg-mmu-core/20 rounded-full filter blur-[120px] pointer-events-none"></div>
-    <div class="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-mmu-glow/10 rounded-full filter blur-[100px] pointer-events-none"></div>
+    <div class="absolute inset-0 bg-slate-900/45"></div>
+    <div class="absolute top-0 left-1/4 w-[500px] h-[500px] bg-mmu-core/12 rounded-full filter blur-[120px] pointer-events-none"></div>
+    <div class="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-mmu-glow/8 rounded-full filter blur-[100px] pointer-events-none"></div>
 </div>
 
 <nav class="glass-nav fixed w-full z-50 transition-all duration-300">
@@ -132,15 +132,15 @@ $result = $conn->query($sql);
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             <?php if ($result->num_rows > 0): ?>
                 <?php while($row = $result->fetch_assoc()): ?>
-                    <div class="glass-panel rounded-3xl overflow-hidden hover-lift flex flex-col group">
-                    <div class="h-56 bg-black/40 relative overflow-hidden flex items-center justify-center">
+                    <div class="glass-panel venue-card rounded-3xl overflow-hidden hover-lift flex flex-col group">
+                    <div class="h-56 bg-slate-100/20 relative overflow-hidden flex items-center justify-center">
                      <?php if(!empty($row['pic'])): ?>
-                     <img src="../uploads/venues/<?php echo htmlspecialchars($row['pic']); ?>" alt="Venue" class="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700">
+                     <img src="../uploads/venues/<?php echo htmlspecialchars($row['pic']); ?>" alt="Venue" class="w-full h-full object-cover opacity-95 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700">
                      <?php else: ?>
                      <i data-lucide="image" class="w-12 h-12 text-slate-600"></i>
                      <?php endif; ?>
-                    <div class="absolute inset-0 bg-gradient-to-t from-[#131d30] to-transparent"></div>
-                    <div class="absolute top-4 left-4 bg-black/50 backdrop-blur-md border border-white/10 text-[11px] font-bold px-3 py-1.5 rounded-lg text-white uppercase tracking-wider shadow-lg">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/35 via-black/10 to-transparent"></div>
+                    <div class="absolute top-4 left-4 bg-black/35 backdrop-blur-sm border border-white/10 text-[11px] font-bold px-3 py-1.5 rounded-lg text-white uppercase tracking-wider shadow">
                     <?php echo htmlspecialchars($row['category'] ?? 'Standard'); ?>
                     </div>
                 </div>

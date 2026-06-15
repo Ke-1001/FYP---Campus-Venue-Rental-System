@@ -65,7 +65,7 @@ include("../includes/user_navbar.php");
 
 <div class="dashboard-bg"></div>
 
-<div class="relative z-10 w-full pt-32 pb-20 px-6">
+<div class="relative z-10 w-full pt-10 pb-20 px-6">
     <div class="max-w-7xl mx-auto">
         <h1 class="text-5xl font-black text-white mb-14">Welcome back, <span class="text-mmu-glow"><?php echo htmlspecialchars($display_name); ?>!</span></h1>
 

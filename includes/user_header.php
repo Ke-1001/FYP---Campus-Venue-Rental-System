@@ -37,6 +37,6 @@ if (!isset($page_title)) {
             }
         }
     </script>
-    <link rel="stylesheet" href="../assets/css/user_css.css?v=1.1">
+    <link rel="stylesheet" href="../assets/css/user_css.css?v=1.2">
 </head>
 <body class="font-sans antialiased selection:bg-mmu-glow selection:text-white min-h-screen relative overflow-x-hidden">

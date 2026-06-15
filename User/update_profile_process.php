@@ -14,16 +14,15 @@ if (isset($_SESSION['uid'])) {
     // Handle File Upload
     if (!empty($_FILES['profile_pic']['name'])) {
         // Ensure folder exists
-        $uploadDir = 'uploads/'; 
+        $uploadDir = __DIR__ . '/../uploads/user/';
         if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
         
         $filename = time() . "_" . basename($_FILES['profile_pic']['name']);
-        $target = $uploadDir . $filename;
         
         if (move_uploaded_file($_FILES['profile_pic']['tmp_name'], $target)) {
             // Update database with the path
             $stmt = $conn->prepare("UPDATE user SET profile_pic = ? WHERE uid = ?");
-            $stmt->bind_param("ss", $target, $uid);
+            $stmt->bind_param("ss", $filename, $uid);
             $stmt->execute();
         }
     }
