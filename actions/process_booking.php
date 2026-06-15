@@ -2,8 +2,8 @@
 // File: User/process_booking.php
 session_start();
 
-require_once '../config/db.php';
-require_once '../includes/booking_functions.php';
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/booking_functions.php';
 
 header('Content-Type: application/json');
 

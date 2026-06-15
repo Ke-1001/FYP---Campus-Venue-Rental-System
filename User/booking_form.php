@@ -2,9 +2,9 @@
 // File: user/booking_form.php
 session_start();
 $page_title = "Book Venue";
-include("../includes/user_header.php");
-include("../includes/user_navbar.php");
-require_once("../config/db.php");
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/user_header.php';
+require_once __DIR__ . '/../includes/user_navbar.php';
 
 if (!isset($_SESSION['uid'])) {
     header("Location: ../user/user_login.php?error=access_denied");
@@ -14,11 +14,11 @@ if (!isset($_SESSION['uid'])) {
 $vid = $_GET['vid'] ?? '';
 
 if (!preg_match('/^[A-Za-z0-9_-]+$/', $vid)) {
-    die("
-        <div class='min-h-screen flex items-center justify-center bg-slate-50 text-xl font-bold text-red-600'>
+    die(
+        "<div class='min-h-screen flex items-center justify-center bg-slate-50 text-xl font-bold text-red-600'>
             Invalid Venue ID: Cannot proceed with the booking.
-        </div>
-    ");
+        </div>"
+    );
 }
 
 $sql = "SELECT v.vid, v.vname, vc.category, v.max_cap, v.deposit, v.status

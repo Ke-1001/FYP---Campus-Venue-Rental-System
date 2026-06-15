@@ -1,8 +1,8 @@
 <?php
 // File: admin/admin_directory.php
 session_start();
-require_once '../config/db.php';
-require_once '../includes/admin_auth.php';
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/admin_auth.php';
 
 // 💡 提取多維度過濾參數
 $filter_query = trim($_GET['f_query'] ?? '');

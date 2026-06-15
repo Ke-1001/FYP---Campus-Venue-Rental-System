@@ -2,8 +2,8 @@
 // File: admin/report.php
 
 session_start();
-require_once("../config/db.php");
-require_once('../includes/admin_auth.php'); 
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/admin_auth.php'; 
 
 // 💡 1. 財務與利用率趨勢模擬 (Data Aggregation)
 $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];

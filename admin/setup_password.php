@@ -1,6 +1,6 @@
 <?php
 // File: admin/setup_password.php
-require_once '../config/db.php';
+require_once __DIR__ . '/../config/db.php';
 
 // 💡 1. 提取並驗證權杖向量
 $token = $_GET['token'] ?? '';

@@ -1,7 +1,7 @@
 <?php
 // File: User/api_check_uid.php
 header('Content-Type: application/json');
-require_once '../config/db.php';
+require_once __DIR__ . '/../config/db.php';
 
 // 接收 JSON payload 或 GET 参数
 $raw_data = json_decode(file_get_contents('php://input'), true);

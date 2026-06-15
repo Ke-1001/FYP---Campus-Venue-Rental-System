@@ -1,8 +1,8 @@
 <?php
 // File: actions/process_booking_action.php
 session_start();
-require_once '../config/db.php';
-require_once '../includes/admin_auth.php';
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/admin_auth.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // ∴ Vectorized Input Extraction
@@ -72,6 +72,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 if ($conflict_exists) {
                     throw new Exception("Spatiotemporal Collision for BID #{$bid}: Temporal vector overlaps with an active approved booking.");
+                }
+
+                // Re-check academic schedule conflict before approval
+                $day_name = date('l', strtotime($target_booking['date_booked']));
+
+                $sql_schedule_conflict = "
+                    SELECT 1
+                    FROM academic_schedule sch
+                    JOIN semester_config sem ON sch.sem_id = sem.sem_id
+                    WHERE sch.vid = ?
+                    AND sch.day_of_week = ?
+                    AND sem.status = 'active'
+                    AND sch.start_time < ?
+                    AND sch.end_time > ?
+                    LIMIT 1
+                ";
+
+                $stmt_schedule = $conn->prepare($sql_schedule_conflict);
+                $stmt_schedule->bind_param(
+                    "ssss",
+                    $target_booking['vid'],
+                    $day_name,
+                    $target_booking['time_end'],
+                    $target_booking['time_start']
+                );
+                $stmt_schedule->execute();
+                $schedule_conflict_exists = $stmt_schedule->get_result()->num_rows > 0;
+                $stmt_schedule->close();
+
+                if ($schedule_conflict_exists) {
+                    throw new Exception("Schedule Conflict for BID #{$bid}: Venue is no longer available due to academic schedule.");
                 }
             }
 

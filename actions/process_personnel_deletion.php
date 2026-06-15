@@ -1,8 +1,8 @@
 <?php
 // File: actions/process_personnel_deletion.php
 session_start();
-require_once '../config/db.php';
-require_once '../includes/admin_auth.php';
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/admin_auth.php';
 
 // 💡 1. 擷取與解構 Bulk Payload (Bulk Payload Decoupling)
 $action = $_POST['action'] ?? '';

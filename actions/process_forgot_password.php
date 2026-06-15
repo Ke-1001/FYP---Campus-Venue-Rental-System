@@ -1,9 +1,9 @@
 <?php
 // File: actions/process_forgot_password.php
 session_start();
-require_once '../config/db.php';
-require_once '../config/app.php';
-require_once '../includes/mailer.php';
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../config/app.php';
+require_once __DIR__ . '/../includes/mailer.php';
 
 $source_node = $_SERVER['HTTP_REFERER'] ?? '../login.php';
 

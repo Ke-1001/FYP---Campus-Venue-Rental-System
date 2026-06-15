@@ -1,8 +1,8 @@
 <?php
 // File: admin/edit_venue.php
 session_start();
-require_once '../config/db.php';
-require_once '../includes/admin_auth.php';
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/admin_auth.php';
 
 $vid = intval($_GET['vid'] ?? 0);
 if ($vid === 0) die("Error: NULL pointer reference for Venue ID.");

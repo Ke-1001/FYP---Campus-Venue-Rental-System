@@ -1,8 +1,8 @@
 <?php
 // File path: actions/process_profile.php
 session_start();
-require_once '../config/db.php';
-require_once '../includes/admin_auth.php'; 
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/admin_auth.php'; 
 
 $action = $_POST['action'] ?? '';
 // 💡 提取整數識別碼 (相容過渡期的 user_id)

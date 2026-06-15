@@ -1,8 +1,8 @@
 <?php
 // File: actions/process_assign_inspector.php
 session_start();
-require_once '../config/db.php';
-require_once '../includes/admin_auth.php';
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/admin_auth.php';
 
 if (!in_array($_SESSION['role'] ?? '', ['admin', 'super_admin'], true)) {
     $_SESSION['toast'] = [

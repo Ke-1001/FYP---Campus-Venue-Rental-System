@@ -13,6 +13,8 @@ require_once __DIR__ . '/../core/repositories/InspectionRepository.php';
 use Core\Components\FilterBuilder;
 use Core\Repositories\InspectionRepository;
 
+syncCompletedBookings($conn);
+
 /*
 |--------------------------------------------------------------------------
 | I: Repository Initialization & System Protocol

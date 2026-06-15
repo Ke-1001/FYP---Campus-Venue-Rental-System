@@ -2,9 +2,9 @@
 // File: User/forgot_password_process.php
 
 session_start();
-require_once '../config/db.php';
-require_once '../config/app.php';
-require_once '../includes/mailer.php';
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../config/app.php';
+require_once __DIR__ . '/../includes/mailer.php';
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     header("Location: forgot_password.php");

@@ -1,8 +1,8 @@
 <?php
 // File: admin/profile.php
 session_start();
-require_once '../config/db.php';
-require_once '../includes/admin_auth.php'; 
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/admin_auth.php'; 
 
 // 💡 1. 識別碼解析
 $aid = $_SESSION['aid'] ?? $_SESSION['user_id'];

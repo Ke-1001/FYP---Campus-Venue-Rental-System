@@ -12,6 +12,8 @@ require_once __DIR__ . '/../core/components/FioriTileBuilder.php';
 use Core\Repositories\MetricsRepository;
 use Core\Components\FioriTileBuilder as TileBuilder;
 
+syncCompletedBookings($conn);
+
 /*
 |--------------------------------------------------------------------------
 | I & D: Initialization & Data Extraction Protocol

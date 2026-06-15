@@ -1,8 +1,11 @@
 <?php
-include("../includes/user_auth.php");
-include("../includes/user_header.php");
-include("../includes/user_navbar.php");
-include("../config/db.php");
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/user_auth.php';
+require_once __DIR__ . '/../includes/user_header.php';
+require_once __DIR__ . '/../includes/user_navbar.php';
+require_once __DIR__ . '/../includes/booking_functions.php';
+    
+syncCompletedBookings($conn);
 
 $user_id = $_SESSION['uid'];
 $status_filter = trim($_GET['status'] ?? '');

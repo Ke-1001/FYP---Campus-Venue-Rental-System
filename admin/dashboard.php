@@ -3,6 +3,7 @@
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
+require_once __DIR__ . '/../includes/booking_functions.php';
 require_once __DIR__ . '/../core/repositories/MetricsRepository.php';
 require_once __DIR__ . '/../core/components/FioriTileBuilder.php';
 
@@ -12,6 +13,7 @@ use Core\Components\FioriTileBuilder as TileBuilder;
 // ∴ 實例化全域分析倉儲
 $metricsRepo = new MetricsRepository($conn);
 $kpi = $metricsRepo->getDashboardKPIs();
+syncCompletedBookings($conn);
 
 $page_title = "System Dashboard";
 $page_description = "Centralized overview of all system modules and operational metrics.";

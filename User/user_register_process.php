@@ -1,5 +1,5 @@
 <?php
-include("../config/db.php");
+require_once __DIR__ . '/../config/db.php';
 $uid = trim($_POST['uid']);
 $email = trim($_POST['email']);
 $username = $_POST['username'];

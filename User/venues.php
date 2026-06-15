@@ -1,8 +1,8 @@
 <?php
 $page_title = "Available Venues";
-include("../includes/user_header.php");
-include("../includes/user_navbar.php");
-include("../config/db.php");
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/user_header.php';
+require_once __DIR__ . '/../includes/user_navbar.php';
 
 // Get search, filter and sort values from URL
 $search = trim($_GET['search'] ?? '');

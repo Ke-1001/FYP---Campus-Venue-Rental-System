@@ -1,8 +1,8 @@
 <?php
 // File path: actions/process_admin.php
 session_start();
-require_once '../config/db.php';
-require_once '../includes/admin_auth.php'; // Standard admin gate
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/admin_auth.php'; // Standard admin gate
 
 $action = $_POST['action'] ?? $_GET['action'] ?? '';
 

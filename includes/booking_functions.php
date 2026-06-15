@@ -61,4 +61,16 @@ function checkTimeSlotConflict($conn, $vid, $date_booked, $new_start_time, $new_
 
     return ($res2['conflict_count'] > 0);
 }
+
+function syncCompletedBookings($conn) {
+    $sql = "
+        UPDATE booking
+        SET status = 'completed'
+        WHERE status = 'approved'
+          AND payment_status = 'paid'
+          AND CONCAT(date_booked, ' ', time_end) <= NOW()
+    ";
+
+    return $conn->query($sql);
+}
 ?>

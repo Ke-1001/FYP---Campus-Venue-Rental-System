@@ -1,8 +1,10 @@
 <?php
-include("../includes/user_auth.php");
-include("../includes/user_header.php");
-include("../includes/user_navbar.php");
-include("../config/db.php");
+require_once __DIR__ . '/../includes/user_auth.php';
+require_once __DIR__ . '/../includes/user_navbar.php';
+require_once __DIR__ . '/../includes/booking_functions.php';
+require_once __DIR__ . '/../config/db.php';
+
+syncCompletedBookings($conn);
 
 $user_id = $_SESSION['uid'];
 

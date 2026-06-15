@@ -1,8 +1,8 @@
 <?php
 $page_title = "Venue Details";
-include("../includes/user_header.php");
-include("../includes/user_navbar.php");
-include("../config/db.php");
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/user_header.php';
+require_once __DIR__ . '/../includes/user_navbar.php';
 
 if (!isset($_GET['vid']) || !preg_match('/^[A-Za-z0-9]+$/', $_GET['vid'])) {
     die("Invalid venue");

@@ -3,6 +3,7 @@
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
+require_once __DIR__ . '/../includes/booking_functions.php';
 require_once __DIR__ . '/../core/components/datagrid.php'; 
 
 // ∴ 引入核心組件與倉儲依賴
@@ -11,6 +12,8 @@ require_once __DIR__ . '/../core/repositories/InspectionRepository.php';
 
 use Core\Components\FilterBuilder;
 use Core\Repositories\InspectionRepository;
+
+syncCompletedBookings($conn);
 
 /*
 |--------------------------------------------------------------------------

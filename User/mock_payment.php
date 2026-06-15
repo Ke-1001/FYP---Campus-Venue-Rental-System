@@ -1,7 +1,7 @@
 <?php
-include("../includes/user_auth.php");
-include("../config/db.php");
-include("../includes/booking_functions.php");
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/user_auth.php';
+require_once __DIR__ . '/../includes/booking_functions.php';
 
 expireUnpaidBookings($conn);
 

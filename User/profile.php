@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once '../config/db.php';
+require_once __DIR__ . '/../config/db.php';
 if (!isset($_SESSION['uid'])) { header("Location: user_login.php"); exit(); }
 $uid = $_SESSION['uid'];
 $stmt = $conn->prepare("SELECT * FROM user WHERE uid = ?");

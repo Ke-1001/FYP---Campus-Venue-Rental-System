@@ -1,6 +1,6 @@
 <?php
 // File: api/api_fetch_slots.php
-require_once '../config/db.php';
+require_once __DIR__ . '/../config/db.php';
 header('Content-Type: application/json');
 
 $vid = $_GET['venue_id'] ?? '';

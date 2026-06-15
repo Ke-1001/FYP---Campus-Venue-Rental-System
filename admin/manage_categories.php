@@ -1,8 +1,8 @@
 <?php
 // File: admin/manage_categories.php
 session_start();
-require_once '../config/db.php';
-require_once '../includes/admin_auth.php';
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../includes/admin_auth.php';
 
 // 處理新增或刪除請求
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

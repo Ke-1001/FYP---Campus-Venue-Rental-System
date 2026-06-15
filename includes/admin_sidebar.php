@@ -7,17 +7,6 @@ $is_staff_user = ($current_role === 'staff');
 $is_admin_user = ($current_role === 'admin');
 $is_super_admin_user = ($current_role === 'super_admin');
 
-// 💡 1. 全域狀態機同步 (Global Sweep Logic)
-if (isset($conn)) {
-    $sweep_sql = "
-        UPDATE booking 
-        SET status = 'completed' 
-        WHERE status = 'approved' 
-        AND CONCAT(date_booked, ' ', time_end) <= NOW()
-    ";
-    $conn->query($sweep_sql);
-}
-
 // 💡 2. 動態 Badge 計算 (精確化過濾)
 $pending_bookings_count = 0;
 $pending_inspections_count = 0;

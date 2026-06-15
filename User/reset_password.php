@@ -1,5 +1,5 @@
 <?php
-include("../config/db.php");
+require_once __DIR__ . '/../config/db.php';
 
 $token = $_GET['token'] ?? '';
 $token_hash = hash("sha256", $token);
