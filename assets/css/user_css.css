@@ -575,7 +575,7 @@ html
 .glass-panel
 { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
         .input-glass
-{ background: rgba(255, 255, 255, 0.95); border: 2px solid transparent; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+{ background: rgb(0, 0, 0); border: 2px solid transparent; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         .input-glass:focus
 { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.25); outline: none; }
         .entropy-container
@@ -583,8 +583,10 @@ html
         .entropy-bar
 { height: 100%; width: 0%; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         .entropy-weak
-{ background-color: #ef4444; } .entropy-fair
-{ background-color: #f59e0b; } .entropy-strong
+{ background-color: #ef4444; } 
+.entropy-fair
+{ background-color: #f59e0b; } 
+.entropy-strong
 { background-color: #10b981; }
         .rule-grid
 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 12px; }

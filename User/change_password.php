@@ -22,6 +22,7 @@ if (!isset($_SESSION['uid']))
 
 <div id="toast-success" class="fixed top-10 z-50 bg-emerald-600 text-white px-6 py-3 rounded-xl shadow-2xl font-bold hidden animate-pulse">Password updated!</div>
 <div id="toast-error" class="fixed top-10 z-50 bg-red-600 text-white px-6 py-3 rounded-xl shadow-2xl font-bold hidden animate-pulse">Incorrect current password!</div>
+<div id="toast-same-password" class="fixed top-10 z-50 bg-yellow-500 text-white px-6 py-3 rounded-xl shadow-2xl font-bold hidden animate-pulse">New password cannot be the same as current password!</div>
 
 <div class="relative z-10 w-full max-w-md">
     <div class="text-center mb-6">
@@ -46,9 +47,11 @@ if (!isset($_SESSION['uid']))
                     <i data-lucide="eye" class="toggle-btn" onclick="togglePass('password', this)"></i>
                 </div>
 
-                <div class="entropy-container"><div id="entropy-bar" class="entropy-bar"></div></div>
+                <div class="w-full h-1.5 bg-white/10 rounded-full mt-3 overflow-hidden">
+                    <div id="entropy-bar" class="h-full bg-emerald-500 transition-all duration-300 shadow-[0_0_10px_rgba(16,185,129,0.5)]" style="width: 0%;"></div>
+                </div>
 
-                <div class="rule-grid bg-black/20 p-3 rounded-xl border border-white/5">
+                <div class="rule-grid bg-black/20 p-3 rounded-xl border border-white/5 mt-3">
                     <div id="rule-length" class="rule-item rule-invalid"><span class="mr-2"></span> 8+ Characters</div>
                     <div id="rule-upper" class="rule-item rule-invalid"><span class="mr-2"></span> Uppercase</div>
                     <div id="rule-lower" class="rule-item rule-invalid"><span class="mr-2"></span> Lowercase</div>
@@ -87,8 +90,15 @@ if (!isset($_SESSION['uid']))
     }
     else if (status === 'error')
     {
-        document.getElementById('toast-error').classList.remove('hidden');
-        setTimeout(() => document.getElementById('toast-error').classList.add('hidden'), 3000);
+        const t = document.getElementById('toast-error');
+        t.classList.remove('hidden');
+        setTimeout(() => t.classList.add('hidden'), 3000);
+    }
+    else if (status === 'same_password')
+    {
+        const t = document.getElementById('toast-same-password');
+        t.classList.remove('hidden');
+        setTimeout(() => t.classList.add('hidden'), 3000);
     }
 
     function evaluateEntropy()

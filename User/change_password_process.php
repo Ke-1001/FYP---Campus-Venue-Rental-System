@@ -23,6 +23,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST")
 
     if ($user && password_verify($current_password, $user['password']))
     {
+        if (password_verify($new_password, $user['password']))
+        {
+            header("Location: change_password.php?status=same_password");
+            exit();
+        }
+
         $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
 
         $update_stmt = $conn->prepare("UPDATE user SET password = ? WHERE uid = ?");
