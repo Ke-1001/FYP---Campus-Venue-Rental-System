@@ -3,18 +3,13 @@
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/user_auth.php';
 require_once __DIR__ . '/../includes/booking_functions.php';
-
 expireUnpaidBookings($conn);
-
 $user_id = $_SESSION['uid'];
-
 if (!isset($_GET['bid']) || !ctype_digit($_GET['bid']))
 {
     die("<div style='font-family:'Century Gothic', CenturyGothic, Century, Arial, sans-serif; text-align:center; margin-top:50px; color:#ef4444;'><h2>Invalid Payment Access.</h2></div>");
 }
-
 $bid = intval($_GET['bid']);
-
 $stmt = $conn->prepare("
     SELECT
         b.bid,
@@ -37,29 +32,24 @@ $stmt = $conn->prepare("
       AND b.uid = ?
     LIMIT 1
 ");
-
 $stmt->bind_param("is", $bid, $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
 $booking = $result->fetch_assoc();
 $stmt->close();
-
 if (!$booking)
 {
     die("<div style='font-family:'Century Gothic', CenturyGothic, Century, Arial, sans-serif; text-align:center; margin-top:50px; color:#ef4444;'><h2>Booking not found or access denied.</h2></div>");
 }
-
 $status = strtolower($booking['status']);
 $payment_status = strtolower($booking['payment_status']);
 $amount = number_format((float)$booking['deposit'], 2);
 $raw_amount = (float)$booking['deposit'];
-
 if ($payment_status === 'paid')
 {
     header("Location: booking_details.php?bid=" . urlencode($bid));
     exit;
 }
-
 if ($status === 'cancelled')
 {
     die("<div style='font-family:'Century Gothic', CenturyGothic, Century, Arial, sans-serif; text-align:center; margin-top:50px; color:#ef4444;'>
@@ -68,16 +58,13 @@ if ($status === 'cancelled')
             <p><a href='venues.php'>Book another venue</a></p>
          </div>");
 }
-
 $remaining_seconds = max(0, (int)$booking['remaining_seconds']);
-
 if ($remaining_seconds <= 0)
 {
     expireUnpaidBookings($conn);
     header("Location: my_bookings.php");
     exit;
 }
-
 $qr_seed = 'CVBMS|BID=' . $bid . '|AMOUNT=' . number_format($raw_amount, 2, '.', '') . '|USER=' . $user_id;
 $hash = hash('sha256', $qr_seed);
 ?>
@@ -91,7 +78,6 @@ $hash = hash('sha256', $qr_seed);
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="../assets/css/user_css.css?v=2.4">
 </head>
-
 <body class="user-light-theme min-h-screen font-sans antialiased px-4 py-10 relative overflow-x-hidden">
     <div class="user-page-bg" aria-hidden="true"></div>
     <div class="relative z-10 max-w-5xl mx-auto">
@@ -100,13 +86,11 @@ $hash = hash('sha256', $qr_seed);
                 <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
                 Back to My Bookings
             </a>
-
             <div class="inline-flex items-center text-[10px] font-black text-slate-300 uppercase tracking-widest">
                 <i data-lucide="shield-check" class="w-4 h-4 mr-1 text-emerald-500"></i>
                 Sandbox Environment
             </div>
         </div>
-
         <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
             <div class="lg:col-span-2">
                 <div class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden sticky top-8">
@@ -119,14 +103,12 @@ $hash = hash('sha256', $qr_seed);
                             <p class="text-xs text-slate-400 font-semibold">Campus Venue Rental System</p>
                         </div>
                     </div>
-
                     <div class="p-6">
                         <div class="bg-orange-50 border border-orange-200 text-orange-700 rounded-xl p-4 mb-6 text-center">
                             <p class="text-xs font-black uppercase tracking-widest mb-1">Payment Time Remaining</p>
                             <p id="countdown" class="text-2xl font-black font-mono">--:--</p>
                             <p class="text-xs mt-1">Booking will be cancelled automatically if payment is not completed in time.</p>
                         </div>
-
                         <div class="space-y-4">
                             <div class="flex justify-between items-center">
                                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Booking ID</span>
@@ -134,13 +116,11 @@ $hash = hash('sha256', $qr_seed);
                                     #<?php echo htmlspecialchars($booking['bid']); ?>
                                 </span>
                             </div>
-
                             <div class="border-t border-slate-100 pt-4">
                                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Venue</p>
                                 <p class="font-black text-slate-800"><?php echo htmlspecialchars($booking['vname']); ?></p>
                                 <p class="text-xs text-slate-400 font-bold uppercase mt-1"><?php echo htmlspecialchars($booking['category']); ?></p>
                             </div>
-
                             <div class="border-t border-slate-100 pt-4">
                                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Date / Time</p>
                                 <p class="font-bold text-slate-700 text-sm">
@@ -148,7 +128,6 @@ $hash = hash('sha256', $qr_seed);
                                     <?php echo substr($booking['time_start'], 0, 5); ?> - <?php echo substr($booking['time_end'], 0, 5); ?>
                                 </p>
                             </div>
-
                             <div class="border-t border-slate-100 pt-4 flex justify-between items-center">
                                 <div>
                                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Deposit Amount</p>
@@ -162,7 +141,6 @@ $hash = hash('sha256', $qr_seed);
                     </div>
                 </div>
             </div>
-
             <div class="lg:col-span-3">
                 <div class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
                     <div class="p-6 border-b border-slate-100">
@@ -172,14 +150,12 @@ $hash = hash('sha256', $qr_seed);
                         <h1 class="text-2xl font-extrabold text-slate-800">Secure Checkout</h1>
                         <p class="text-sm text-slate-500 mt-1">Choose a simulated payment method to complete your deposit payment.</p>
                     </div>
-
                     <div class="p-6">
                         <?php if (isset($_GET['error']) && $_GET['error'] !== ''): ?>
                             <div class="mb-5 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-semibold">
                                 <?php echo htmlspecialchars($_GET['error']); ?>
                             </div>
                         <?php endif; ?>
-
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
                             <button type="button" data-method-tab="tng" class="method-tab border-2 border-indigo-600 bg-indigo-50 text-indigo-700 rounded-xl p-4 text-left transition">
                                 <div class="flex items-center">
@@ -192,7 +168,6 @@ $hash = hash('sha256', $qr_seed);
                                     </div>
                                 </div>
                             </button>
-
                             <button type="button" data-method-tab="card" class="method-tab border-2 border-slate-200 hover:border-indigo-300 bg-white text-slate-700 rounded-xl p-4 text-left transition">
                                 <div class="flex items-center">
                                     <div class="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center mr-3 shadow-sm">
@@ -205,7 +180,6 @@ $hash = hash('sha256', $qr_seed);
                                 </div>
                             </button>
                         </div>
-
                         <div id="panel-tng" class="method-panel active">
                             <div class="border border-slate-200 rounded-2xl p-6 bg-slate-50">
                                 <div class="flex flex-col items-center">
@@ -221,7 +195,6 @@ $hash = hash('sha256', $qr_seed);
                                             <?php endfor; ?>
                                         </div>
                                     </div>
-
                                     <form action="../actions/process_mock_payment.php" method="POST" class="mt-5 payment-submit-form">
                                         <input type="hidden" name="bid" value="<?php echo htmlspecialchars($bid); ?>">
                                         <input type="hidden" name="payment_method" value="tng">
@@ -233,109 +206,122 @@ $hash = hash('sha256', $qr_seed);
                                 </div>
                             </div>
                         </div>
-
                         <div id="panel-card" class="method-panel">
                             <form action="../actions/process_mock_payment.php" method="POST" class="border border-slate-200 rounded-2xl p-6 bg-slate-50 payment-submit-form">
                                 <input type="hidden" name="bid" value="<?php echo htmlspecialchars($bid); ?>">
                                 <input type="hidden" name="payment_method" value="card">
-
                                 <div class="space-y-4">
                                     <div>
                                         <label class="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Cardholder Name</label>
                                         <input type="text" name="cardholder_name" placeholder="Name on card" class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" required>
                                     </div>
-
                                     <div>
                                         <label class="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Card Number</label>
                                         <input type="text" name="card_number" id="card_number" inputmode="numeric" maxlength="19" placeholder="4242 4242 4242 4242" class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none" required>
                                     </div>
-
                                     <div class="grid grid-cols-2 gap-4">
                                         <div>
                                             <label class="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Expiry</label>
                                             <input type="text" name="card_expiry" id="card_expiry" maxlength="5" placeholder="MM/YY" class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none" required>
                                         </div>
-
                                         <div>
                                             <label class="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">CVV</label>
                                             <input type="password" name="card_cvv" inputmode="numeric" maxlength="4" placeholder="123" class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none" required>
                                         </div>
                                     </div>
                                 </div>
-
                                 <button type="submit" class="payment-btn mt-6 w-full py-4 bg-indigo-600 text-white text-sm font-bold rounded-xl shadow-md hover:bg-indigo-700 hover:shadow-lg transition-all flex items-center justify-center transform active:scale-95">
                                     <i data-lucide="lock" class="w-4 h-4 mr-2"></i>
                                     Pay RM <?php echo $amount; ?> by Card
                                 </button>
-
                                 <p class="text-xs text-slate-400 mt-4 text-center">
                                     This is a simulation. Card details are validated for testing only and will not be stored. </p> </form> </div>  <div class="grid grid-cols-2 gap-3 mt-6"> <a href="my_bookings.php" class="py-3 text-center bg-white border border-slate-300 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-50 transition">Pay Later</a> <a href="booking_details.php?bid=<?php echo urlencode($bid); ?>" class="py-3 text-center bg-white border border-slate-300 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-50 transition">View Booking</a> </div> </div> </div> </div> </div> </div>  <script> lucide.createIcons();
-
         let remainingSeconds = <?php echo (int)$remaining_seconds; ?>;
         let countdownTimer = null;
-
-        function updateCountdown() {
+        function updateCountdown()
+        {
             const countdown = document.getElementById('countdown');
-            if (!countdown) return;  if (remainingSeconds <= 0) {
+            if (!countdown) return;  if (remainingSeconds <= 0)
+            {
                 countdown.innerText = "Expired";
-                if (countdownTimer) clearInterval(countdownTimer); setTimeout(function () { window.location.href = "my_bookings.php"; }, 1000); return; }  const hours = Math.floor(remainingSeconds / 3600); const minutes = Math.floor((remainingSeconds % 3600) / 60); const seconds = remainingSeconds % 60;  if (hours > 0) {
+                if (countdownTimer) clearInterval(countdownTimer); setTimeout(function ()
+                {
+                    window.location.href = "my_bookings.php";
+                }
+, 1000); return;
+}
+const hours = Math.floor(remainingSeconds / 3600); const minutes = Math.floor((remainingSeconds % 3600) / 60); const seconds = remainingSeconds % 60;  if (hours > 0)
+{
                 countdown.innerText = String(hours).padStart(2, '0') + "h " + String(minutes).padStart(2, '0') + "m " + String(seconds).padStart(2, '0') + "s";
-            } else {
+            }
+            else
+            {
                 countdown.innerText = String(minutes).padStart(2, '0') + ":" + String(seconds).padStart(2, '0');
             }
-
             remainingSeconds--;
         }
-
         updateCountdown();
         countdownTimer = setInterval(updateCountdown, 1000);
-
         const tabs = document.querySelectorAll('.method-tab');
-        const panels = {
+        const panels =
+        {
             tng: document.getElementById('panel-tng'),
             card: document.getElementById('panel-card')
-        };
-
-        tabs.forEach(tab => {
-            tab.addEventListener('click', function () {
+        }
+;
+        tabs.forEach(tab =>
+        {
+            tab.addEventListener('click', function ()
+            {
                 const method = this.dataset.methodTab;
-
-                tabs.forEach(item => {
+                tabs.forEach(item =>
+                {
                     item.classList.remove('border-indigo-600', 'bg-indigo-50', 'text-indigo-700');
                     item.classList.add('border-slate-200', 'bg-white', 'text-slate-700');
-                });
-
+                }
+);
                 this.classList.remove('border-slate-200', 'bg-white', 'text-slate-700');
                 this.classList.add('border-indigo-600', 'bg-indigo-50', 'text-indigo-700');
-
                 Object.values(panels).forEach(panel => panel.classList.remove('active'));
                 panels[method].classList.add('active');
-            });
-        });
-
+            }
+);
+        }
+);
         const cardNumberInput = document.getElementById('card_number');
         const cardExpiryInput = document.getElementById('card_expiry');
-
-        if (cardNumberInput) {
-            cardNumberInput.addEventListener('input', function () {
+        if (cardNumberInput)
+        {
+            cardNumberInput.addEventListener('input', function ()
+            {
                 let value = this.value.replace(/\D/g, '').slice(0, 16);
                 this.value = value.replace(/(.{4})/g, '$1 ').trim();
-            });
+            }
+);
         }
-
-        if (cardExpiryInput) {
-            cardExpiryInput.addEventListener('input', function () {
+        if (cardExpiryInput)
+        {
+            cardExpiryInput.addEventListener('input', function ()
+            {
                 let value = this.value.replace(/\D/g, '').slice(0, 4);
-                if (value.length >= 3) value = value.slice(0, 2) + '/' + value.slice(2); this.value = value; }); }  document.querySelectorAll('.payment-submit-form').forEach(form => {
-            form.addEventListener('submit', function () {
+                if (value.length >= 3) value = value.slice(0, 2) + '/' + value.slice(2); this.value = value;
+            }
+);
+}
+document.querySelectorAll('.payment-submit-form').forEach(form =>
+{
+            form.addEventListener('submit', function ()
+            {
                 const btn = this.querySelector('.payment-btn');
                 if (!btn) return;
                 btn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 mr-2 animate-spin"></i> Processing Transaction...';
                 btn.classList.add('opacity-75', 'cursor-not-allowed');
                 btn.disabled = true;
                 lucide.createIcons();
-            });
-        });
+            }
+);
+        }
+);
     </script>
 </body>
 </html>

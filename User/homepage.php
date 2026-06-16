@@ -2,9 +2,7 @@
 // This section prepares the user homepage page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
-
 $page_title = "CVBMS | Campus Venue Booking";
-
 $sql = "SELECT v.vid, v.vname, v.vcid, v.description,
                vc.category,
                MIN(vp.pic) AS pic
@@ -14,11 +12,9 @@ $sql = "SELECT v.vid, v.vname, v.vcid, v.description,
         GROUP BY v.vid, v.vname, v.vcid, v.description, vc.category
         LIMIT 3";
 $result = $conn->query($sql);
-
 require_once __DIR__ . '/../includes/user_header.php';
 require_once __DIR__ . '/../includes/user_navbar.php';
 ?>
-
 <section class="relative min-h-screen overflow-hidden text-slate-100 -mt-16 pt-32 pb-20">
     <div class="fixed inset-0 z-0">
         <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80" alt="Campus" class="w-full h-full object-cover">
@@ -26,7 +22,6 @@ require_once __DIR__ . '/../includes/user_navbar.php';
         <div class="absolute top-0 left-1/4 w-[500px] h-[500px] bg-mmu-core/10 rounded-full filter blur-[120px] pointer-events-none"></div>
         <div class="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-mmu-glow/8 rounded-full filter blur-[100px] pointer-events-none"></div>
     </div>
-
     <div class="relative z-10 w-full pt-24">
         <div class="max-w-4xl mx-auto text-center px-4 mb-24">
             <h1 class="text-5xl md:text-6xl font-extrabold text-white tracking-tight mb-6 drop-shadow-md">
@@ -35,7 +30,6 @@ require_once __DIR__ . '/../includes/user_navbar.php';
             <p class="text-slate-300 text-base md:text-lg mb-12 max-w-2xl mx-auto font-medium">
                 Reserve discussion rooms, halls, and labs across the MMU campus in seconds. Simple, fast, and guaranteed.
             </p>
-
             <form action="venues.php" method="GET" class="max-w-2xl mx-auto relative group mb-10">
                 <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
                     <i data-lucide="search" class="w-5 h-5 text-slate-400"></i>
@@ -46,7 +40,6 @@ require_once __DIR__ . '/../includes/user_navbar.php';
                     Explore <i data-lucide="arrow-right" class="w-4 h-4"></i>
                 </button>
             </form>
-
             <div class="flex flex-wrap justify-center items-center gap-x-8 gap-y-4 text-slate-300 text-sm font-semibold">
                 <div class="flex items-center gap-2"><i data-lucide="zap" class="w-4 h-4 text-mmu-glow drop-shadow-[0_0_14px_rgba(59,130,246,0.8)]"></i> Instant Confirmation</div>
                 <div class="hidden sm:block w-1.5 h-1.5 rounded-full bg-slate-600"></div>
@@ -55,7 +48,6 @@ require_once __DIR__ . '/../includes/user_navbar.php';
                 <div class="flex items-center gap-2"><i data-lucide="shield-check" class="w-4 h-4 text-mmu-glow drop-shadow-[0_0_14px_rgba(59,130,246,0.8)]"></i> Guaranteed Availability</div>
             </div>
         </div>
-
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-end mb-8 pl-4 border-l-4 border-mmu-glow">
                 <div>
@@ -66,7 +58,6 @@ require_once __DIR__ . '/../includes/user_navbar.php';
                     View Directory <i data-lucide="chevron-right" class="w-4 h-4"></i>
                 </a>
             </div>
-
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <?php if ($result && $result->num_rows > 0): ?>
                     <?php while($row = $result->fetch_assoc()): ?>
@@ -82,7 +73,6 @@ require_once __DIR__ . '/../includes/user_navbar.php';
                                     <?php echo htmlspecialchars($row['category'] ?? 'Standard'); ?>
                                 </div>
                             </div>
-
                             <div class="p-8 flex-1 flex flex-col relative z-10 -mt-6">
                                 <h3 class="text-2xl font-bold text-white mb-3 truncate group-hover:text-mmu-glow transition-colors drop-shadow-md">
                                     <?php echo htmlspecialchars($row['vname']); ?>
@@ -90,7 +80,6 @@ require_once __DIR__ . '/../includes/user_navbar.php';
                                 <p class="text-slate-300 text-sm mb-8 flex-1 line-clamp-2 leading-relaxed">
                                     <?php echo htmlspecialchars($row['description'] ?? 'No topological description provided for this structural asset.'); ?>
                                 </p>
-
                                 <a href="venue_details.php?vid=<?php echo urlencode($row['vid']); ?>"
                                    class="block w-full text-center py-3.5 bg-white/10 hover:bg-mmu-core text-white text-sm font-bold rounded-xl border border-white/10 hover:border-mmu-core transition-all shadow-lg hover:shadow-[0_4px_20px_rgba(0,74,173,0.5)]">
                                     View Details
@@ -109,5 +98,4 @@ require_once __DIR__ . '/../includes/user_navbar.php';
         </div>
     </div>
 </section>
-
 <?php include __DIR__ . '/../includes/user_footer.php'; ?>

@@ -3,18 +3,14 @@
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
-
-
 $month_map = [];
 $months = [];
 $revenue_data = [];
-
 for ($i = 5; $i >= 0; $i--)
 {
     $month_key = date('Y-m', strtotime("-$i months"));
     $month_map[$month_key] = 0.00;
 }
-
 $sql_revenue = "
     SELECT
         DATE_FORMAT(COALESCE(b.paid_at, b.created_at), '%Y-%m') AS month_key,
@@ -25,7 +21,6 @@ $sql_revenue = "
       AND COALESCE(b.paid_at, b.created_at) >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 5 MONTH), '%Y-%m-01')
     GROUP BY month_key
 ";
-
 $res_revenue = $conn->query($sql_revenue);
 if ($res_revenue)
 {
@@ -37,17 +32,13 @@ if ($res_revenue)
         }
     }
 }
-
 foreach ($month_map as $month_key => $amount)
 {
     $months[] = date('M', strtotime($month_key . '-01'));
     $revenue_data[] = $amount;
 }
-
-
 $venue_labels = [];
 $utilization_percentages = [];
-
 $sql_util = "
     SELECT
         v.vname,
@@ -75,7 +66,6 @@ $sql_util = "
     ORDER BY utilization_percent DESC
     LIMIT 5
 ";
-
 $res_util = $conn->query($sql_util);
 if ($res_util)
 {
@@ -85,10 +75,7 @@ if ($res_util)
         $utilization_percentages[] = (float)$row['utilization_percent'];
     }
 }
-
-
 $transactions = [];
-
 $sql_ledger = "
     SELECT
         COALESCE(b.transaction_ref, 'TXN-PENDING') AS id,
@@ -100,9 +87,7 @@ $sql_ledger = "
     FROM booking b
     JOIN venue v ON b.vid = v.vid
     WHERE b.payment_status IN ('paid', 'refunded')
-
     UNION ALL
-
     SELECT
         r.rid AS id,
         i.bid AS ref,
@@ -113,10 +98,8 @@ $sql_ledger = "
     FROM inspection i
     JOIN report r ON i.ins_id = r.ins_id
     WHERE i.penalty > 0
-
     ORDER BY date DESC LIMIT 10
 ";
-
 $result = $conn->query($sql_ledger);
 if ($result && $result->num_rows > 0)
 {
@@ -125,20 +108,15 @@ if ($result && $result->num_rows > 0)
         $transactions[] = $row;
     }
 }
-
-
 if (isset($_GET['export']) && $_GET['export'] === 'csv')
 {
     $filename = 'financial_transaction_ledger_' . date('Ymd_His') . '.csv';
-
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename="' . $filename . '"');
     header('Pragma: no-cache');
     header('Expires: 0');
-
     $output = fopen('php://output', 'w');
     fputcsv($output, ['Transaction ID', 'Booking Ref', 'Type', 'Amount (RM)', 'Date', 'Settlement State']);
-
     foreach ($transactions as $tx)
     {
         fputcsv($output, [
@@ -150,7 +128,6 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv')
             $tx['status']
         ]);
     }
-
     fclose($output);
     exit;
 }
@@ -168,20 +145,25 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv')
         tailwind.config =
         {
             theme:
-            { extend:
-            { colors:
-            { cstyle:
-            { blue: '#004aad', dark: '#1e293b', accent: '#38bdf8' } } } }
+            {
+                extend:
+            {
+                colors:
+            {
+                cstyle:
+            {
+                blue: '#004aad', dark: '#1e293b', accent: '#38bdf8'
+            }
+}
+}
+}
         }
     </script>
     <link rel="stylesheet" href="../assets/css/admin_css.css?v=2.0">
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
-
     <?php include('../includes/admin_sidebar.php'); ?>
-
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-50">
-
             <?php
             $topbar_content = '
             <div class="flex items-center text-slate-500 bg-white px-4 py-2 rounded-lg border border-slate-200 focus-within:border-mmu-blue shadow-sm transition-all">
@@ -190,9 +172,7 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv')
             </div>';
             include('../includes/admin_topbar.php');
             ?>
-
         <div class="flex-1 overflow-y-auto p-8 scroll-smooth">
-
             <div class="flex justify-between items-end mb-8">
                 <div>
                     <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">System Analytics</h1>
@@ -206,7 +186,6 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv')
                     <i data-lucide="download-cloud" class="w-4 h-4 mr-2"></i> Export CSV
                 </a>
             </div>
-
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 flex flex-col h-[400px]">
                     <h2 class="text-lg font-extrabold text-slate-800 mb-6 flex items-center">
@@ -216,7 +195,6 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv')
                         <canvas id="revenueChart"></canvas>
                     </div>
                 </div>
-
                 <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 flex flex-col h-[400px]">
                     <h2 class="text-lg font-extrabold text-slate-800 mb-6 flex items-center">
                         <i data-lucide="bar-chart-3" class="w-5 h-5 mr-2 text-emerald-500"></i> Venue Utilization Matrix (%)
@@ -226,7 +204,6 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv')
                     </div>
                 </div>
             </div>
-
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-8">
                 <div class="px-6 py-5 border-b border-slate-200 flex justify-between items-center bg-slate-50">
                     <h2 class="text-lg font-extrabold text-slate-800 flex items-center">
@@ -252,20 +229,21 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv')
                             <td class="px-6 py-4 font-mono font-bold"><?php echo number_format((float)$tx['amount'], 2); ?></td>
                             <td class="px-6 py-4 text-right">
                                 <?php
-
                                     $status_class = "bg-slate-50 text-slate-600 border-slate-200";
                                     $status_label = strtoupper(str_replace('_', ' ', $tx['status']));
-
                                     if($tx['status'] === 'paid' || $tx['status'] === 'processed')
                                     {
                                         $status_class = "bg-emerald-50 text-emerald-600 border-emerald-200";
-                                    } elseif($tx['status'] === 'refunded')
+                                    }
+                                    elseif($tx['status'] === 'refunded')
                                     {
                                         $status_class = "bg-blue-50 text-blue-600 border-blue-200";
-                                    } elseif($tx['status'] === 'unpaid' || $tx['status'] === 'none')
+                                    }
+                                    elseif($tx['status'] === 'unpaid' || $tx['status'] === 'none')
                                     {
                                         $status_class = "bg-red-50 text-red-600 border-red-200";
-                                    } elseif($tx['status'] === 'pending')
+                                    }
+                                    elseif($tx['status'] === 'pending')
                                     {
                                         $status_class = "bg-amber-50 text-amber-600 border-amber-200";
                                     }
@@ -279,19 +257,14 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv')
                     </tbody>
                 </table>
             </div>
-
         </div>
     </main>
-
     <script>
         lucide.createIcons();
-
         const months = <?php echo json_encode($months); ?>;
         const revenueData = <?php echo json_encode($revenue_data); ?>;
         const venueLabels = <?php echo json_encode($venue_labels); ?>;
         const utilizationData = <?php echo json_encode($utilization_percentages); ?>;
-
-
         new Chart(document.getElementById('revenueChart'),
         {
             type: 'line',
@@ -310,28 +283,43 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv')
                     pointRadius: 4,
                     pointBackgroundColor: '#fff',
                     pointBorderWidth: 2
-                }]
-            },
+                }
+]
+            }
+,
             options:
             {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins:
-                { legend:
-                { display: false } },
+                {
+                    legend:
+                {
+                    display: false
+                }
+}
+,
                 scales:
                 {
                     y:
-                    { beginAtZero: true, grid:
-                    { color: '#f1f5f9' } },
+                    {
+                        beginAtZero: true, grid:
+                    {
+                        color: '#f1f5f9'
+                    }
+}
+,
                     x:
-                    { grid:
-                    { display: false } }
+                    {
+                        grid:
+                    {
+                        display: false
+                    }
+}
                 }
             }
-        });
-
-
+        }
+);
         new Chart(document.getElementById('utilizationChart'),
         {
             type: 'bar',
@@ -345,27 +333,43 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv')
                     backgroundColor: '#10b981',
                     borderRadius: 6,
                     barPercentage: 0.6
-                }]
-            },
+                }
+]
+            }
+,
             options:
             {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins:
-                { legend:
-                { display: false } },
+                {
+                    legend:
+                {
+                    display: false
+                }
+}
+,
                 scales:
                 {
                     y:
-                    { beginAtZero: true, max: 100, grid:
-                    { color: '#f1f5f9' } },
+                    {
+                        beginAtZero: true, max: 100, grid:
+                    {
+                        color: '#f1f5f9'
+                    }
+}
+,
                     x:
-                    { grid:
-                    { display: false } }
+                    {
+                        grid:
+                    {
+                        display: false
+                    }
+}
                 }
             }
-        });
-
+        }
+);
         function toggleSidebar()
         {
             const sidebar = document.getElementById('system-sidebar');

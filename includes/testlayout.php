@@ -9,18 +9,26 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
         tailwind.config =
-        { theme:
-        { extend:
-        { colors:
-        { cstyle:
-        { blue: '#004aad', dark: '#1e293b' } } } } }
+        {
+            theme:
+        {
+            extend:
+        {
+            colors:
+        {
+            cstyle:
+        {
+            blue: '#004aad', dark: '#1e293b'
+        }
+}
+}
+}
+}
     </script>
     <link rel="stylesheet" href="../assets/css/admin_css.css?v=2.0">
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
-
     <?php include('../includes/admin_sidebar.php'); ?>
-
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
     <?php
          $topbar_content = '
@@ -37,10 +45,11 @@
                 <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Title</h1>
                 <p class="text-sm text-slate-500 mt-1">Description</p>
             </div>
-
             content...  </div>     </main>  <?php include('../includes/ui_components.php'); ?>  <script> lucide.createIcons();
         function toggleSidebar()
-        { document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed'); }
+        {
+            document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed');
+        }
     </script>
 </body>
 </html>

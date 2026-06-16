@@ -12,15 +12,11 @@
     transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
-
-
 .fiori-tile:hover
 {
     border-color: #94a3b8;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
-
-
 .fiori-tile-header
 {
     display: flex;
@@ -28,19 +24,15 @@
     align-items: flex-start;
     margin-bottom: 0.125rem;
 }
-
 .fiori-tile-icon
 {
  color: #64748b;
     transition: color 0.2s ease;
 }
-
 .fiori-tile:hover .fiori-tile-icon
 {
  color: #0f172a;
 }
-
-
 .fiori-tile-title
 {
  font-size: 14px;
@@ -49,8 +41,6 @@
     letter-spacing: 0.05em;
     color: #334155;
 }
-
-
 .fiori-tile-desc
 {
     font-size: 12px;
@@ -58,8 +48,6 @@
     line-height: 1.5;
     margin-bottom: 1rem;
 }
-
-
 .fiori-tile-kpi
 {
     font-size: 2.25rem;
@@ -69,8 +57,6 @@
     margin-top: auto;
     line-height: 1;
 }
-
-
 .fiori-tile-footer
 {
     margin-top: 1.25rem;
@@ -85,7 +71,6 @@
     align-items: center;
     transition: color 0.2s ease;
 }
-
 .fiori-tile:hover .fiori-tile-footer
 {
  color: #004aad;

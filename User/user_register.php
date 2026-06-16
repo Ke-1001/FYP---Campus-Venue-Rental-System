@@ -17,10 +17,17 @@ session_start(); ?>
                 extend:
                 {
                     colors:
-                    { mmu:
-                    { core: '#004aad', glow: '#3b82f6' } },
+                    {
+                        mmu:
+                    {
+                        core: '#004aad', glow: '#3b82f6'
+                    }
+}
+,
                     fontFamily:
-                    { sans: ['Century Gothic', 'CenturyGothic', 'Century', 'Arial', 'sans-serif'] }
+                    {
+                        sans: ['Century Gothic', 'CenturyGothic', 'Century', 'Arial', 'sans-serif']
+                    }
                 }
             }
         }
@@ -28,7 +35,6 @@ session_start(); ?>
     <link rel="stylesheet" href="../assets/css/user_css.css?v=2.8">
 </head>
 <body class="user-dark-theme font-sans antialiased min-h-screen relative overflow-y-auto">
-
 <?php if (isset($_GET['status'])): ?>
     <div id='toast' class='fixed top-5 right-5 z-50 px-6 py-4 rounded-xl text-white font-bold shadow-2xl <?php echo $_GET['status'] == 'success' ? 'bg-emerald-500' : 'bg-red-500'; ?>'>
         <?php echo htmlspecialchars($_GET['msg']); ?>
@@ -39,24 +45,21 @@ session_start(); ?>
             const toast = document.getElementById('toast');
             toast.style.display = 'none';
             <?php if ($_GET['status'] == 'success') echo "window.location.href = 'user_login.php';"; ?>
-        }, 3000);
+        }
+, 3000);
     </script>
 <?php endif; ?>
-
 <div class="auth-home-bg" aria-hidden="true"></div>
-
 <div class="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 py-12">
     <div class="absolute top-6 left-6 flex items-center gap-2">
         <div class="w-8 h-8 bg-mmu-core rounded-md flex items-center justify-center text-white font-bold shadow-lg">C</div>
         <span class="font-bold text-white text-xl tracking-tight">CVBMS</span>
     </div>
-
     <div class="w-full max-w-lg">
         <div class="text-center mb-8">
             <h1 class="text-4xl font-extrabold text-white tracking-tight mb-2">Create <span class="text-mmu-glow">Account.</span></h1>
             <p class="text-slate-300 font-medium text-sm">Sign up to start booking campus venues.</p>
         </div>
-
         <div class="glass-panel rounded-2xl p-8 shadow-2xl">
         <form action="../User/user_register_process.php" method="POST" id="regForm" class="space-y-4">
             <div>
@@ -103,7 +106,6 @@ session_start(); ?>
         </div>
     </div>
 </div>
-
 <script>
     lucide.createIcons();
     function validatePhone(input)
@@ -121,38 +123,65 @@ session_start(); ?>
     uidInput.addEventListener('input', () =>
     {
         const regex = /^[0-9]
-        {3}[A-Za-z]
-        {2}[A-Za-z0-9]
-        {5}$/;
+        {
+            3
+        }
+            [A-Za-z]
+        {
+            2
+        }
+            [A-Za-z0-9]
+        {
+            5
+        }
+            $/;
         const errorEl = document.getElementById('uid-error');
         errorEl.style.display = (uidInput.value.length === 0) ? 'none' : (regex.test(uidInput.value) ? 'none' : 'block');
-    });
+    }
+);
     emailInput.addEventListener('input', () =>
     {
         const regex = /@student\.mmu\.edu\.my$/;
         const errorEl = document.getElementById('email-error');
         errorEl.style.display = (emailInput.value.length === 0) ? 'none' : (regex.test(emailInput.value) ? 'none' : 'block');
-    });
+    }
+);
     function togglePasswordVisibility()
     {
         const p = document.getElementById('password');
         const eye = document.getElementById('eyeIcon');
         if (p.type === 'password')
-        { p.type = 'text'; eye.setAttribute('data-lucide', 'eye-off'); } else
-        { p.type = 'password'; eye.setAttribute('data-lucide', 'eye'); } lucide.createIcons(); } function evaluateEntropy()
+        {
+            p.type = 'text'; eye.setAttribute('data-lucide', 'eye-off');
+        }
+            else
+        {
+            p.type = 'password'; eye.setAttribute('data-lucide', 'eye');
+        }
+            lucide.createIcons();
+        }
+            function evaluateEntropy()
         {
         const p = document.getElementById('password').value;
         const v =
-        { length: p.length >= 8, upper: /[A-Z]/.test(p), lower: /[a-z]/.test(p), number: /\d/.test(p), special: /[@$!%*?&]/.test(p) };
+        {
+            length: p.length >= 8, upper: /[A-Z]/.test(p), lower: /[a-z]/.test(p), number: /\d/.test(p), special: /[@$!%*?&]/.test(p)
+        }
+;
         let score = 0;
         const setUI = (id, valid) =>
         {
             const el = document.getElementById(id);
             if (valid)
-            { score++; el.className = 'rule-item rule-valid'; el.querySelector('.rule-icon').textContent = '✓'; }
+            {
+                score++; el.className = 'rule-item rule-valid'; el.querySelector('.rule-icon').textContent = '✓';
+            }
             else
-            { el.className = 'rule-item rule-invalid'; el.querySelector('.rule-icon').textContent = '✗'; }
-        };
+            {
+                el.className = 'rule-item rule-invalid'; el.querySelector('.rule-icon').textContent = '✗';
+            }
+        }
+;
         setUI('rule-length', v.length); setUI('rule-upper', v.upper); setUI('rule-lower', v.lower); setUI('rule-number', v.number); setUI('rule-special', v.special);
         const bar = document.getElementById('entropy-bar');
         bar.style.width = (score / 5) * 100 + '%';

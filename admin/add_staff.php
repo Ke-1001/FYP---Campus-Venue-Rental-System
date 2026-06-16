@@ -3,8 +3,6 @@
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
-
-
 $page_title = "Register Personnel";
 $page_description = "Provision new administrative and inspector entities.";
 $topbar_content = '
@@ -14,29 +12,20 @@ $topbar_content = '
     </a>
     <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Identity Management / Register Personnel</h2>
 </div>';
-
 $extra_css = [];
-
-
 require_once __DIR__ . '/../core/components/FioriFormBuilder.php';
 use Core\Components\FioriFormBuilder as FB;
-
-
 ob_start();
 ?>
-
 <form action="../actions/process_add_staff.php" method="POST" id="addStaffForm" class="bg-white rounded-lg shadow-sm border border-slate-200 relative mb-20">
     <div class="p-0">
         <div class="fiori-form-container">
             <div class="fiori-section-header">
                 <h2 class="text-base font-bold text-[#1d2d3e]">Basic Personnel Data</h2>
             </div>
-
             <div class="p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
-
                 <div class="lg:col-span-6 space-y-4">
                     <h3 class="text-sm font-bold text-[#1d2d3e] mb-4">Identity Credentials</h3>
-
                     <?php
                     echo FB::select('access_level', 'Authorization Level', [
                         'admin' => 'Standard Administrator',
@@ -46,17 +35,14 @@ ob_start();
                         'placeholder' => 'Select Role Assignment',
                         'extra_css' => 'font-bold text-indigo-700'
                     ]);
-
                     echo FB::input('text', 'full_name', 'Full Name', '', [
                         'required' => true,
                         'placeholder' => 'e.g., Siti Nurhaliza'
                     ]);
                     ?>
                 </div>
-
                 <div class="lg:col-span-6 space-y-4">
                     <h3 class="text-sm font-bold text-[#1d2d3e] mb-4">Contact Parameters</h3>
-
                     <div class="space-y-1">
                         <?php
                         echo FB::input('email', 'email', 'Email Address', '', [
@@ -68,7 +54,6 @@ ob_start();
                         ?>
                         <p id="email-feedback" class="text-xs text-red-600 mt-1 hidden pl-32">Invalid email format</p>
                     </div>
-
                     <div class="space-y-1">
                         <?php
                         echo FB::input('text', 'phone_num', 'Contact Number', '', [
@@ -83,7 +68,6 @@ ob_start();
                         ?>
                         <p id="phone-feedback" class="text-xs text-red-600 mt-1 hidden pl-32">Invalid length. Must be 10 or 11 digits.</p>
                     </div>
-
                     <div class="pt-4 border-t border-slate-100 mt-4">
                         <p class="text-xs text-indigo-600 font-bold bg-indigo-50 border border-indigo-100 p-3 rounded-lg flex items-start">
                             <i data-lucide="info" class="w-4 h-4 mr-2 shrink-0 mt-0.5"></i>
@@ -94,7 +78,6 @@ ob_start();
             </div>
         </div>
     </div>
-
     <div class="fixed bottom-0 right-0 w-full lg:w-[calc(100%-16rem)] bg-slate-50 border-t border-slate-200 p-4 px-6 flex justify-end space-x-3 z-50 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.1)]">
         <button type="button" onclick="window.location.href='staff_directory.php'" class="px-5 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors">
             Cancel
@@ -104,109 +87,88 @@ ob_start();
         </button>
     </div>
 </form>
-
 <script>
-
     const formValidity =
     {
         email: false,
         phone: false
-    };
-
-
+    }
+;
     function validateFormState()
     {
         validateEmailField();
         validatePhoneField();
-
         const btn = document.getElementById('submitBtn');
-
         const isFormValid = formValidity.email && formValidity.phone;
         btn.disabled = !isFormValid;
     }
-
-
     function validateEmailField()
     {
         const emailInput = document.getElementById('email');
         const emailFeedback = document.getElementById('email-feedback');
-
-
         const emailRegex = /^[a-zA-Z0-9._%+-]+@([a-zA-Z0-9.-]+\.)?mmu\.edu\.my$/;
-
         if (emailInput.value.length > 0)
         {
             if (emailRegex.test(emailInput.value))
             {
-
                 emailInput.style.borderColor = '#d9d9d9';
                 emailFeedback.classList.add('hidden');
                 formValidity.email = true;
-            } else
+            }
+            else
             {
-
                 emailInput.style.borderColor = '#ee0000';
                 emailFeedback.textContent = "Invalid identity vector. Only MMU institutional domains are permitted.";
                 emailFeedback.classList.remove('hidden');
                 formValidity.email = false;
             }
-        } else
+        }
+        else
         {
             emailInput.style.borderColor = '#d9d9d9';
             emailFeedback.classList.add('hidden');
             formValidity.email = false;
         }
     }
-
-
     function validatePhoneField()
     {
         const phoneInput = document.getElementById('phone_num');
         const phoneFeedback = document.getElementById('phone-feedback');
-
-
         phoneInput.value = phoneInput.value.replace(/\D/g, '');
-
         const len = phoneInput.value.length;
-
         if (len > 0)
         {
-
-
             if (len >= 10 && len <= 11)
             {
                 phoneInput.style.borderColor = '#d9d9d9';
                 phoneFeedback.classList.add('hidden');
                 formValidity.phone = true;
-            } else
+            }
+            else
             {
                 phoneInput.style.borderColor = '#ee0000';
                 phoneFeedback.classList.remove('hidden');
                 formValidity.phone = false;
             }
-        } else
+        }
+        else
         {
             phoneInput.style.borderColor = '#d9d9d9';
             phoneFeedback.classList.add('hidden');
             formValidity.phone = false;
         }
     }
-
-
     document.getElementById('addStaffForm').addEventListener('submit', function()
     {
         const btn = document.getElementById('submitBtn');
         btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin mr-2 inline"></i> Provisioning...';
         btn.classList.add('opacity-70', 'cursor-not-allowed');
         btn.style.pointerEvents = 'none';
-
         if (typeof lucide !== 'undefined') lucide.createIcons();
-    });
+    }
+);
 </script>
-
 <?php
 $page_content = ob_get_clean();
-
-
 require_once __DIR__ . '/../core/layout.php';
 ?>

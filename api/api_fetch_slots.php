@@ -3,23 +3,17 @@
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/booking_functions.php';
 header('Content-Type: application/json');
-
 expireUnpaidBookings($conn);
-
 $vid = $_GET['venue_id'] ?? '';
 $date = $_GET['date'] ?? '';
-
 if (empty($vid) || empty($date))
 {
     echo json_encode(['status' => 'error', 'message' => 'Validation Fault: Missing parameter vectors.']);
     exit;
 }
-
 $blocked_vectors = [];
-
 try
 {
-
     $stmt1 = $conn->prepare("SELECT time_start, time_end FROM booking WHERE vid = ? AND date_booked = ? AND status IN ('pending', 'approved')");
     $stmt1->bind_param("ss", $vid, $date);
     $stmt1->execute();
@@ -28,21 +22,16 @@ try
     {
         $blocked_vectors[] = [
             'start' => substr($row['time_start'], 0, 5),
-
-
             'end' => date("H:i", strtotime($row['time_end'] . " +30 minutes"))
         ];
     }
     $stmt1->close();
-
-
     $sql2 = "SELECT a.start_time, a.end_time
              FROM academic_schedule a
              JOIN semester_config s ON a.sem_id = s.sem_id
              WHERE a.vid = ?
                AND ? BETWEEN s.start_date AND s.end_date
                AND a.day_of_week = DAYNAME(?)";
-
     $stmt2 = $conn->prepare($sql2);
     $stmt2->bind_param("sss", $vid, $date, $date);
     $stmt2->execute();
@@ -55,10 +44,9 @@ try
         ];
     }
     $stmt2->close();
-
     echo json_encode(['status' => 'success', 'blocked_vectors' => $blocked_vectors]);
-
-} catch (Exception $e)
+}
+catch (Exception $e)
 {
     echo json_encode(['status' => 'error', 'message' => 'Database Query Anomaly: ' . $e->getMessage()]);
 }

@@ -2,16 +2,13 @@
 // This section prepares the user dashboard page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
-
 if (!isset($_SESSION['uid']))
 {
     header("Location: user_login.php");
     exit();
 }
-
 $uid = $_SESSION['uid'];
 $display_name = isset($_SESSION['username']) ? $_SESSION['username'] : $uid;
-
 $damage_booking_stmt = $conn->prepare("
     SELECT
         b.bid,
@@ -33,12 +30,9 @@ $damage_booking_stmt = $conn->prepare("
     ORDER BY b.date_booked ASC, b.time_start ASC
     LIMIT 5
 ");
-
 $damage_booking_stmt->bind_param("s", $uid);
 $damage_booking_stmt->execute();
 $damage_booking_result = $damage_booking_stmt->get_result();
-
-
 $stats_stmt = $conn->prepare("SELECT
     COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending,
     COUNT(CASE WHEN status = 'approved' THEN 1 END) as approved,
@@ -47,8 +41,6 @@ $stats_stmt = $conn->prepare("SELECT
 $stats_stmt->bind_param("s", $uid);
 $stats_stmt->execute();
 $stats = $stats_stmt->get_result()->fetch_assoc();
-
-
 $history_stmt = $conn->prepare("SELECT v.vname, b.date_booked, b.status
     FROM booking b
     JOIN venue v ON b.vid = v.vid
@@ -57,39 +49,30 @@ $history_stmt = $conn->prepare("SELECT v.vname, b.date_booked, b.status
 $history_stmt->bind_param("s", $uid);
 $history_stmt->execute();
 $history_result = $history_stmt->get_result();
-
 $page_title = "Dashboard | CVBMS";
 include("../includes/user_header.php");
 include("../includes/user_navbar.php");
 ?>
-
 <div class="user-bg"></div>
-
 <div class="relative z-10 w-full pt-16 pb-20 px-6">
     <div class="max-w-7xl mx-auto">
         <h1 class="text-5xl font-black text-white mb-14">Welcome back, <span class="text-mmu-glow"><?php echo htmlspecialchars($display_name); ?>!</span></h1>
-
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
             <div class="glass-card p-10 text-center"><p class="text-white opacity-70">Total Bookings</p><h3 class="text-4xl font-bold text-white"><?php echo $stats['total']; ?></h3></div>
             <div class="glass-card p-10 text-center"><p class="text-white opacity-70">Approved</p><h3 class="text-4xl font-bold text-white"><?php echo $stats['approved']; ?></h3></div>
             <div class="glass-card p-10 text-center"><p class="text-white opacity-70">Pending</p><h3 class="text-4xl font-bold text-white"><?php echo $stats['pending']; ?></h3></div>
         </div>
-
         <?php if ($damage_booking_result && $damage_booking_result->num_rows > 0): ?>
-
-
         <div class="mt-8 bg-white/10 border border-white/10 rounded-2xl shadow-sm overflow-hidden backdrop-blur">
             <div class="px-6 py-5 border-b border-white/10">
                 <h2 class="text-xl font-black text-white flex items-center">
                     <i data-lucide="triangle-alert" class="w-5 h-5 mr-2 text-amber-400"></i>
                     Report Existing Damage
                 </h2>
-
                 <p class="text-sm text-slate-300 mt-1">
                     Report existing damage during your active booking time to avoid being charged for damage you did not cause.
                 </p>
             </div>
-
             <div class="p-6">
                 <?php if ($damage_booking_result && $damage_booking_result->num_rows > 0): ?>
                     <div class="space-y-3">
@@ -99,7 +82,6 @@ include("../includes/user_navbar.php");
                                     <p class="text-white font-bold">
                                         <?php echo htmlspecialchars($damage_booking['vname']); ?>
                                     </p>
-
                                     <p class="text-sm text-slate-300 mt-1">
                                         <?php echo date("d M Y", strtotime($damage_booking['date_booked'])); ?>
                                         ·
@@ -108,7 +90,6 @@ include("../includes/user_navbar.php");
                                         <?php echo substr($damage_booking['time_end'], 0, 5); ?>
                                     </p>
                                 </div>
-
                                 <div class="flex-shrink-0">
                                     <?php if (!empty($damage_booking['report_id'])): ?>
                                         <a
@@ -131,7 +112,6 @@ include("../includes/user_navbar.php");
                             </div>
                         <?php endwhile; ?>
                     </div>
-
                 <?php endif; ?>
             </div>
         </div>
@@ -149,9 +129,7 @@ include("../includes/user_navbar.php");
         </div>
     </div>
 </div>
-
 <script>
 lucide.createIcons();
 </script>
-
 <?php include("../includes/user_footer.php"); ?>

@@ -1,12 +1,8 @@
 <?php
 // This section prepares the admin login page.
 session_start();
-
-
 $admin_identifier = $_SESSION['aid'] ?? ($_SESSION['user_id'] ?? null);
 $admin_role = $_SESSION['role'] ?? '';
-
-
 if ($admin_identifier && in_array($admin_role, ['admin', 'super_admin'], true))
 {
  header("Location: manage_bookings.php");
@@ -23,39 +19,42 @@ if ($admin_identifier && in_array($admin_role, ['admin', 'super_admin'], true))
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
         tailwind.config =
-        { theme:
-        { extend:
-        { colors:
-        { cstyle:
-        { blue: '#004aad', dark: '#0f172a', accent: '#38bdf8' } } } } }
+        {
+            theme:
+        {
+            extend:
+        {
+            colors:
+        {
+            cstyle:
+        {
+            blue: '#004aad', dark: '#0f172a', accent: '#38bdf8'
+        }
+}
+}
+}
+}
     </script>
     <link rel="stylesheet" href="../assets/css/admin_css.css?v=2.0">
 </head>
 <body class="bg-cstyle-dark flex items-center justify-center min-h-screen font-sans selection:bg-mmu-accent selection:text-white relative overflow-hidden">
-
     <div class="absolute top-0 left-0 w-full h-full overflow-hidden z-0 opacity-20 pointer-events-none">
         <div class="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-mmu-blue blur-[120px]"></div>
         <div class="absolute bottom-[10%] right-[5%] w-[40%] h-[40%] rounded-full bg-indigo-600 blur-[100px]"></div>
     </div>
-
     <div class="w-full max-w-md bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-8 z-10">
-
         <div class="text-center mb-8">
             <h2 class="text-2xl font-extrabold text-white tracking-wide">CVBMS Management</h2>
             <p class="text-slate-400 text-sm mt-2 font-mono uppercase tracking-widest">Authorized Personnel Only</p>
         </div>
-
         <?php
-
         if (isset($_GET['error']))
         {
             $err_code = $_GET['error'];
             $err_msg = "Authentication Fault: Unknown Error.";
-
             if ($err_code == 'invalid') $err_msg = "Invalid credentials. Verification failed.";
             elseif ($err_code == 'access_denied') $err_msg = "Access Denied. Authorized personnel only.";
             elseif ($err_code == 'timeout') $err_msg = "Session Expired. Secure connection terminated.";
-
             echo "
             <div class='bg-red-500/10 border border-red-500/50 text-red-400 p-4 rounded-lg flex items-start mb-6 text-sm font-medium'>
                 <i data-lucide='alert-triangle' class='w-5 h-5 mr-3 shrink-0 mt-0.5'></i>
@@ -63,7 +62,6 @@ if ($admin_identifier && in_array($admin_role, ['admin', 'super_admin'], true))
             </div>";
         }
         ?>
-
         <form action="../actions/process_login.php" method="POST" class="space-y-5">
             <div>
                 <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Email</label>
@@ -72,7 +70,6 @@ if ($admin_identifier && in_array($admin_role, ['admin', 'super_admin'], true))
                            class="w-full pl-2 pr-4 py-3 bg-slate-900/50 border border-slate-700 text-white rounded-lg focus:ring-2 focus:ring-mmu-accent focus:border-mmu-accent outline-none transition-all placeholder-slate-600">
                 </div>
             </div>
-
             <div>
                 <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Password</label>
                 <div class="relative">
@@ -85,15 +82,11 @@ if ($admin_identifier && in_array($admin_role, ['admin', 'super_admin'], true))
                     </a>
                 </div>
             </div>
-
             <button type="submit" class="w-full mt-6 py-3.5 bg-mmu-blue hover:bg-blue-600 text-white font-bold rounded-lg transition-all shadow-lg hover:shadow-mmu-blue/30 flex justify-center items-center">
                 Log In <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
             </button>
-
-
         </form>
     </div>
-
     <script>lucide.createIcons();</script>
 </body>
 </html>

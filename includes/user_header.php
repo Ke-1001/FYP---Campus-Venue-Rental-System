@@ -4,12 +4,10 @@ if (session_status() === PHP_SESSION_NONE)
 {
     session_start();
 }
-
 if (!isset($page_title))
 {
     $page_title = "CVBMS | Campus Venue Booking";
 }
-
 $current_page = basename($_SERVER['PHP_SELF']);
 $is_homepage = ($current_page === 'homepage.php');
 $is_dashboard = ($current_page === 'user_dashboard.php');
@@ -39,14 +37,16 @@ $body_theme_class = $is_light_user_page
                         {
                             core: '#004aad',
                             glow: '#3b82f6'
-                        },
+                        }
+,
                         cstyle:
                         {
                             blue: '#004aad',
                             dark: '#1e293b',
                             accent: '#38bdf8'
                         }
-                    },
+                    }
+,
                     fontFamily:
                     {
                         sans: ['Century Gothic', 'CenturyGothic', 'Century', 'Arial', 'sans-serif']
