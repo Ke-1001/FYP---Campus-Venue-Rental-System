@@ -1,4 +1,5 @@
 <?php
+// This section prepares the user reset password page.
 require_once __DIR__ . '/../config/db.php';
 
 $token = $_GET['token'] ?? '';
@@ -10,8 +11,9 @@ $stmt->execute();
 $result = $stmt->get_result();
 $user = $result->fetch_assoc();
 
-if (!$user) { 
-    die("<div class='text-white p-10 text-center'>Invalid or expired reset link. <br><a href='user_login.php' class='text-blue-400'>Back to Login</a></div>"); 
+if (!$user)
+{
+    die("<div class='text-white p-10 text-center'>Invalid or expired reset link. <br><a href='user_login.php' class='text-blue-400'>Back to Login</a></div>");
 }
 ?>
 <!DOCTYPE html>
@@ -28,12 +30,13 @@ if (!$user) {
     <div class="relative z-10 flex items-center justify-center min-h-screen px-4">
         <div class="w-full max-w-sm glass-panel rounded-2xl p-8 shadow-2xl">
             <h2 class="text-white text-xl font-bold mb-6 text-center">Set New Password</h2>
-                <?php if ($_SERVER["REQUEST_METHOD"] == "POST"): 
+                <?php if ($_SERVER["REQUEST_METHOD"] == "POST"):
                     $password = $_POST['password'] ?? '';
 
                     $pattern = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/';
 
-                    if (!preg_match($pattern, $password)) {
+                    if (!preg_match($pattern, $password))
+                    {
                         die("<div class='text-white p-10 text-center'>Password does not meet the security requirements.<br><a href='reset_password.php?token=" . htmlspecialchars($token) . "' class='text-blue-400'>Try again</a></div>");
                     }
 
@@ -82,16 +85,19 @@ if (!$user) {
     </div>
 
     <script>
-        function togglePassword() {
+        function togglePassword()
+        {
             const input = document.getElementById('password');
             input.type = (input.type === "password") ? "text" : "password";
         }
 
-        function checkPassword() {
+        function checkPassword()
+        {
             const val = document.getElementById('password').value;
             const btn = document.getElementById('submit-btn');
-            
-            const reqs = {
+
+            const reqs =
+            {
                 length: val.length >= 8,
                 upper: /[A-Z]/.test(val),
                 lower: /[a-z]/.test(val),

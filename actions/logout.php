@@ -1,5 +1,5 @@
 <?php
-// File path: actions/logout.php
+// This section checks and processes logout requests.
 session_start();
 $_SESSION = array();
 session_destroy();

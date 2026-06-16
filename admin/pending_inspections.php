@@ -1,12 +1,12 @@
 <?php
-// File: admin/pending_inspections.php
+// This section prepares the admin pending inspections page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 require_once __DIR__ . '/../includes/booking_functions.php';
-require_once __DIR__ . '/../core/components/datagrid.php'; 
+require_once __DIR__ . '/../core/components/datagrid.php';
 
-// Load core components and repository
+
 require_once __DIR__ . '/../core/components/FilterBuilder.php';
 require_once __DIR__ . '/../core/repositories/InspectionRepository.php';
 
@@ -15,15 +15,10 @@ use Core\Repositories\InspectionRepository;
 
 syncCompletedBookings($conn);
 
-/*
-|--------------------------------------------------------------------------
-| I: Repository Initialization & System Protocol
-|--------------------------------------------------------------------------
-*/
-// 1. Create inspection repository
+
 $inspectionRepo = new InspectionRepository($conn);
 
-// 2. Build filters (Filter Topology)
+
 $filterBuilder = new FilterBuilder('pending_inspections.php', true);
 $filterBuilder
     ->addField('text', 'f_bid', 'Ref ID', [], 'Search BID...', 'b.bid', 'LIKE')
@@ -32,31 +27,32 @@ $filterBuilder
     ->addField('date', 'f_date', 'Date', [], '', 'b.date_booked', '=')
     ->addField('text', 'f_inspector', 'Personnel', [], 'Inspector Name...', 's.staff_name', 'LIKE');
 
-/*
-|--------------------------------------------------------------------------
-| D: Abstracted Data Execution & View Reshaping
-|--------------------------------------------------------------------------
-*/
-// 3. Get results from repository
+
 $result = $inspectionRepo->getPendingInspections($filterBuilder);
 
-// 4. Get rows and run time validation (time validation)
+
 $tz = new DateTimeZone('Asia/Kuala_Lumpur');
 $now = new DateTime('now', $tz);
 $records = [];
 
-if ($result && $result->num_rows > 0) {
-    while($row = $result->fetch_assoc()) {
+if ($result && $result->num_rows > 0)
+{
+    while($row = $result->fetch_assoc())
+    {
         $start_dt = new DateTime($row['date_booked'] . ' ' . $row['time_start'], $tz);
         $end_dt = new DateTime($row['date_booked'] . ' ' . $row['time_end'], $tz);
-        
- // Calculate time status and add execution_state field
-        if ($now >= $end_dt || $row['booking_status'] === 'completed') {
+
+
+        if ($now >= $end_dt || $row['booking_status'] === 'completed')
+        {
             $row['execution_state'] = 'ready';
-        } else {
-            if ($now >= $start_dt && $now < $end_dt) {
+        } else
+        {
+            if ($now >= $start_dt && $now < $end_dt)
+            {
                 $row['execution_state'] = 'in_use';
-            } else {
+            } else
+            {
                 $row['execution_state'] = 'awaiting';
             }
         }
@@ -64,11 +60,7 @@ if ($result && $result->num_rows > 0) {
     }
 }
 
-/*
-|--------------------------------------------------------------------------
-| C: Configuration & Schema Definitions
-|--------------------------------------------------------------------------
-*/
+
 $page_title = "Pending Inspections";
 $page_description = "Review upcoming physical assessments for post-event venues.";
 $topbar_content = '
@@ -80,8 +72,7 @@ $topbar_content = '
 </div>';
 $extra_css = [];
 
-// Core DataGrid schema config
-// Use map_badge to replace complex IF/ELSE display logic
+
 $datagrid_schema = [
     'enable_checkbox' => false,
     'primary_key' => 'bid',
@@ -103,11 +94,7 @@ $datagrid_schema = [
     ]
 ];
 
-/*
-|--------------------------------------------------------------------------
-| V: View Rendering (Output Buffer)
-|--------------------------------------------------------------------------
-*/
+
 ob_start();
 ?>
 
@@ -119,7 +106,7 @@ ob_start();
             Inspection Queue (<?php echo count($records); ?>)
         </h3>
     </div>
-    
+
     <div class="flex-1 overflow-y-auto" id="datagrid-wrapper">
         <?php echo render_datagrid($datagrid_schema, $records); ?>
     </div>
@@ -143,64 +130,72 @@ ob_start();
 </div>
 
 <script>
- // Modal control logic
-    function showTemporalModal(message) {
+
+    function showTemporalModal(message)
+    {
         const modal = document.getElementById('temporal-fault-modal');
         const panel = document.getElementById('temporal-fault-panel');
         document.getElementById('temporal-fault-msg').textContent = message;
-        
+
         modal.classList.remove('hidden');
-        // Trigger reflow
-        void modal.offsetWidth; 
-        
+
+        void modal.offsetWidth;
+
         modal.classList.remove('opacity-0', 'pointer-events-none');
         panel.classList.remove('scale-95');
         panel.classList.add('scale-100');
     }
 
-    function closeTemporalModal() {
+    function closeTemporalModal()
+    {
         const modal = document.getElementById('temporal-fault-modal');
         const panel = document.getElementById('temporal-fault-panel');
-        
+
         modal.classList.add('opacity-0', 'pointer-events-none');
         panel.classList.remove('scale-100');
         panel.classList.add('scale-95');
-        
-        setTimeout(() => { modal.classList.add('hidden'); }, 300);
+
+        setTimeout(() =>
+        { modal.classList.add('hidden'); }, 300);
     }
 
- // Core safety: event delegation handler (Event Delegation Interceptor)
-    document.addEventListener('DOMContentLoaded', () => {
+
+    document.addEventListener('DOMContentLoaded', () =>
+    {
         const wrapper = document.getElementById('datagrid-wrapper');
-        
-        wrapper.addEventListener('click', function(e) {
- // Check whether the clicked target is an evaluation link
+
+        wrapper.addEventListener('click', function(e)
+        {
+
             const targetLink = e.target.closest('a[href*="execute_inspection.php"]');
             if (!targetLink) return;
 
- // Find the related row (Table Row)
+
             const row = targetLink.closest('tr');
             if (!row) return;
 
- // Get the status badge in the row (detect In Use or Awaiting style)
-            const invalidBadge = row.querySelector('.bg-amber-50, .bg-slate-50'); 
-            
-            if (invalidBadge) {
- // Block default navigation
-                e.preventDefault(); 
+
+            const invalidBadge = row.querySelector('.bg-amber-50, .bg-slate-50');
+
+            if (invalidBadge)
+            {
+
+                e.preventDefault();
                 const stateText = invalidBadge.textContent.trim().toLowerCase();
                 const errMsg = `Warning: Booking is currently [${stateText}]. Assessment cannot commence until the reserved slot has concluded.`;
                 showTemporalModal(errMsg);
             }
         });
 
- // Check if server forced a redirect back (handle edited URL edge case)
+
         const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('err') && urlParams.get('err') === 'temporal') {
+        if (urlParams.has('err') && urlParams.get('err') === 'temporal')
+        {
             const state = urlParams.get('state') || 'unauthorized';
             showTemporalModal(`Warning: Assessment cannot commence. Booking state: [${state}].`);
- // Clear URL parameters
-            window.history.replaceState({}, document.title, "pending_inspections.php");
+
+            window.history.replaceState(
+            {}, document.title, "pending_inspections.php");
         }
     });
 </script>
@@ -208,10 +203,6 @@ ob_start();
 <?php
 $page_content = ob_get_clean();
 
-/*
-|--------------------------------------------------------------------------
-| L: Global Layout Engine
-|--------------------------------------------------------------------------
-*/
+
 require_once __DIR__ . '/../core/layout.php';
 ?>

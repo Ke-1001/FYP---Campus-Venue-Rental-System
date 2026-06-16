@@ -1,22 +1,22 @@
 <?php
-// File: admin/report.php
-
+// This section prepares the admin report page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
-require_once __DIR__ . '/../includes/admin_auth.php'; 
+require_once __DIR__ . '/../includes/admin_auth.php';
 
-// Real monthly deposit collection for the last 6 months
+
 $month_map = [];
 $months = [];
 $revenue_data = [];
 
-for ($i = 5; $i >= 0; $i--) {
+for ($i = 5; $i >= 0; $i--)
+{
     $month_key = date('Y-m', strtotime("-$i months"));
     $month_map[$month_key] = 0.00;
 }
 
 $sql_revenue = "
-    SELECT 
+    SELECT
         DATE_FORMAT(COALESCE(b.paid_at, b.created_at), '%Y-%m') AS month_key,
         SUM(v.deposit) AS total_revenue
     FROM booking b
@@ -27,32 +27,36 @@ $sql_revenue = "
 ";
 
 $res_revenue = $conn->query($sql_revenue);
-if ($res_revenue) {
-    while ($row = $res_revenue->fetch_assoc()) {
-        if (isset($month_map[$row['month_key']])) {
+if ($res_revenue)
+{
+    while ($row = $res_revenue->fetch_assoc())
+    {
+        if (isset($month_map[$row['month_key']]))
+        {
             $month_map[$row['month_key']] = (float)$row['total_revenue'];
         }
     }
 }
 
-foreach ($month_map as $month_key => $amount) {
+foreach ($month_map as $month_key => $amount)
+{
     $months[] = date('M', strtotime($month_key . '-01'));
     $revenue_data[] = $amount;
 }
 
-// Real venue utilization for current month
+
 $venue_labels = [];
 $utilization_percentages = [];
 
 $sql_util = "
-    SELECT 
+    SELECT
         v.vname,
         COALESCE(
             ROUND(
                 (
                     SUM(
-                        CASE 
-                            WHEN b.bid IS NOT NULL 
+                        CASE
+                            WHEN b.bid IS NOT NULL
                             THEN TIME_TO_SEC(TIMEDIFF(b.time_end, b.time_start)) / 60
                             ELSE 0
                         END
@@ -63,7 +67,7 @@ $sql_util = "
             0
         ) AS utilization_percent
     FROM venue v
-    LEFT JOIN booking b 
+    LEFT JOIN booking b
         ON v.vid = b.vid
        AND b.date_booked BETWEEN DATE_FORMAT(CURDATE(), '%Y-%m-01') AND LAST_DAY(CURDATE())
        AND b.status IN ('approved', 'completed')
@@ -73,53 +77,58 @@ $sql_util = "
 ";
 
 $res_util = $conn->query($sql_util);
-if ($res_util) {
-    while ($row = $res_util->fetch_assoc()) {
+if ($res_util)
+{
+    while ($row = $res_util->fetch_assoc())
+    {
         $venue_labels[] = $row['vname'];
         $utilization_percentages[] = (float)$row['utilization_percent'];
     }
 }
 
-// 2. Financial transaction listmatrix (Financial Ledger using UNION ALL)
+
 $transactions = [];
-// New structure: combine booking (deposit) and report/inspection (fine)
+
 $sql_ledger = "
-    SELECT 
-        COALESCE(b.transaction_ref, 'TXN-PENDING') AS id, 
-        b.bid AS ref, 
-        'Deposit' AS type, 
-        v.deposit AS amount, 
+    SELECT
+        COALESCE(b.transaction_ref, 'TXN-PENDING') AS id,
+        b.bid AS ref,
+        'Deposit' AS type,
+        v.deposit AS amount,
         DATE_FORMAT(b.created_at, '%Y-%m-%d') AS date,
-        b.payment_status AS status 
+        b.payment_status AS status
     FROM booking b
     JOIN venue v ON b.vid = v.vid
     WHERE b.payment_status IN ('paid', 'refunded')
-    
+
     UNION ALL
-    
-    SELECT 
-        r.rid AS id, 
-        i.bid AS ref, 
-        'Penalty' AS type, 
-        i.penalty AS amount, 
+
+    SELECT
+        r.rid AS id,
+        i.bid AS ref,
+        'Penalty' AS type,
+        i.penalty AS amount,
         DATE_FORMAT(r.created_at, '%Y-%m-%d') AS date,
-        r.penalty_status AS status 
+        r.penalty_status AS status
     FROM inspection i
     JOIN report r ON i.ins_id = r.ins_id
     WHERE i.penalty > 0
-    
+
     ORDER BY date DESC LIMIT 10
 ";
 
 $result = $conn->query($sql_ledger);
-if ($result && $result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
+if ($result && $result->num_rows > 0)
+{
+    while ($row = $result->fetch_assoc())
+    {
         $transactions[] = $row;
     }
 }
 
-// Export the same ledger data as CSV
-if (isset($_GET['export']) && $_GET['export'] === 'csv') {
+
+if (isset($_GET['export']) && $_GET['export'] === 'csv')
+{
     $filename = 'financial_transaction_ledger_' . date('Ymd_His') . '.csv';
 
     header('Content-Type: text/csv; charset=utf-8');
@@ -130,7 +139,8 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     $output = fopen('php://output', 'w');
     fputcsv($output, ['Transaction ID', 'Booking Ref', 'Type', 'Amount (RM)', 'Date', 'Settlement State']);
 
-    foreach ($transactions as $tx) {
+    foreach ($transactions as $tx)
+    {
         fputcsv($output, [
             $tx['id'],
             $tx['ref'],
@@ -155,8 +165,13 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        tailwind.config = {
-            theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b', accent: '#38bdf8' } } } }
+        tailwind.config =
+        {
+            theme:
+            { extend:
+            { colors:
+            { cstyle:
+            { blue: '#004aad', dark: '#1e293b', accent: '#38bdf8' } } } }
         }
     </script>
     <link rel="stylesheet" href="../assets/css/admin_css.css?v=2.0">
@@ -166,18 +181,18 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     <?php include('../includes/admin_sidebar.php'); ?>
 
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-50">
-        
-            <?php 
+
+            <?php
             $topbar_content = '
             <div class="flex items-center text-slate-500 bg-white px-4 py-2 rounded-lg border border-slate-200 focus-within:border-mmu-blue shadow-sm transition-all">
                 <i data-lucide="search" class="w-4 h-4 mr-2"></i>
                 <input type="text" placeholder="Search system assets..." class="bg-transparent border-none outline-none w-64 text-sm focus:ring-0">
             </div>';
-            include('../includes/admin_topbar.php'); 
+            include('../includes/admin_topbar.php');
             ?>
 
         <div class="flex-1 overflow-y-auto p-8 scroll-smooth">
-            
+
             <div class="flex justify-between items-end mb-8">
                 <div>
                     <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">System Analytics</h1>
@@ -236,18 +251,22 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
                             <td class="px-6 py-4 font-bold text-slate-600"><?php echo htmlspecialchars($tx['type']); ?></td>
                             <td class="px-6 py-4 font-mono font-bold"><?php echo number_format((float)$tx['amount'], 2); ?></td>
                             <td class="px-6 py-4 text-right">
-                                <?php 
- // Dynamic color badge parser (match new lowercase enum)
+                                <?php
+
                                     $status_class = "bg-slate-50 text-slate-600 border-slate-200";
                                     $status_label = strtoupper(str_replace('_', ' ', $tx['status']));
-                                    
-                                    if($tx['status'] === 'paid' || $tx['status'] === 'processed') {
+
+                                    if($tx['status'] === 'paid' || $tx['status'] === 'processed')
+                                    {
                                         $status_class = "bg-emerald-50 text-emerald-600 border-emerald-200";
-                                    } elseif($tx['status'] === 'refunded') {
+                                    } elseif($tx['status'] === 'refunded')
+                                    {
                                         $status_class = "bg-blue-50 text-blue-600 border-blue-200";
-                                    } elseif($tx['status'] === 'unpaid' || $tx['status'] === 'none') {
+                                    } elseif($tx['status'] === 'unpaid' || $tx['status'] === 'none')
+                                    {
                                         $status_class = "bg-red-50 text-red-600 border-red-200";
-                                    } elseif($tx['status'] === 'pending') {
+                                    } elseif($tx['status'] === 'pending')
+                                    {
                                         $status_class = "bg-amber-50 text-amber-600 border-amber-200";
                                     }
                                 ?>
@@ -272,12 +291,15 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
         const venueLabels = <?php echo json_encode($venue_labels); ?>;
         const utilizationData = <?php echo json_encode($utilization_percentages); ?>;
 
-        // 1. Revenue Line Chart
-        new Chart(document.getElementById('revenueChart'), {
+
+        new Chart(document.getElementById('revenueChart'),
+        {
             type: 'line',
-            data: {
+            data:
+            {
                 labels: months,
-                datasets: [{
+                datasets: [
+                {
                     label: 'Revenue',
                     data: revenueData,
                     borderColor: '#004aad',
@@ -290,23 +312,34 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
                     pointBorderWidth: 2
                 }]
             },
-            options: {
+            options:
+            {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: { 
-                    y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
-                    x: { grid: { display: false } }
+                plugins:
+                { legend:
+                { display: false } },
+                scales:
+                {
+                    y:
+                    { beginAtZero: true, grid:
+                    { color: '#f1f5f9' } },
+                    x:
+                    { grid:
+                    { display: false } }
                 }
             }
         });
 
-        // 2. Utilization Bar Chart
-        new Chart(document.getElementById('utilizationChart'), {
+
+        new Chart(document.getElementById('utilizationChart'),
+        {
             type: 'bar',
-            data: {
+            data:
+            {
                 labels: venueLabels,
-                datasets: [{
+                datasets: [
+                {
                     label: 'Utilization %',
                     data: utilizationData,
                     backgroundColor: '#10b981',
@@ -314,18 +347,27 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
                     barPercentage: 0.6
                 }]
             },
-            options: {
+            options:
+            {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: { 
-                    y: { beginAtZero: true, max: 100, grid: { color: '#f1f5f9' } },
-                    x: { grid: { display: false } }
+                plugins:
+                { legend:
+                { display: false } },
+                scales:
+                {
+                    y:
+                    { beginAtZero: true, max: 100, grid:
+                    { color: '#f1f5f9' } },
+                    x:
+                    { grid:
+                    { display: false } }
                 }
             }
         });
 
-        function toggleSidebar() {
+        function toggleSidebar()
+        {
             const sidebar = document.getElementById('system-sidebar');
             sidebar.classList.toggle('sidebar-collapsed');
         }

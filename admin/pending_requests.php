@@ -1,22 +1,18 @@
 <?php
-// File: admin/pending_requests.php
+// This section prepares the admin pending requests page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
-require_once __DIR__ . '/../core/components/datagrid.php'; 
+require_once __DIR__ . '/../core/components/datagrid.php';
 
-// Load core components and repository
+
 require_once __DIR__ . '/../core/components/FilterBuilder.php';
 require_once __DIR__ . '/../core/repositories/BookingRepository.php';
 
 use Core\Components\FilterBuilder;
 use Core\Repositories\BookingRepository;
 
-/*
-|--------------------------------------------------------------------------
-| I: Repository Initialization & System Protocol
-|--------------------------------------------------------------------------
-*/
+
 $bookingRepo = new BookingRepository($conn);
 
 $filterBuilder = new FilterBuilder('pending_requests.php', true);
@@ -26,18 +22,10 @@ $filterBuilder
     ->addField('text', 'f_venue', 'Asset', [], 'Name or Category...', 'CONCAT(v.vname, " ", vc.category)', 'LIKE')
     ->addField('date', 'f_date', 'Date', [], '', 'b.date_booked', '=');
 
-/*
-|--------------------------------------------------------------------------
-| D: Abstracted Data Execution & View Reshaping
-|--------------------------------------------------------------------------
-*/
+
 $result = $bookingRepo->getPendingRequests($filterBuilder);
 
-/*
-|--------------------------------------------------------------------------
-| C: Configuration & Schema Definitions
-|--------------------------------------------------------------------------
-*/
+
 $page_title = "Pending Requests";
 $page_description = "Review full details below and execute booking decisions efficiently via batch processing.";
 $topbar_content = '
@@ -49,8 +37,7 @@ $topbar_content = '
 </div>';
 $extra_css = [];
 
-// Core DataGrid schema config
-// Enable checkbox for bulk action
+
 $datagrid_schema = [
     'enable_checkbox' => true,
     'primary_key' => 'bid',
@@ -67,11 +54,7 @@ $datagrid_schema = [
     ]
 ];
 
-/*
-|--------------------------------------------------------------------------
-| V: View Rendering (Output Buffer)
-|--------------------------------------------------------------------------
-*/
+
 ob_start();
 ?>
 
@@ -112,52 +95,62 @@ ob_start();
 </div>
 
 <script>
- // Match datagrid.php checkbox trigger
-    const toggleAll = (source) => {
-        document.querySelectorAll('.row-cb').forEach(cb => { cb.checked = source.checked; });
+
+    const toggleAll = (source) =>
+    {
+        document.querySelectorAll('.row-cb').forEach(cb =>
+        { cb.checked = source.checked; });
         updateButtonStates();
     };
 
-    const updateButtonStates = () => {
+    const updateButtonStates = () =>
+    {
         const selectedCount = document.querySelectorAll('.row-cb:checked').length;
         const btnApprove = document.getElementById('btn-approve');
         const btnReject = document.getElementById('btn-reject');
         const cbCounter = document.getElementById('cb-counter');
-        
+
         if (cbCounter) cbCounter.innerText = selectedCount;
 
         const hasSelection = selectedCount > 0;
 
- // Toggle button status and style
-        if (btnApprove) {
+
+        if (btnApprove)
+        {
             btnApprove.disabled = !hasSelection;
-            btnApprove.className = hasSelection 
+            btnApprove.className = hasSelection
                 ? "px-4 py-2 text-xs font-semibold text-white bg-[#059669] hover:bg-[#047857] rounded-md shadow-sm transition cursor-pointer border border-[#059669]"
                 : "px-4 py-2 text-xs font-semibold text-slate-400 bg-slate-100 rounded-md transition cursor-not-allowed border border-slate-200";
         }
 
-        if (btnReject) {
+        if (btnReject)
+        {
             btnReject.disabled = !hasSelection;
-            btnReject.className = hasSelection 
+            btnReject.className = hasSelection
                 ? "px-4 py-2 text-xs font-semibold text-[#dc2626] bg-white hover:bg-red-50 border border-red-200 rounded-md shadow-sm transition cursor-pointer"
                 : "px-4 py-2 text-xs font-semibold text-slate-400 bg-slate-100 rounded-md transition cursor-not-allowed border border-slate-200";
         }
     };
 
- // Bind checkbox click event to update status
-    document.addEventListener('change', function(e) {
-        if(e.target && e.target.classList.contains('row-cb')) {
+
+    document.addEventListener('change', function(e)
+    {
+        if(e.target && e.target.classList.contains('row-cb'))
+        {
             updateButtonStates();
         }
     });
 
-    const triggerBulkDecision = (actionType) => {
+    const triggerBulkDecision = (actionType) =>
+    {
         const selected = document.querySelectorAll('.row-cb:checked');
-        if (selected.length === 0) return;  const titleEl = document.getElementById('modal-title'); const msgEl = document.getElementById('modal-msg'); const btnEl = document.getElementById('modal-confirm-btn');  document.getElementById('bulk_action_type').value = actionType;  if (actionType === 'approve') {
+        if (selected.length === 0) return;  const titleEl = document.getElementById('modal-title'); const msgEl = document.getElementById('modal-msg'); const btnEl = document.getElementById('modal-confirm-btn');  document.getElementById('bulk_action_type').value = actionType;  if (actionType === 'approve')
+        {
             titleEl.innerText = 'Batch Approve Bookings';
             msgEl.innerText = `Are you sure you want to approve ${selected.length} request(s)? The venue slots will be locked.`;
             btnEl.className = 'px-4 py-2 text-xs font-semibold text-white rounded-md shadow-sm transition-colors bg-[#059669] hover:bg-[#047857] border border-[#059669]';
-        } else if (actionType === 'reject') {
+        } else if (actionType === 'reject')
+        {
             titleEl.innerText = 'Batch Reject Bookings';
             msgEl.innerText = `Are you sure you want to reject ${selected.length} request(s)? The deposits will be flagged for refund.`;
             btnEl.className = 'px-4 py-2 text-xs font-semibold text-white rounded-md shadow-sm transition-colors bg-[#dc2626] hover:bg-[#b91c1c] border border-[#dc2626]';
@@ -166,21 +159,24 @@ ob_start();
         const modal = document.getElementById('decision-modal');
         const panel = document.getElementById('decision-panel');
         modal.classList.remove('hidden');
-        void modal.offsetWidth; // Force reflow
+        void modal.offsetWidth;
         modal.classList.remove('opacity-0');
         panel.classList.remove('scale-95');
     };
 
-    const closeDecisionModal = () => {
+    const closeDecisionModal = () =>
+    {
         const modal = document.getElementById('decision-modal');
         const panel = document.getElementById('decision-panel');
         modal.classList.add('opacity-0');
         panel.classList.add('scale-95');
-        setTimeout(() => { modal.classList.add('hidden'); }, 200);
+        setTimeout(() =>
+        { modal.classList.add('hidden'); }, 200);
     };
 
- // Set form submit action
-    document.getElementById('modal-confirm-btn').addEventListener('click', function() {
+
+    document.getElementById('modal-confirm-btn').addEventListener('click', function()
+    {
         this.innerHTML = 'Processing...';
         this.classList.add('opacity-70', 'cursor-not-allowed');
         document.getElementById('bulkActionForm').submit();
@@ -190,10 +186,6 @@ ob_start();
 <?php
 $page_content = ob_get_clean();
 
-/*
-|--------------------------------------------------------------------------
-| L: Global Layout Engine
-|--------------------------------------------------------------------------
-*/
+
 require_once __DIR__ . '/../core/layout.php';
 ?>

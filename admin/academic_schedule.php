@@ -1,30 +1,25 @@
 <?php
-// File: admin/academic_schedule.php
+// This section prepares the admin academic schedule page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
-require_once __DIR__ . '/../core/components/datagrid.php'; 
+require_once __DIR__ . '/../core/components/datagrid.php';
 
-// Load core framework
+
 require_once __DIR__ . '/../core/components/FilterBuilder.php';
 require_once __DIR__ . '/../core/repositories/ScheduleRepository.php';
 
 use Core\Components\FilterBuilder;
 use Core\Repositories\ScheduleRepository;
 
-/*
-|--------------------------------------------------------------------------
-| I: Repository Initialization & Dictionary Extraction
-|--------------------------------------------------------------------------
-*/
-// 1. Create repository instance
+
 $scheduleRepo = new ScheduleRepository($conn);
 
-// 2. Get clean data list through Repository (Zero-SQL)
+
 $sem_options = $scheduleRepo->getSemesterOptions();
 $vid_options = $scheduleRepo->getVenueOptions();
 
-// 3. Build filters
+
 $filterBuilder = new FilterBuilder('academic_schedule.php', true);
 $filterBuilder
     ->addField('select', 'filter_sem', 'Semester', $sem_options, 'All Semesters', 's.sem_id', '=')
@@ -39,18 +34,15 @@ $filterBuilder
         'Sunday' => 'Sunday'
     ], 'All Days', 's.day_of_week', '=');
 
-/*
-|--------------------------------------------------------------------------
-| D: Abstracted Data Execution & View Reshaping
-|--------------------------------------------------------------------------
-*/
-// 4. Get results from repository
+
 $result = $scheduleRepo->getAllWithFilters($filterBuilder);
 
-// 5. Convert data to Calendar JSON (keep in controller)
+
 $calendar_events = [];
-if ($result && $result->num_rows > 0) {
-    while($row = $result->fetch_assoc()) {
+if ($result && $result->num_rows > 0)
+{
+    while($row = $result->fetch_assoc())
+    {
         $calendar_events[] = [
             'id' => $row['sch_id'],
             'venue' => $row['vid'],
@@ -61,15 +53,11 @@ if ($result && $result->num_rows > 0) {
             'subject' => $row['subject_name']
         ];
     }
- // Reset cursor for the DataGrid below
-    $result->data_seek(0); 
+
+    $result->data_seek(0);
 }
 
-/*
-|--------------------------------------------------------------------------
-| C: Configuration & Schema Definitions
-|--------------------------------------------------------------------------
-*/
+
 $page_title = "Class Schedule";
 $page_description = "Manage weekly class schedules and block venue availability.";
 $topbar_content = '
@@ -81,7 +69,7 @@ $topbar_content = '
 </div>';
 $extra_css = [];
 
-// Core part 2: DataGrid schema config
+
 $datagrid_schema = [
     'enable_checkbox' => true,
     'primary_key' => 'sch_id',
@@ -95,18 +83,14 @@ $datagrid_schema = [
     ]
 ];
 
-// Inject config into controller (isolate external JavaScript)
+
 $controller_config = [
     'edit_url_base' => 'add_exclusion.php?id=',
     'delete_entity_name' => 'schedule record'
 ];
 require_once __DIR__ . '/../core/components/datagrid_controller.php';
 
-/*
-|--------------------------------------------------------------------------
-| V: View Rendering (Output Buffer)
-|--------------------------------------------------------------------------
-*/
+
 ob_start();
 ?>
 
@@ -125,7 +109,7 @@ ob_start();
 </div>
 
 <div class="flex-1 custom-table-container flex flex-col relative overflow-hidden">
-    
+
     <form id="bulkActionForm" action="../actions/process_schedule.php" method="POST" class="flex-1 overflow-hidden flex flex-col">
         <input type="hidden" name="action" id="bulk_action_type" value="">
         <div id="view-table-container" class="flex-1 overflow-y-auto">
@@ -142,49 +126,59 @@ ob_start();
 </div>
 
 <script>
-    function switchView(target) {
+    function switchView(target)
+    {
         const tableTab = document.getElementById('tab-btn-table');
         const calendarTab = document.getElementById('tab-btn-calendar');
         const tableForm = document.getElementById('bulkActionForm');
         const calendarContainer = document.getElementById('view-calendar-container');
 
-        if (target === 'table') {
+        if (target === 'table')
+        {
             tableTab.className = "px-4 py-2 text-xs font-bold rounded-md transition-all flex items-center bg-[#f1f5f9] text-[#004aad] shadow-sm";
             calendarTab.className = "px-4 py-2 text-xs font-bold rounded-md transition-all flex items-center text-slate-500 hover:bg-slate-50";
-            
+
             tableForm.classList.remove('hidden');
             tableForm.classList.add('flex');
             calendarContainer.classList.add('hidden');
             calendarContainer.classList.remove('flex');
-        } else {
+        } else
+        {
             calendarTab.className = "px-4 py-2 text-xs font-bold rounded-md transition-all flex items-center bg-[#f1f5f9] text-[#004aad] shadow-sm";
             tableTab.className = "px-4 py-2 text-xs font-bold rounded-md transition-all flex items-center text-slate-500 hover:bg-slate-50";
-            
+
             calendarContainer.classList.remove('hidden');
             calendarContainer.classList.add('flex');
             tableForm.classList.add('hidden');
             tableForm.classList.remove('flex');
-            
-            renderCalendar(); 
+
+            renderCalendar();
         }
     }
 
     const rawEvents = <?php echo json_encode($calendar_events); ?>;
-    
-    function renderCalendar() {
+
+    function renderCalendar()
+    {
         const gridContainer = document.getElementById('calendar-matrix-grid');
         gridContainer.innerHTML = '';
         const daysOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-        const columnMaps = {}; 
-        
-        daysOrder.forEach(day => { columnMaps[day] = []; });
-        rawEvents.forEach(evt => { if(columnMaps[evt.day]) columnMaps[evt.day].push(evt); });
-        
-        daysOrder.forEach(day => {
+        const columnMaps =
+        {};
+
+        daysOrder.forEach(day =>
+        { columnMaps[day] = []; });
+        rawEvents.forEach(evt =>
+        { if(columnMaps[evt.day]) columnMaps[evt.day].push(evt); });
+
+        daysOrder.forEach(day =>
+        {
             let colHtml = `<div class="space-y-3 min-h-[400px]">`;
-            if(columnMaps[day].length > 0) {
+            if(columnMaps[day].length > 0)
+            {
                 columnMaps[day].sort((a,b) => a.start.localeCompare(b.start));
-                columnMaps[day].forEach(evt => {
+                columnMaps[day].forEach(evt =>
+                {
                     colHtml += `<div class="bg-white border-l-4 border-[#004aad] rounded-md p-3 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] border border-slate-200">
                             <span class="block text-l font-extrabold text-slate-800 truncate" title="${evt.subject}">${evt.subject}</span>
                             <span class="block text-[12px] text-[#004aad] font-mono uppercase font-bold mt-1">${evt.venue}</span>
@@ -192,7 +186,7 @@ ob_start();
                         </div>`;
                 });
             }
-            colHtml += `</div>`; 
+            colHtml += `</div>`;
             gridContainer.innerHTML += colHtml;
         });
     }
@@ -201,10 +195,6 @@ ob_start();
 <?php
 $page_content = ob_get_clean();
 
-/*
-|--------------------------------------------------------------------------
-| L: Global Layout Engine
-|--------------------------------------------------------------------------
-*/
+
 require_once __DIR__ . '/../core/layout.php';
 ?>

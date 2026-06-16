@@ -1,12 +1,12 @@
 <?php
-// File: admin/assign_inspector.php
+// This section prepares the admin assign inspector page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 require_once __DIR__ . '/../includes/booking_functions.php';
-require_once __DIR__ . '/../core/components/datagrid.php'; 
+require_once __DIR__ . '/../core/components/datagrid.php';
 
-// Load core frameworkandnew
+
 require_once __DIR__ . '/../core/components/FilterBuilder.php';
 require_once __DIR__ . '/../core/repositories/InspectionRepository.php';
 
@@ -15,18 +15,13 @@ use Core\Repositories\InspectionRepository;
 
 syncCompletedBookings($conn);
 
-/*
-|--------------------------------------------------------------------------
-| I: Repository Initialization & System Protocol
-|--------------------------------------------------------------------------
-*/
-// Auto-expire unpaid bookings
+
 expireUnpaidBookings($conn);
 
-// 1. Create inspection assignment repository
+
 $inspectionRepo = new InspectionRepository($conn);
 
-// 2. Build filters (Filter Topology)
+
 $filterBuilder = new FilterBuilder('assign_inspector.php', true);
 $filterBuilder
     ->addField('text', 'f_bid', 'Booking ID', [], 'Search ID...', 'b.bid', 'LIKE')
@@ -34,27 +29,20 @@ $filterBuilder
     ->addField('text', 'f_venue', 'Asset', [], 'Name or Category...', 'CONCAT(v.vname, " ", vc.category)', 'LIKE')
     ->addField('date', 'f_date', 'Date', [], '', 'b.date_booked', '=');
 
-/*
-|--------------------------------------------------------------------------
-| D: Abstracted Data Execution & View Reshaping
-|--------------------------------------------------------------------------
-*/
-// 3. Get results from repository
+
 $result = $inspectionRepo->getPendingAssignments($filterBuilder);
 
-// 4. Get rows for DataGrid and counters
+
 $records = [];
-if ($result && $result->num_rows > 0) {
-    while($row = $result->fetch_assoc()) {
+if ($result && $result->num_rows > 0)
+{
+    while($row = $result->fetch_assoc())
+    {
         $records[] = $row;
     }
 }
 
-/*
-|--------------------------------------------------------------------------
-| C: Configuration & Schema Definitions
-|--------------------------------------------------------------------------
-*/
+
 $page_title = "Assign Inspector";
 $page_description = "Delegate post-event venue inspections to designated personnel.";
 $topbar_content = '
@@ -66,7 +54,7 @@ $topbar_content = '
 </div>';
 $extra_css = [];
 
-// Core DataGrid schema config
+
 $datagrid_schema = [
     'enable_checkbox' => false,
     'primary_key' => 'bid',
@@ -83,11 +71,7 @@ $datagrid_schema = [
     ]
 ];
 
-/*
-|--------------------------------------------------------------------------
-| V: View Rendering (Output Buffer)
-|--------------------------------------------------------------------------
-*/
+
 ob_start();
 ?>
 
@@ -99,7 +83,7 @@ ob_start();
             Pending Assignment (<?php echo count($records); ?>)
         </h3>
     </div>
-    
+
     <div class="flex-1 overflow-y-auto">
         <?php echo render_datagrid($datagrid_schema, $records); ?>
     </div>
@@ -108,10 +92,6 @@ ob_start();
 <?php
 $page_content = ob_get_clean();
 
-/*
-|--------------------------------------------------------------------------
-| L: Global Layout Engine
-|--------------------------------------------------------------------------
-*/
+
 require_once __DIR__ . '/../core/layout.php';
 ?>

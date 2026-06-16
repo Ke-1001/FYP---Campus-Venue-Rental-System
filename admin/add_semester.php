@@ -1,41 +1,31 @@
 <?php
-// File: admin/add_semester.php
+// This section prepares the admin add semester page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 
-// Load repository dependency (Zero-SQL Principle)
+
 require_once __DIR__ . '/../core/repositories/SemesterRepository.php';
 use Core\Repositories\SemesterRepository;
 
-/*
-|--------------------------------------------------------------------------
-| I: Repository Initialization & Mode Detection
-|--------------------------------------------------------------------------
-*/
+
 $semesterRepo = new SemesterRepository($conn);
 
 $sem_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
-$mode = ($sem_id > 0) ? 'Update' : 'Create'; 
+$mode = ($sem_id > 0) ? 'Update' : 'Create';
 $semester = null;
 
-/*
-|--------------------------------------------------------------------------
-| D: Data Extraction Execution
-|--------------------------------------------------------------------------
-*/
-if ($mode === 'Update') {
+
+if ($mode === 'Update')
+{
     $semester = $semesterRepo->getSemesterById($sem_id);
-    if (!$semester) {
+    if (!$semester)
+    {
         die("Execution Fault: Semester Vector not found.");
     }
 }
 
-/*
-|--------------------------------------------------------------------------
-| C: Configuration Definitions
-|--------------------------------------------------------------------------
-*/
+
 $page_title = "{$mode} Semester";
 $page_description = "Configure global temporal boundaries for academic operations.";
 $topbar_content = '
@@ -51,11 +41,7 @@ $extra_css = [];
 require_once __DIR__ . '/../core/components/FioriFormBuilder.php';
 use Core\Components\FioriFormBuilder as FB;
 
-/*
-|--------------------------------------------------------------------------
-| V: View Rendering (State Binding via Builder)
-|--------------------------------------------------------------------------
-*/
+
 ob_start();
 ?>
 
@@ -69,52 +55,55 @@ ob_start();
             </div>
 
             <div class="p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
-                
+
                 <div class="lg:col-span-12 space-y-4">
-                    <?php 
- // Primary key rule: change input properties based on mode
+                    <?php
+
                     $semIdOptions = [
                         'required' => true,
                         'placeholder' => 'e.g., 2610'
                     ];
-                    
-                    if ($mode === 'Update') {
+
+                    if ($mode === 'Update')
+                    {
                         $semIdOptions['readonly'] = true;
                         $semIdOptions['extra_css'] = 'font-mono font-bold text-indigo-700 bg-slate-50 cursor-not-allowed';
-                    } else {
+                    } else
+                    {
                         $semIdOptions['min'] = '1000';
                         $semIdOptions['max'] = '9999';
                         $semIdOptions['extra_css'] = 'font-mono font-bold';
                     }
 
                     echo FB::input('number', 'sem_id', 'Semester Code (4 Digits)', $sem_id > 0 ? $sem_id : '', $semIdOptions);
-                    
-                    if ($mode === 'Update') {
+
+                    if ($mode === 'Update')
+                    {
                         echo '<p class="text-[10px] text-slate-400 mt-1 uppercase tracking-widest pl-1">* Primary Key is locked to prevent cascade failure.</p>';
                     }
                     ?>
                 </div>
 
                 <div class="lg:col-span-12 border-t border-slate-100 pt-6 mt-2">
-                    <?php 
+                    <?php
                     echo FB::input('text', 'sem_name', 'Semester Nomenclature', $semester['sem_name'] ?? '', [
-                        'required' => true, 
+                        'required' => true,
                         'placeholder' => 'e.g., 2026 Trimester 1'
                     ]);
                     ?>
                 </div>
 
                 <div class="lg:col-span-6 space-y-4">
-                    <?php 
+                    <?php
                     echo FB::input('date', 'start_date', 'Start Boundary', $semester['start_date'] ?? '', [
                         'required' => true,
                         'extra_css' => 'font-mono text-emerald-700 font-bold'
                     ]);
                     ?>
                 </div>
-                
+
                 <div class="lg:col-span-6 space-y-4">
-                    <?php 
+                    <?php
                     echo FB::input('date', 'end_date', 'End Boundary', $semester['end_date'] ?? '', [
                         'required' => true,
                         'extra_css' => 'font-mono text-red-600 font-bold'
@@ -147,7 +136,8 @@ ob_start();
 </form>
 
 <script>
-    document.getElementById('semesterForm').addEventListener('submit', function() {
+    document.getElementById('semesterForm').addEventListener('submit', function()
+    {
         const btn = document.getElementById('submitBtn');
         btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin mr-2 inline"></i> Executing...';
         btn.classList.add('opacity-70', 'cursor-not-allowed');
@@ -159,10 +149,6 @@ ob_start();
 <?php
 $page_content = ob_get_clean();
 
-/*
-|--------------------------------------------------------------------------
-| L: Global Layout Engine
-|--------------------------------------------------------------------------
-*/
+
 require_once __DIR__ . '/../core/layout.php';
 ?>

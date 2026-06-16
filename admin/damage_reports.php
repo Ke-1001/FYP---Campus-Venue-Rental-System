@@ -1,5 +1,5 @@
 <?php
-// File: admin/damage_reports.php
+// This section prepares the admin damage reports page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
@@ -38,25 +38,29 @@ $sql = "
 $params = [];
 $types = '';
 
-if ($filter_bid !== '') {
+if ($filter_bid !== '')
+{
     $sql .= " AND dr.bid LIKE ?";
     $params[] = "%{$filter_bid}%";
     $types .= 's';
 }
 
-if ($filter_student !== '') {
+if ($filter_student !== '')
+{
     $sql .= " AND CONCAT(dr.uid, ' ', u.username) LIKE ?";
     $params[] = "%{$filter_student}%";
     $types .= 's';
 }
 
-if ($filter_venue !== '') {
+if ($filter_venue !== '')
+{
     $sql .= " AND CONCAT(dr.vid, ' ', v.vname, ' ', vc.category) LIKE ?";
     $params[] = "%{$filter_venue}%";
     $types .= 's';
 }
 
-if ($filter_status !== '') {
+if ($filter_status !== '')
+{
     $sql .= " AND dr.report_status = ?";
     $params[] = $filter_status;
     $types .= 's';
@@ -65,14 +69,16 @@ if ($filter_status !== '') {
 $sql .= " ORDER BY dr.created_at DESC";
 
 $stmt = $conn->prepare($sql);
-if (!empty($params)) {
+if (!empty($params))
+{
     $stmt->bind_param($types, ...$params);
 }
 $stmt->execute();
 $result = $stmt->get_result();
 
 $reports = [];
-while ($row = $result->fetch_assoc()) {
+while ($row = $result->fetch_assoc())
+{
     $reports[] = $row;
 }
 $stmt->close();
@@ -162,8 +168,8 @@ ob_start();
                                 <?php echo date('d M Y', strtotime($report['date_booked'])); ?>,
                                 <?php echo substr($report['time_start'], 0, 5); ?> - <?php echo substr($report['time_end'], 0, 5); ?>
                             </div>
-                            <?php 
- // Show different booking status colors based on user refund
+                            <?php
+
                                 $b_status_color = ($report['booking_status'] === 'cancelled') ? 'text-red-600' : 'text-emerald-600';
                             ?>
                             <div class="text-[10px] uppercase font-black <?php echo $b_status_color; ?> mt-1">

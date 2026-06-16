@@ -1,7 +1,7 @@
 <?php
-// File: admin/add_student.php
+// This section prepares the admin add student page.
 session_start();
-require_once __DIR__ . '/../includes/admin_auth.php'; 
+require_once __DIR__ . '/../includes/admin_auth.php';
 require_once __DIR__ . '/../config/db.php';
 ?>
 <!DOCTYPE html>
@@ -13,7 +13,12 @@ require_once __DIR__ . '/../config/db.php';
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
-        tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b', accent: '#38bdf8' } } } } }
+        tailwind.config =
+        { theme:
+        { extend:
+        { colors:
+        { cstyle:
+        { blue: '#004aad', dark: '#1e293b', accent: '#38bdf8' } } } } }
     </script>
     <link rel="stylesheet" href="../assets/css/admin_css.css?v=2.0">
 </head>
@@ -22,16 +27,16 @@ require_once __DIR__ . '/../config/db.php';
     <?php include('../includes/admin_sidebar.php'); ?>
 
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-50">
-        
+
         <header class="h-16 glass-panel border-b border-slate-200 flex items-center justify-between px-6 z-10 shrink-0">
-            <?php 
+            <?php
             $topbar_content = '<h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Student Directory / Add New</h2>';
-            include('../includes/admin_topbar.php'); 
+            include('../includes/admin_topbar.php');
             ?>
         </header>
 
         <div class="flex-1 overflow-y-auto p-8 scroll-smooth flex justify-center">
-            
+
             <div class="w-full max-w-2xl">
                 <div class="mb-8 text-center">
                     <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Add New Student</h1>
@@ -40,7 +45,7 @@ require_once __DIR__ . '/../config/db.php';
 
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                     <form action="../actions/process_student.php" method="POST" id="addStudentForm" class="p-8 space-y-6">
-                        
+
                         <input type="hidden" name="action" value="add">
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -48,12 +53,12 @@ require_once __DIR__ . '/../config/db.php';
                                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Student ID</label>
                                 <input type="text" name="uid" required placeholder="e.g. 242DT2430C" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-mmu-blue outline-none text-sm font-mono uppercase transition-all">
                             </div>
-                            
+
                             <div>
                                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Full Name</label>
                                 <input type="text" name="username" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-mmu-blue outline-none text-sm transition-all">
                             </div>
-                            
+
                             <div>
                                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Email Address</label>
                                 <input type="email" name="email" id="email" required onkeyup="validateFormState()" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-mmu-blue outline-none text-sm font-mono transition-all">
@@ -77,7 +82,7 @@ require_once __DIR__ . '/../config/db.php';
                         <div class="border-t border-slate-100 pt-6 mt-6">
                             <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Password</label>
                             <input type="password" name="password" id="password" required onkeyup="validateFormState()" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-mmu-blue outline-none text-sm font-mono tracking-widest transition-all">
-                            
+
                             <div class="mt-4 p-4 bg-slate-50 border border-slate-200 rounded-lg grid grid-cols-1 md:grid-cols-2 gap-2 text-xs font-bold text-slate-400">
                                 <div id="rule-length" class="flex items-center transition-colors"><span class="icon-slot"></span> Minimum 8 Characters</div>
                                 <div id="rule-upper" class="flex items-center transition-colors"><span class="icon-slot"></span> 1 Uppercase (A-Z)</div>
@@ -104,42 +109,52 @@ require_once __DIR__ . '/../config/db.php';
     <script>
         lucide.createIcons();
 
-        function toggleSidebar() {
+        function toggleSidebar()
+        {
             document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed');
         }
 
         const checkSVG = `<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
         const crossSVG = `<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
 
-        window.onload = () => {
+        window.onload = () =>
+        {
             const rules = ['rule-length', 'rule-upper', 'rule-lower', 'rule-number', 'rule-special'];
-            rules.forEach(id => {
+            rules.forEach(id =>
+            {
                 document.getElementById(id).querySelector('.icon-slot').innerHTML = crossSVG;
             });
         };
 
-        function validateFormState() {
+        function validateFormState()
+        {
             const emailInput = document.getElementById('email');
             const emailFeedback = document.getElementById('email-feedback');
-            const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]
+            {2,}$/;
             const isEmailValid = emailRegex.test(emailInput.value);
 
-            if (emailInput.value.length > 0) {
-                if (isEmailValid) {
+            if (emailInput.value.length > 0)
+            {
+                if (isEmailValid)
+                {
                     emailInput.classList.replace('border-red-400', 'border-slate-200');
                     emailFeedback.classList.add('hidden');
-                } else {
+                } else
+                {
                     emailInput.classList.replace('border-slate-200', 'border-red-400');
                     emailFeedback.classList.remove('hidden');
                 }
-            } else {
+            } else
+            {
                 emailInput.classList.replace('border-red-400', 'border-slate-200');
                 emailFeedback.classList.add('hidden');
             }
 
             const pwd = document.getElementById('password').value;
-            
-            const reqs = {
+
+            const reqs =
+            {
                 length: pwd.length >= 8,
                 upper: /[A-Z]/.test(pwd),
                 lower: /[a-z]/.test(pwd),
@@ -147,14 +162,17 @@ require_once __DIR__ . '/../config/db.php';
                 special: /[@$!%*?&]/.test(pwd)
             };
 
-            const toggleRule = (id, isValid) => {
+            const toggleRule = (id, isValid) =>
+            {
                 const el = document.getElementById(id);
                 const iconSlot = el.querySelector('.icon-slot');
-                
-                if (isValid) {
+
+                if (isValid)
+                {
                     el.className = 'flex items-center transition-colors text-emerald-600';
                     iconSlot.innerHTML = checkSVG;
-                } else {
+                } else
+                {
                     el.className = 'flex items-center transition-colors text-slate-400';
                     iconSlot.innerHTML = crossSVG;
                 }
@@ -169,10 +187,12 @@ require_once __DIR__ . '/../config/db.php';
             const isPwdSecure = Object.values(reqs).every(val => val === true);
             const btn = document.getElementById('submitBtn');
 
-            if (isPwdSecure && isEmailValid) {
+            if (isPwdSecure && isEmailValid)
+            {
                 btn.disabled = false;
                 btn.className = "px-6 py-3 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-md rounded-lg transition-all flex items-center cursor-pointer";
-            } else {
+            } else
+            {
                 btn.disabled = true;
                 btn.className = "px-6 py-3 text-sm font-bold text-white bg-slate-300 rounded-lg transition-all flex items-center cursor-not-allowed";
             }

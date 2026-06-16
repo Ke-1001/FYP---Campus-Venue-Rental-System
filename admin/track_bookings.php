@@ -1,12 +1,12 @@
 <?php
-// File: admin/track_bookings.php
+// This section prepares the admin track bookings page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 require_once __DIR__ . '/../includes/booking_functions.php';
-require_once __DIR__ . '/../core/components/datagrid.php'; 
+require_once __DIR__ . '/../core/components/datagrid.php';
 
-// Load core framework
+
 require_once __DIR__ . '/../core/components/FilterBuilder.php';
 require_once __DIR__ . '/../core/repositories/BookingRepository.php';
 
@@ -15,18 +15,13 @@ use Core\Repositories\BookingRepository;
 
 syncCompletedBookings($conn);
 
-/*
-|--------------------------------------------------------------------------
-| I: Repository Initialization & System Protocol
-|--------------------------------------------------------------------------
-*/
-// Auto-expire unpaid bookings
+
 expireUnpaidBookings($conn);
 
-// 1. Create repository instance
+
 $bookingRepo = new BookingRepository($conn);
 
-// 2. Build filters
+
 $filterBuilder = new FilterBuilder('track_bookings.php', true);
 $filterBuilder
     ->addField('text', 'f_bid', 'Booking ID', [], 'Search ID...', 'b.bid', 'LIKE')
@@ -41,55 +36,54 @@ $filterBuilder
         'cancelled' => 'Cancelled'
     ], 'All', 'b.status', '=');
 
-/*
-|--------------------------------------------------------------------------
-| D: Abstracted Data Execution & View Reshaping
-|--------------------------------------------------------------------------
-*/
-// 3. Get results from repository
+
 $result = $bookingRepo->getAllWithFilters($filterBuilder);
 
-// 4. Get and format rows (prepare special data for standard DataGrid)
+
 $records = [];
-if ($result && $result->num_rows > 0) {
-    while($row = $result->fetch_assoc()) {
+if ($result && $result->num_rows > 0)
+{
+    while($row = $result->fetch_assoc())
+    {
         $remarks = '-';
-        
-        if ($row['status'] === 'pending' && $row['payment_status'] === 'unpaid') {
+
+        if ($row['status'] === 'pending' && $row['payment_status'] === 'unpaid')
+        {
             $timestamp = strtotime($row['payment_due_at']);
             $remarks = 'Due: ' . ($timestamp ? date('y/m/d H:i', $timestamp) : 'N/A');
-        } elseif ($row['status'] === 'cancelled') {
-            
- // 1. Convert system code to readable text
+        } elseif ($row['status'] === 'cancelled')
+        {
+
+
             $raw_reason = $row['cancel_reason'];
-            if ($raw_reason === 'SYS_TIMEOUT_ADMIN') {
+            if ($raw_reason === 'SYS_TIMEOUT_ADMIN')
+            {
                 $friendly_reason = 'Auto-Timeout';
-            } else {
+            } else
+            {
                 $friendly_reason = $raw_reason ?: 'Time Expired';
             }
 
- // 2. Get and format cancel time
+
             $cancel_time = strtotime($row['cancelled_at']);
             $time_str = $cancel_time ? date('m/d H:i', $cancel_time) : '';
 
- // 3. Build a short readable text (: "06/08 09:30 (Auto-Timeout)")
-            if (!empty($time_str)) {
+
+            if (!empty($time_str))
+            {
                 $remarks = $time_str . ' (' . $friendly_reason . ')';
-            } else {
+            } else
+            {
                 $remarks = '' . $friendly_reason;
             }
         }
-        
+
         $row['remarks'] = $remarks;
         $records[] = $row;
     }
 }
 
-/*
-|--------------------------------------------------------------------------
-| C: Configuration & Schema Definitions
-|--------------------------------------------------------------------------
-*/
+
 $page_title = "Booking History";
 $page_description = "View paid, unpaid, completed, rejected and cancelled venue booking records.";
 $topbar_content = '
@@ -101,7 +95,7 @@ $topbar_content = '
 </div>';
 $extra_css = [];
 
-// Core part 2: DataGrid schema config
+
 $datagrid_schema = [
     'enable_checkbox' => false,
     'primary_key' => 'bid',
@@ -130,11 +124,7 @@ $datagrid_schema = [
     ]
 ];
 
-/*
-|--------------------------------------------------------------------------
-| V: View Rendering (Output Buffer)
-|--------------------------------------------------------------------------
-*/
+
 ob_start();
 ?>
 
@@ -146,7 +136,7 @@ ob_start();
             Records (<?php echo count($records); ?>)
         </h3>
     </div>
-    
+
     <div class="flex-1 overflow-y-auto">
         <?php echo render_datagrid($datagrid_schema, $records); ?>
     </div>
@@ -155,10 +145,6 @@ ob_start();
 <?php
 $page_content = ob_get_clean();
 
-/*
-|--------------------------------------------------------------------------
-| L: Global Layout Engine
-|--------------------------------------------------------------------------
-*/
+
 require_once __DIR__ . '/../core/layout.php';
 ?>

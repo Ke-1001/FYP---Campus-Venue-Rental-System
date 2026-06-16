@@ -1,15 +1,15 @@
 <?php
-// File: admin/login.php
+// This section prepares the admin login page.
 session_start();
 
-// 1. Status redirect (State Machine Transition)
-// Use aid and lowercase role, keep user_id for compatibility
+
 $admin_identifier = $_SESSION['aid'] ?? ($_SESSION['user_id'] ?? null);
 $admin_role = $_SESSION['role'] ?? '';
 
-// Redirect to dashboard if session state is already authenticated under new schema
-if ($admin_identifier && in_array($admin_role, ['admin', 'super_admin'], true)) {
- header("Location: manage_bookings.php"); // Fix route: redirect to the new Launchpad
+
+if ($admin_identifier && in_array($admin_role, ['admin', 'super_admin'], true))
+{
+ header("Location: manage_bookings.php");
     exit();
 }
 ?>
@@ -22,7 +22,12 @@ if ($admin_identifier && in_array($admin_role, ['admin', 'super_admin'], true)) 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
-        tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#0f172a', accent: '#38bdf8' } } } } }
+        tailwind.config =
+        { theme:
+        { extend:
+        { colors:
+        { cstyle:
+        { blue: '#004aad', dark: '#0f172a', accent: '#38bdf8' } } } } }
     </script>
     <link rel="stylesheet" href="../assets/css/admin_css.css?v=2.0">
 </head>
@@ -34,18 +39,19 @@ if ($admin_identifier && in_array($admin_role, ['admin', 'super_admin'], true)) 
     </div>
 
     <div class="w-full max-w-md bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-8 z-10">
-        
+
         <div class="text-center mb-8">
             <h2 class="text-2xl font-extrabold text-white tracking-wide">CVBMS Management</h2>
             <p class="text-slate-400 text-sm mt-2 font-mono uppercase tracking-widest">Authorized Personnel Only</p>
         </div>
 
         <?php
-        // Error State Handling
-        if (isset($_GET['error'])) {
+
+        if (isset($_GET['error']))
+        {
             $err_code = $_GET['error'];
             $err_msg = "Authentication Fault: Unknown Error.";
-            
+
             if ($err_code == 'invalid') $err_msg = "Invalid credentials. Verification failed.";
             elseif ($err_code == 'access_denied') $err_msg = "Access Denied. Authorized personnel only.";
             elseif ($err_code == 'timeout') $err_msg = "Session Expired. Secure connection terminated.";
@@ -62,7 +68,7 @@ if ($admin_identifier && in_array($admin_role, ['admin', 'super_admin'], true)) 
             <div>
                 <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Email</label>
                 <div class="relative">
-                    <input type="email" name="email" required placeholder="admin@mmu.edu.my" 
+                    <input type="email" name="email" required placeholder="admin@mmu.edu.my"
                            class="w-full pl-2 pr-4 py-3 bg-slate-900/50 border border-slate-700 text-white rounded-lg focus:ring-2 focus:ring-mmu-accent focus:border-mmu-accent outline-none transition-all placeholder-slate-600">
                 </div>
             </div>
@@ -70,7 +76,7 @@ if ($admin_identifier && in_array($admin_role, ['admin', 'super_admin'], true)) 
             <div>
                 <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Password</label>
                 <div class="relative">
-                    <input type="password" name="password" required placeholder="Enter password" 
+                    <input type="password" name="password" required placeholder="Enter password"
                            class="w-full pl-2 pr-4 py-3 bg-slate-900/50 border border-slate-700 text-white rounded-lg focus:ring-2 focus:ring-mmu-accent focus:border-mmu-accent outline-none transition-all placeholder-slate-600">
                 </div>
                 <div class="flex justify-end mt-2">
@@ -84,7 +90,7 @@ if ($admin_identifier && in_array($admin_role, ['admin', 'super_admin'], true)) 
                 Log In <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
             </button>
 
-            
+
         </form>
     </div>
 

@@ -1,13 +1,13 @@
 <?php
-// File: admin/venue_directory.php
+// This section prepares the admin venue directory page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 
-// Load base framework
+
 require_once __DIR__ . '/../core/components/FilterBuilder.php';
 require_once __DIR__ . '/../core/components/DataGridBuilder.php';
-require_once __DIR__. '/../core/repositories/VenueRepository.php'; // Load repository layer
+require_once __DIR__. '/../core/repositories/VenueRepository.php';
 
 use Core\Components\FilterBuilder;
 use Core\Components\DataGridBuilder;
@@ -30,15 +30,10 @@ $controller_config = [
 ];
 require_once __DIR__ . '/../core/components/datagrid_controller.php';
 
-/*
-|--------------------------------------------------------------------------
-| I: Repository & Builder Instantiation
-|--------------------------------------------------------------------------
-*/
-// 1. Create repository instance (inject database connection)
+
 $venueRepo = new VenueRepository($conn);
 
-// 2. Get clean data list through Repository, no direct SQL needed
+
 $cat_options = $venueRepo->getCategoryOptions();
 
 $filterBuilder = new FilterBuilder('venue_directory.php', true);
@@ -69,19 +64,10 @@ $gridBuilder
         ]
     ]);
 
-/*
-|--------------------------------------------------------------------------
-| D: Abstracted Data Execution (Zero-SQL Zone)
-|--------------------------------------------------------------------------
-*/
-// 3. Pass filters to repository and get results. Controller has no SQL strings.
+
 $result = $venueRepo->getAllWithFilters($filterBuilder);
 
-/*
-|--------------------------------------------------------------------------
-| V: View Rendering
-|--------------------------------------------------------------------------
-*/
+
 ob_start();
 ?>
 <?php echo $filterBuilder->render(); ?>

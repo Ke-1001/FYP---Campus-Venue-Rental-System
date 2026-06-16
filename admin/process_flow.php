@@ -1,17 +1,18 @@
 <?php
-// File: admin/process_flow.php
+// This section prepares the admin flow page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 
 $bid = intval($_GET['bid'] ?? 0);
 
-if ($bid === 0) {
+if ($bid === 0)
+{
     die("Execution Fault: Invalid or Null Booking ID Reference.");
 }
 
-// 1. Query upgrade: match vcategory normalization in rental_venue (4).sql
-$sql = "SELECT 
+
+$sql = "SELECT
             b.*, u.username, u.uid as student_id, u.phone_num as student_phone, u.email as student_email,
             v.vname, v.deposit, vc.category AS venue_category,
             i.ins_status, i.damage_desc, i.penalty,
@@ -31,7 +32,8 @@ $stmt->bind_param("i", $bid);
 $stmt->execute();
 $data = $stmt->get_result()->fetch_assoc();
 
-if (!$data) {
+if (!$data)
+{
     die("Database Anomaly: Target booking entity not found.");
 }
 
@@ -42,7 +44,7 @@ $is_rejected = ($status === 'rejected');
 $is_cancelled = ($status === 'cancelled');
 $is_completed = ($status === 'completed');
 
-// 2. Status engine
+
 $flow_states = [
     'Request'  => true,
     'Payment'  => ($payment_status === 'paid' || $payment_status === 'refunded'),
@@ -52,11 +54,15 @@ $flow_states = [
     'Settle'   => (!$is_cancelled && !$is_rejected && $status === 'completed' && ($data['ins_status'] === 'passed' || $data['ins_status'] === 'failed'))
 ];
 
-// [NEW] System code mapping list (with conflict-safe mapping)
-if (!function_exists('translateSystemText')) {
-    function translateSystemText($text) {
-        if (empty($text)) return '';  $dictionary = [ 'SYS_TIMEOUT_ADMIN' => 'Admin failed to approve the request within the functional timeframe.', 'SYS_TIMEOUT_24H_RELEASE' => 'SLA Absolute Timeout: Auto-released after 24 hours of inactivity without consecutive bookings.', 'SYS_TIMEOUT_30M_LOCK' => 'SLA Violation: Inspection delayed. Deposit temporarily frozen for maximum 24h.', '[SYSTEM ABSORBED]' => 'Chain of Custody Fault: Damage was detected, but a preceding SLA violation exists for this venue.' ];  foreach ($dictionary as $code => $translation) {
-            if (stripos($text, $code) !== false) {
+
+if (!function_exists('translateSystemText'))
+{
+    function translateSystemText($text)
+    {
+        if (empty($text)) return '';  $dictionary = [ 'SYS_TIMEOUT_ADMIN' => 'Admin failed to approve the request within the functional timeframe.', 'SYS_TIMEOUT_24H_RELEASE' => 'SLA Absolute Timeout: Auto-released after 24 hours of inactivity without consecutive bookings.', 'SYS_TIMEOUT_30M_LOCK' => 'SLA Violation: Inspection delayed. Deposit temporarily frozen for maximum 24h.', '[SYSTEM ABSORBED]' => 'Chain of Custody Fault: Damage was detected, but a preceding SLA violation exists for this venue.' ];  foreach ($dictionary as $code => $translation)
+        {
+            if (stripos($text, $code) !== false)
+            {
                 return str_ireplace($code, $translation, $text);
             }
         }
@@ -73,7 +79,12 @@ if (!function_exists('translateSystemText')) {
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
-        tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b' } } } } }
+        tailwind.config =
+        { theme:
+        { extend:
+        { colors:
+        { cstyle:
+        { blue: '#004aad', dark: '#1e293b' } } } } }
     </script>
     <link rel="stylesheet" href="../assets/css/admin_css.css?v=2.0">
 </head>
@@ -82,8 +93,8 @@ if (!function_exists('translateSystemText')) {
     <?php include('../includes/admin_sidebar.php'); ?>
 
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
-        
-            <?php 
+
+            <?php
             $topbar_content = '
             <div class="flex items-center">
                 <a href="track_bookings.php" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 flex items-center mr-4 transition-colors">
@@ -91,12 +102,12 @@ if (!function_exists('translateSystemText')) {
                 </a>
                 <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Bookings / Track Bookings / Process Flow</h2>
             </div>';
-            include('../includes/admin_topbar.php'); 
+            include('../includes/admin_topbar.php');
             ?>
 
         <div class="flex-1 overflow-y-auto p-8 scroll-smooth">
             <div class="max-w-6xl mx-auto w-full">
-                
+
                 <div class="mb-8 flex flex-col md:flex-row md:justify-between md:items-end gap-4">
                     <div>
                         <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Booking: <?php echo $bid; ?></h1>
@@ -125,38 +136,42 @@ if (!function_exists('translateSystemText')) {
 
                 <div class="bg-white p-8 rounded-lg shadow-sm border border-slate-200 mb-8 overflow-x-auto">
                     <h3 class="text-xs font-bold text-slate-800 mb-8">Process Pipeline Tracker</h3>
-                    
-                    
+
+
                     <div class="flex justify-between relative z-10 w-full min-w-[600px]">
-                        <?php 
+                        <?php
                         $steps = ['Request', 'Payment', 'Approval', 'Assign', 'Inspect', 'Settle'];
- $interrupt_found = false; // Logic lock: keep the first failed step
-                        
-                        foreach($steps as $index => $label): 
-                            
+ $interrupt_found = false;
+
+                        foreach($steps as $index => $label):
+
                             $isActive = $flow_states[$label];
                             $nextLabel = $steps[$index + 1] ?? null;
                             $isNextActive = $nextLabel ? $flow_states[$nextLabel] : false;
-                            
- // Error stop-point detection (Interrupt Detection)
+
+
                             $isFailedNode = false;
-                            if (!$isActive && !$interrupt_found && ($is_cancelled || $is_rejected)) {
+                            if (!$isActive && !$interrupt_found && ($is_cancelled || $is_rejected))
+                            {
                                 $isFailedNode = true;
- $interrupt_found = true; // Lock so only one step shows as error
+ $interrupt_found = true;
                             }
-                            
- // Visual status mapping
-                            if ($isFailedNode) {
+
+
+                            if ($isFailedNode)
+                            {
                                 $nodeClass = 'bg-red-50 text-red-600 border-red-600';
                                 $lineClass = 'step-inactive';
                                 $labelClass = 'text-red-600 font-bold';
                                 $iconHtml = '<i data-lucide="x" class="w-3 h-3 text-red-600"></i>';
-                            } elseif ($isActive) {
+                            } elseif ($isActive)
+                            {
                                 $nodeClass = 'bg-indigo-600 text-white border-indigo-600';
                                 $lineClass = ($isActive && $isNextActive) ? 'step-active' : 'step-inactive';
                                 $labelClass = 'text-indigo-600 font-bold';
                                 $iconHtml = '<i data-lucide="check" class="w-3 h-3 text-white"></i>';
-                            } else {
+                            } else
+                            {
                                 $nodeClass = 'bg-white text-slate-300 border-slate-300';
                                 $lineClass = 'step-inactive';
                                 $labelClass = 'text-slate-400 font-medium';
@@ -174,7 +189,7 @@ if (!function_exists('translateSystemText')) {
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    
+
                     <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200 flex flex-col">
                         <h3 class="text-xs font-bold text-slate-800 border-b border-slate-200 pb-3 mb-4">Entity & Venue</h3>
                         <div class="space-y-5 text-sm flex-1">
@@ -247,9 +262,9 @@ if (!function_exists('translateSystemText')) {
 
                                         <p class="text-red-600 font-semibold">
                                             <span class="font-bold uppercase">Reason:</span>
-                                            <?php 
+                                            <?php
                                                 $reason = $data['cancel_reason'] ?? 'Payment deadline expired';
-                                                echo htmlspecialchars(translateSystemText($reason)); 
+                                                echo htmlspecialchars(translateSystemText($reason));
                                             ?>
                                         </p>
                                     </div>
@@ -259,16 +274,18 @@ if (!function_exists('translateSystemText')) {
                             <div>
                                 <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Delegated Inspector</p>
                                 <p class="font-bold text-slate-800">
-                                    <?php 
-                                        if ($is_cancelled) {
+                                    <?php
+                                        if ($is_cancelled)
+                                        {
                                             echo '<span class="text-slate-400 font-bold text-xs uppercase tracking-widest">Not Required</span>';
-                                        } else {
+                                        } else
+                                        {
                                             echo $data['inspector_name'] ?? '<span class="text-amber-500 font-bold text-xs uppercase tracking-widest">Pending Assignment</span>';
                                         }
                                     ?>
                                 </p>
                             </div>
-                            
+
                             <?php if($data['ins_status']): ?>
                             <div class="pt-4 border-t border-slate-100">
                                 <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Inspection Result</p>
@@ -299,7 +316,8 @@ if (!function_exists('translateSystemText')) {
 
     <script>
         lucide.createIcons();
-        function toggleSidebar() { document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed'); }
+        function toggleSidebar()
+        { document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed'); }
     </script>
 </body>
 </html>

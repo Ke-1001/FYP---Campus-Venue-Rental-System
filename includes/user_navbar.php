@@ -1,5 +1,7 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
+// This section provides shared user navbar logic or layout.
+if (session_status() === PHP_SESSION_NONE)
+{
     session_start();
 }
 
@@ -11,9 +13,12 @@ $username = $_SESSION['username'] ?? 'Student';
 
 $is_light_user_page = (!$is_homepage && !$is_dashboard);
 
-if (!function_exists('user_nav_class')) {
-    function user_nav_class($page, $current_page, $is_light_user_page = false) {
-        if ($is_light_user_page) {
+if (!function_exists('user_nav_class'))
+{
+    function user_nav_class($page, $current_page, $is_light_user_page = false)
+    {
+        if ($is_light_user_page)
+        {
             return $current_page === $page
                 ? 'text-white bg-blue-600 border-blue-600 font-black shadow-sm'
                 : 'text-black hover:text-black hover:bg-gray-300 border-transparent font-bold';
@@ -25,11 +30,14 @@ if (!function_exists('user_nav_class')) {
     }
 }
 
-if ($is_homepage) {
+if ($is_homepage)
+{
     $nav_position_class = 'fixed top-0 left-0 right-0 bg-slate-800 border-b border-slate-700 shadow-lg shadow-black/20';
-} elseif ($is_dashboard) {
+} elseif ($is_dashboard)
+{
     $nav_position_class = 'sticky top-0 bg-slate-800 border-b border-slate-700 shadow-lg shadow-black/20';
-} else {
+} else
+{
     $nav_position_class = 'sticky top-0 bg-gray-300 border-b border-gray-400 shadow-sm';
 }
 
@@ -106,11 +114,14 @@ $login_link_class = $is_light_user_page
 
 
 <?php
-if ($is_homepage) {
+if ($is_homepage)
+{
     $main_class = 'w-full min-h-screen';
-} elseif ($is_dashboard) {
+} elseif ($is_dashboard)
+{
     $main_class = 'w-full min-h-[calc(100vh-4rem)] bg-transparent text-white relative z-10';
-} else {
+} else
+{
     $main_class = 'w-full min-h-[calc(100vh-4rem)] bg-white text-slate-900 relative z-10';
 }
 ?>

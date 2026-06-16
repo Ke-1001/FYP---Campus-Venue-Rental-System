@@ -1,10 +1,12 @@
 <?php
+// This section prepares the user download booking pdf page.
 require_once(__DIR__ . '/../config/db.php');
 require_once __DIR__ . '/../includes/user_auth.php';
 
 $autoload_path = "../vendor/autoload.php";
 
-if (!file_exists($autoload_path)) {
+if (!file_exists($autoload_path))
+{
     die("Dompdf is not installed. Please run: composer require dompdf/dompdf");
 }
 
@@ -17,12 +19,13 @@ $user_id = $_SESSION['uid'];
 
 $bid = trim($_GET['bid'] ?? '');
 
-if ($bid === '' || !ctype_digit($bid)) {
+if ($bid === '' || !ctype_digit($bid))
+{
     die("Invalid Booking ID");
 }
 
 $stmt = $conn->prepare("
-    SELECT 
+    SELECT
         b.bid,
         b.uid,
         b.date_booked,
@@ -63,9 +66,9 @@ $stmt = $conn->prepare("
 
     FROM booking b
     JOIN user u ON b.uid = u.uid
-    JOIN venue v ON b.vid = v.vid 
-    JOIN vcategory vc ON v.vcid = vc.vcid 
-    LEFT JOIN admin a ON b.aid = a.aid 
+    JOIN venue v ON b.vid = v.vid
+    JOIN vcategory vc ON v.vcid = vc.vcid
+    LEFT JOIN admin a ON b.aid = a.aid
     LEFT JOIN inspection i ON b.bid = i.bid
     LEFT JOIN staff s ON i.sid = s.sid
     LEFT JOIN report r ON i.ins_id = r.ins_id
@@ -82,20 +85,25 @@ $stmt->execute();
 $result = $stmt->get_result();
 $record = $result->fetch_assoc();
 
-if (!$record) {
+if (!$record)
+{
     die("Booking not found or access denied.");
 }
 
-function pdfText($value) {
-    if ($value === null || $value === '') {
+function pdfText($value)
+{
+    if ($value === null || $value === '')
+    {
         return '-';
     }
 
     return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
 }
 
-function pdfDate($value, $format = "d M Y") {
-    if (empty($value) || $value === "0000-00-00" || $value === "0000-00-00 00:00:00") {
+function pdfDate($value, $format = "d M Y")
+{
+    if (empty($value) || $value === "0000-00-00" || $value === "0000-00-00 00:00:00")
+    {
         return "-";
     }
 
@@ -103,8 +111,10 @@ function pdfDate($value, $format = "d M Y") {
     return $timestamp ? date($format, $timestamp) : pdfText($value);
 }
 
-function pdfTime($value) {
-    if (empty($value)) {
+function pdfTime($value)
+{
+    if (empty($value))
+    {
         return "-";
     }
 
@@ -112,7 +122,8 @@ function pdfTime($value) {
     return $timestamp ? date("h:i A", $timestamp) : pdfText($value);
 }
 
-function pdfMoney($value) {
+function pdfMoney($value)
+{
     return "RM " . number_format((float)$value, 2);
 }
 

@@ -1,10 +1,10 @@
 <?php
-// File: admin/edit_student.php
+// This section prepares the admin edit student page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 
-// Load core OOP components and repository
+
 require_once __DIR__ . '/../core/components/FilterBuilder.php';
 require_once __DIR__ . '/../core/components/DataGridBuilder.php';
 require_once __DIR__ . '/../core/components/FioriFormBuilder.php';
@@ -15,64 +15,56 @@ use Core\Components\DataGridBuilder;
 use Core\Components\FioriFormBuilder as FB;
 use Core\Repositories\StudentRepository;
 
-/*
-|--------------------------------------------------------------------------
-| I: Repository Initialization & Parameter Extraction
-|--------------------------------------------------------------------------
-*/
+
 $studentRepo = new StudentRepository($conn);
 
-// Get UID value (supports letters and numbers, : 242DT24123)
+
 $uid_param = isset($_GET['uid']) ? trim($_GET['uid']) : '';
 
-if (empty($uid_param)) {
+if (empty($uid_param))
+{
     die("Execution Fault: Missing Identity Parameter (UID).");
 }
 
-// Get current user record
-$student_entity = $studentRepo->getStudentById($uid_param); 
-if (!$student_entity) {
+
+$student_entity = $studentRepo->getStudentById($uid_param);
+if (!$student_entity)
+{
     die("Execution Fault: Student Identity Node not found in database.");
 }
 
-/*
-|--------------------------------------------------------------------------
-| D: Data Extraction (Relational Booking Records Map)
-|--------------------------------------------------------------------------
-*/
-// Map database fields to grid fields (Physical to Logical Mapping via SQL Aliasing & JOIN)
+
 $records = [];
 $sql_booking = "
-    SELECT 
-        b.bid AS booking_id, 
-        v.vname AS venue_name, 
-        b.date_booked AS booking_date, 
-        b.status 
+    SELECT
+        b.bid AS booking_id,
+        v.vname AS venue_name,
+        b.date_booked AS booking_date,
+        b.status
     FROM booking b
     LEFT JOIN venue v ON b.vid = v.vid
-    WHERE b.uid = ? 
+    WHERE b.uid = ?
     ORDER BY b.date_booked DESC, b.time_start DESC
 ";
 
 $booking_stmt = $conn->prepare($sql_booking);
-if ($booking_stmt) {
+if ($booking_stmt)
+{
     $booking_stmt->bind_param("s", $uid_param);
     $booking_stmt->execute();
     $booking_result = $booking_stmt->get_result();
-    while ($row = $booking_result->fetch_assoc()) {
+    while ($row = $booking_result->fetch_assoc())
+    {
         $records[] = $row;
     }
     $booking_stmt->close();
-} else {
- // Log system errors to avoid silent failure (Silent Failure)
+} else
+{
+
     die("Relational Matrix Extraction Fault: " . $conn->error);
 }
 
-/*
-|--------------------------------------------------------------------------
-| C: Configuration & Layout Matrix Definitions
-|--------------------------------------------------------------------------
-*/
+
 $page_title = "Edit Student Profile";
 $page_description = "Modify systemic status for student entities and analyze their historical resource allocation paths.";
 $topbar_content = '
@@ -85,9 +77,9 @@ $topbar_content = '
 
 $extra_css = [];
 
-// Booking record grid (DataGrid)
+
 $bookingGrid = new DataGridBuilder('booking_id', '#', 'booking record');
-$bookingGrid->disableAction('create')->disableAction('edit')->disableAction('delete') // read-only history panel
+$bookingGrid->disableAction('create')->disableAction('edit')->disableAction('delete')
     ->addColumn('booking_id', 'Booking Reference', 'text_mono', ['width' => 'w-32 text-center'])
     ->addColumn('venue_name', 'Allocated Resource / Venue', 'text_bold', ['width' => 'w-64'])
     ->addColumn('booking_date', 'Timestamp Matrix', 'text_muted_mono', ['width' => 'w-48'])
@@ -97,30 +89,26 @@ $bookingGrid->disableAction('create')->disableAction('edit')->disableAction('del
         'cancelled' => ['label' => 'Cancelled', 'class' => 'bg-rose-50 text-rose-600 border-rose-100']
     ]]);
 
-/*
-|--------------------------------------------------------------------------
-| V: Hybrid View Rendering (Form Top, Grid Bottom)
-|--------------------------------------------------------------------------
-*/
+
 ob_start();
 ?>
 
 <form action="../actions/process_student_action.php" method="POST" id="studentStatusForm" class="bg-white rounded-lg shadow-sm border border-slate-200 relative mb-8">
     <input type="hidden" name="action" value="update_status">
     <input type="hidden" name="uid" value="<?php echo htmlspecialchars($student_entity['uid']); ?>">
-    
+
     <div class="p-0">
         <div class="fiori-form-container border-none shadow-none">
             <div class="fiori-section-header bg-slate-50 border-b border-slate-200">
                 <h2 class="text-base font-bold text-[#1d2d3e]">
-                    <i data-lucide="user-cog" class="w-4 h-4 inline mr-1 pb-0.5 text-[#004aad]"></i> 
+                    <i data-lucide="user-cog" class="w-4 h-4 inline mr-1 pb-0.5 text-[#004aad]"></i>
                     Identity Modification Node (UID: <?php echo htmlspecialchars($student_entity['uid']); ?>)
                 </h2>
             </div>
 
             <div class="p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
                 <div class="lg:col-span-8 space-y-4">
-                    <?php 
+                    <?php
                     echo FB::input('text', 'display_uid', 'Student Identity (UID)', $student_entity['uid'], [
                         'readonly' => true,
                         'extra_css' => 'font-mono text-slate-400 bg-slate-50 cursor-not-allowed'
@@ -136,7 +124,7 @@ ob_start();
                         'extra_css' => 'font-mono text-slate-400 bg-slate-50 cursor-not-allowed'
                     ]);
 
- // Status selection options (Active / Restricted)
+
                     echo FB::select('status', 'Account State Constraint', [
                         'active' => 'Active (Granted Access)',
                         'restricted' => 'Restricted (Suspended Access)'
@@ -160,7 +148,8 @@ ob_start();
 </form>
 
 <script>
-    document.getElementById('studentStatusForm').addEventListener('submit', function() {
+    document.getElementById('studentStatusForm').addEventListener('submit', function()
+    {
         const btn = document.getElementById('submitBtn');
         btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin mr-2 inline"></i> Executing Data Sync...';
         btn.classList.add('opacity-70', 'cursor-not-allowed');
@@ -173,10 +162,6 @@ ob_start();
 <?php
 $page_content = ob_get_clean();
 
-/*
-|--------------------------------------------------------------------------
-| L: Global Layout Engine
-|--------------------------------------------------------------------------
-*/
+
 require_once __DIR__ . '/../core/layout.php';
 ?>

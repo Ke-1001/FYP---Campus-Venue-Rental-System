@@ -1,4 +1,6 @@
-<?php session_start(); ?>
+<?php
+// This section prepares the user forgot password page.
+session_start(); ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,7 +15,8 @@
     <div id='toast' class='fixed top-5 right-5 z-50 px-6 py-4 rounded-xl text-white font-bold shadow-2xl <?php echo $_GET['status'] == 'success' ? 'bg-emerald-500' : 'bg-red-500'; ?>'>
         <?php echo htmlspecialchars($_GET['msg']); ?>
     </div>
-    <script>setTimeout(() => { document.getElementById('toast').style.display = 'none'; }, 3000);</script>
+    <script>setTimeout(() =>
+    { document.getElementById('toast').style.display = 'none'; }, 3000);</script>
 <?php endif; ?>
 
     <div class="auth-home-bg" aria-hidden="true"></div>
@@ -29,7 +32,7 @@
                     </div>
                     <input type="email" name="email" id="email" placeholder="student@student.mmu.edu.my" required class="w-full px-4 py-3 rounded-xl text-slate-800 font-semibold text-sm focus:ring-2 focus:ring-blue-500 outline-none">
                 </div>
-                
+
                 <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-all duration-200 transform hover:scale-[1.02] shadow-lg">
                     Send Reset Link
                 </button>
@@ -43,12 +46,15 @@
 
     <script>
         const emailInput = document.getElementById('email');
-        emailInput.addEventListener('input', () => {
+        emailInput.addEventListener('input', () =>
+        {
             const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             const errorEl = document.getElementById('email-error');
-            if (emailInput.value.length === 0) {
+            if (emailInput.value.length === 0)
+            {
                 errorEl.style.display = 'none';
-            } else {
+            } else
+            {
                 errorEl.style.display = regex.test(emailInput.value) ? 'none' : 'block';
             }
         });

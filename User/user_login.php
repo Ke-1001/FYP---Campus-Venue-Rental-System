@@ -1,4 +1,6 @@
-<?php session_start(); ?>
+<?php
+// This section prepares the user login page.
+session_start(); ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,8 +10,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
-        tailwind.config = {
-            theme: { extend: { colors: { mmu: { core: '#004aad', glow: '#3b82f6' } } } }
+        tailwind.config =
+        {
+            theme:
+            { extend:
+            { colors:
+            { mmu:
+            { core: '#004aad', glow: '#3b82f6' } } } }
         }
     </script>
     <link rel="stylesheet" href="../assets/css/user_css.css?v=2.8">
@@ -21,7 +28,8 @@
         <?php echo htmlspecialchars($_GET['msg']); ?>
     </div>
     <script>
-        setTimeout(() => { document.getElementById('toast').style.display = 'none'; }, 3000);
+        setTimeout(() =>
+        { document.getElementById('toast').style.display = 'none'; }, 3000);
     </script>
 <?php endif; ?>
 
@@ -68,7 +76,7 @@
 
             <div class="mt-6 text-center">
                 <p class="text-slate-300 text-sm">
-                    Don't have an account? 
+                    Don't have an account?
                     <a href="user_register.php" class="text-mmu-glow font-bold hover:text-white transition-colors">Sign up</a>
                 </p>
                 <p class="mt-2 text-sm">

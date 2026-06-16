@@ -1,5 +1,5 @@
 <?php
-// File: forgot_password.php
+// This section prepares the admin forgot password page.
 session_start();
 ?>
 <!DOCTYPE html>
@@ -11,7 +11,12 @@ session_start();
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
-        tailwind.config = { theme: { extend: { colors: { fiori: { text: '#1d2d3e', label: '#6b7280', blue: '#0a6ed1' } } } } }
+        tailwind.config =
+        { theme:
+        { extend:
+        { colors:
+        { fiori:
+        { text: '#1d2d3e', label: '#6b7280', blue: '#0a6ed1' } } } } }
     </script>
     <link rel="stylesheet" href="../assets/css/admin_css.css?v=2.0">
 </head>
@@ -31,7 +36,7 @@ session_start();
         </div>
 
         <div class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
-            
+
             <div class="px-8 py-6 border-b border-slate-100 bg-slate-50">
                 <h2 class="text-lg font-bold text-slate-800">Identify Your Entity</h2>
                 <p class="text-xs text-slate-500 font-medium mt-1 leading-relaxed">
@@ -54,7 +59,7 @@ session_start();
                     </button>
                 </div>
             </form>
-            
+
             <div class="px-8 py-4 bg-slate-50 border-t border-slate-100 text-center">
                 <a href="login.php" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition">
                     <i data-lucide="arrow-left" class="w-3 h-3 inline mr-1"></i> Return to Authentication
@@ -66,21 +71,26 @@ session_start();
     <script>
         lucide.createIcons();
 
-        function validateEmail() {
+        function validateEmail()
+        {
             const emailInput = document.getElementById('email').value;
             const btn = document.getElementById('submitBtn');
-            const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-            
-            if (emailRegex.test(emailInput)) {
+            const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]
+            {2,}$/;
+
+            if (emailRegex.test(emailInput))
+            {
                 btn.disabled = false;
                 btn.classList.remove('opacity-50', 'cursor-not-allowed');
-            } else {
+            } else
+            {
                 btn.disabled = true;
                 btn.classList.add('opacity-50', 'cursor-not-allowed');
             }
         }
 
-        document.getElementById('recoveryForm').addEventListener('submit', function() {
+        document.getElementById('recoveryForm').addEventListener('submit', function()
+        {
             const btn = document.getElementById('submitBtn');
             btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin mr-2 inline"></i> Verifying...';
             btn.classList.add('opacity-70', 'cursor-not-allowed');

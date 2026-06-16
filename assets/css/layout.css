@@ -1,79 +1,67 @@
-/* * ==========================================
- * MMU Admin Interface - Core Layout Template
- * ==========================================
- * Structure notes: 
- * 1. Customize scrollbar to make the UI cleaner
- * 2. Handle sidebar (Sidebar) width transition logic
- * 3. Handle DOM rendering for expanded and collapsed states
- */
-
-/* ------------------------------------------
- * 1. Scrollbar override (Scrollbar Override)
- * ------------------------------------------ */
-::-webkit-scrollbar { 
-    width: 6px; 
-    height: 6px; 
+/* This section handles layout logic. */
+::-webkit-scrollbar
+{
+    width: 6px;
+    height: 6px;
 }
-::-webkit-scrollbar-track { 
-    background: transparent; 
+::-webkit-scrollbar-track
+{
+    background: transparent;
 }
-::-webkit-scrollbar-thumb { 
-    background: #cbd5e1; 
-    border-radius: 3px; 
+::-webkit-scrollbar-thumb
+{
+    background: #cbd5e1;
+    border-radius: 3px;
 }
-::-webkit-scrollbar-thumb:hover { 
-    background: #94a3b8; 
+::-webkit-scrollbar-thumb:hover
+{
+    background: #94a3b8;
 }
 
-/* ------------------------------------------
- * 2. Visual material components (Material Components)
- * ------------------------------------------ */
-/* Glass effect for top navigation and layered UI elements */
-.glass-panel { 
-    background: rgba(255, 255, 255, 0.95); 
-    backdrop-filter: blur(10px); 
+
+.glass-panel
+{
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
 }
 
-/* ------------------------------------------
- * 3. Sidebar navigation state (Rail Navigation State Machine)
- * ------------------------------------------ */
-/* * Default state (Ground State): S_expanded 
- * default width is 16rem (256px) space usage
- */
-.sidebar {
- width: 16rem; /* same as Tailwind w-64 */
+
+.sidebar
+{
+ width: 16rem;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     white-space: nowrap;
     overflow-x: hidden;
- will-change: width; /* Hint browser to optimize rendering */
+ will-change: width;
 }
 
-/* * Collapsed state (Collapsed State): S_collapsed 
- * Trigger: add.sidebar-collapsed class
- * Result: width becomes 4rem (64px)
- */
-.sidebar.sidebar-collapsed {
-    width: 4rem; 
+
+.sidebar.sidebar-collapsed
+{
+    width: 4rem;
 }
 
 .sidebar.sidebar-collapsed .nav-text,
 .sidebar.sidebar-collapsed .brand-text,
 .sidebar.sidebar-collapsed .nav-badge,
 .sidebar.sidebar-collapsed .profile-text,
-.sidebar.sidebar-collapsed .nav-header {
+.sidebar.sidebar-collapsed .nav-header
+{
     display: none !important;
 }
 
 .sidebar.sidebar-collapsed .nav-item,
 .sidebar.sidebar-collapsed .brand-header,
-.sidebar.sidebar-collapsed .profile-container {
+.sidebar.sidebar-collapsed .profile-container
+{
     justify-content: center !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
 }
 
 
-.brand-header {
+.brand-header
+{
     transition: padding 0.3s ease;
 }

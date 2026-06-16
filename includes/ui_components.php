@@ -1,10 +1,9 @@
 <?php
-// File: includes/ui_components.php
-// Include this file right before </body> on each page
+// This section provides shared ui components logic or layout.
 ?>
 
 <?php if (isset($_SESSION['toast'])): ?>
-    <?php 
+    <?php
         $toast = $_SESSION['toast'];
         $bg_color = ($toast['type'] === 'success') ? 'bg-emerald-500' : 'bg-red-500';
         $icon = ($toast['type'] === 'success') ? 'check-circle' : 'alert-circle';
@@ -16,26 +15,29 @@
             <i data-lucide="x" class="w-4 h-4"></i>
         </button>
     </div>
-    
+
     <script>
- // Auto hide after 3.5 seconds (Information Entropy Decay)
-        setTimeout(() => { closeToast(); }, 3500);
-        function closeToast() {
+
+        setTimeout(() =>
+        { closeToast(); }, 3500);
+        function closeToast()
+        {
             const toast = document.getElementById('system-toast');
-            if(toast) {
+            if(toast)
+            {
                 toast.classList.replace('translate-x-0', 'translate-x-full');
                 toast.classList.replace('opacity-100', 'opacity-0');
- setTimeout(() => toast.remove(), 500); // Remove DOM after animation ends
+ setTimeout(() => toast.remove(), 500);
             }
         }
     </script>
- <?php unset($_SESSION['toast']); // Clear session variable after display ?>
+ <?php unset($_SESSION['toast']); ?>
 <?php endif; ?>
 
 
 <div id="custom-confirm-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center transition-opacity">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform scale-100 transition-transform">
-        
+
         <div class="p-6 text-center">
             <div class="w-16 h-16 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-4">
                 <i data-lucide="alert-triangle" class="w-8 h-8"></i>
@@ -44,7 +46,7 @@
             <p id="confirm-modal-msg" class="text-sm text-slate-500 font-medium px-4">
                 </p>
         </div>
-        
+
         <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex space-x-3 justify-center">
             <button onclick="closeCustomConfirm()" class="flex-1 px-4 py-2.5 text-sm font-bold text-slate-600 bg-white border border-slate-200 hover:bg-slate-100 rounded-lg transition shadow-sm">
                 Cancel
@@ -57,15 +59,17 @@
 </div>
 
 <script>
- // Stop normal navigation and open custom modal
-    function triggerCustomConfirm(event, message, targetUrl) {
- event.preventDefault(); // Block default <a> navigation
+
+    function triggerCustomConfirm(event, message, targetUrl)
+    {
+ event.preventDefault();
         document.getElementById('confirm-modal-msg').innerText = message;
         document.getElementById('confirm-modal-btn').href = targetUrl;
         document.getElementById('custom-confirm-modal').classList.remove('hidden');
     }
 
-    function closeCustomConfirm() {
+    function closeCustomConfirm()
+    {
         document.getElementById('custom-confirm-modal').classList.add('hidden');
     }
 </script>

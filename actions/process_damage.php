@@ -1,17 +1,19 @@
 <?php
-// File: actions/process_damage.php
+// This section checks damage report decisions and updates the report status.
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 
-function set_toast($type, $msg) {
+function set_toast($type, $msg)
+{
     $_SESSION['toast'] = [
         'type' => $type,
         'msg' => $msg
     ];
 }
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+if ($_SERVER['REQUEST_METHOD'] !== 'POST')
+{
     set_toast('error', "Invalid request method.");
     header("Location: ../admin/damage_reports.php");
     exit;
@@ -20,19 +22,21 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $report_id = intval($_POST['report_id'] ?? 0);
 $admin_remark = trim($_POST['admin_remark'] ?? '');
 
-if ($report_id <= 0) {
+if ($report_id <= 0)
+{
     set_toast('error', "Invalid Report ID.");
     header("Location: ../admin/damage_reports.php");
     exit;
 }
 
-// Start transaction (Transaction) to keep status and payment data consistent
+
 $conn->begin_transaction();
 
-try {
- // 1. Get the status snapshot of the report and related booking
+try
+{
+
     $stmt = $conn->prepare("
-        SELECT dr.bid, dr.report_status, b.status AS booking_status, b.payment_status, b.cancel_reason 
+        SELECT dr.bid, dr.report_status, b.status AS booking_status, b.payment_status, b.cancel_reason
         FROM damage_report dr
         JOIN booking b ON dr.bid = b.bid
         WHERE dr.report_id = ? FOR UPDATE
@@ -40,48 +44,52 @@ try {
     $stmt->bind_param("i", $report_id);
     $stmt->execute();
     $result = $stmt->get_result();
-    
-    if ($result->num_rows === 0) {
+
+    if ($result->num_rows === 0)
+    {
         throw new Exception("Damage report not found.");
     }
-    
+
     $row = $result->fetch_assoc();
     $bid = $row['bid'];
-    
-    if ($row['report_status'] === 'reviewed') {
+
+    if ($row['report_status'] === 'reviewed')
+    {
         throw new Exception("This report has already been reviewed.");
     }
 
- // 2. Update report status and admin notes
+
     $update_report = $conn->prepare("
-        UPDATE damage_report 
-        SET report_status = 'reviewed', admin_remark = ? 
+        UPDATE damage_report
+        SET report_status = 'reviewed', admin_remark = ?
         WHERE report_id = ?
     ");
     $update_report->bind_param("si", $admin_remark, $report_id);
     $update_report->execute();
 
- // 3. Payment status check and fix (Financial State Reconciliation)
- // If Level 3 damage auto-cancelled the booking, update the refund status automatically
-    if ($row['booking_status'] === 'cancelled' && $row['payment_status'] === 'paid' && $row['cancel_reason'] === 'USER_REPORTED_CRITICAL_DAMAGE') {
-        
+
+    if ($row['booking_status'] === 'cancelled' && $row['payment_status'] === 'paid' && $row['cancel_reason'] === 'USER_REPORTED_CRITICAL_DAMAGE')
+    {
+
         $update_payment = $conn->prepare("
-            UPDATE booking 
-            SET payment_status = 'refunded' 
+            UPDATE booking
+            SET payment_status = 'refunded'
             WHERE bid = ?
         ");
         $update_payment->bind_param("i", $bid);
         $update_payment->execute();
-        
+
         $action_msg = "Report marked as reviewed and Full Refund processed for cancelled booking.";
-    } else {
+    } else
+    {
         $action_msg = "Report marked as reviewed. Booking status remains unaffected (Waiver recorded).";
     }
 
     $conn->commit();
     set_toast('success', $action_msg);
 
-} catch (Exception $e) {
+} catch (Exception $e)
+{
     $conn->rollback();
     set_toast('error', "System Error: " . $e->getMessage());
 }

@@ -1,14 +1,15 @@
 <?php
-// File: actions/process_personnel.php
+// This section checks and updates personnel account details.
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST')
+{
     $action = $_POST['action'] ?? '';
-    
- // 1. Get and validate payload
- $table = $_POST['target_table'] ?? ''; // 'admin' or 'staff'
+
+
+ $table = $_POST['target_table'] ?? '';
     $id = intval($_POST['entity_id'] ?? 0);
     $name = htmlspecialchars(trim($_POST['full_name'] ?? ''));
     $email = filter_var(trim($_POST['email'] ?? ''), FILTER_SANITIZE_EMAIL);
@@ -16,7 +17,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $access_level = $_POST['access_level'] ?? '';
     $raw_password = $_POST['password'] ?? '';
 
-    if ($action !== 'update' || $id === 0 || !in_array($table, ['admin', 'staff'])) {
+    if ($action !== 'update' || $id === 0 || !in_array($table, ['admin', 'staff']))
+    {
         $_SESSION['toast'] = ['type' => 'error', 'msg' => 'Execution Fault: Invalid update payload or missing entity reference.'];
         header("Location: ../admin/staff_directory.php");
         exit;
@@ -24,9 +26,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $conn->begin_transaction();
 
-    try {
- // 2. Check duplicate email across tables (Cross-table Collision Detection)
- // Check both admin and staff tables, but exclude the current record when editing
+    try
+    {
+
+
         $aid_exclude = ($table === 'admin') ? $id : 0;
         $sid_exclude = ($table === 'staff') ? $id : 0;
 
@@ -42,30 +45,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($chk_s->get_result()->num_rows > 0) throw new Exception("Conflict: Email is already assigned to another Staff member.");
         $chk_s->close();
 
- // 3. Dynamic field mapping (Dynamic Column Mapping)
+
         $role_col = ($table === 'admin') ? 'role' : 'position';
         $id_col = ($table === 'admin') ? 'aid' : 'sid';
         $name_col = ($table === 'admin') ? 'admin_name' : 'staff_name';
 
- // 4. Save only changed data (Conditional Vector Update)
-        if (!empty($raw_password)) {
- // Check password strength
-            if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $raw_password)) {
+
+        if (!empty($raw_password))
+        {
+
+            if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $raw_password))
+            {
                 throw new Exception("Security Fault: New password does not meet complexity standards.");
             }
             $new_hash = password_hash($raw_password, PASSWORD_DEFAULT);
             $sql = "UPDATE $table SET $name_col = ?, email = ?, phone_num = ?, $role_col = ?, password = ? WHERE $id_col = ?";
             $stmt = $conn->prepare($sql);
             $stmt->bind_param("sssssi", $name, $email, $phone, $access_level, $new_hash, $id);
-        } else {
- // Do not update password
+        } else
+        {
+
             $sql = "UPDATE $table SET $name_col = ?, email = ?, phone_num = ?, $role_col = ? WHERE $id_col = ?";
             $stmt = $conn->prepare($sql);
             $stmt->bind_param("ssssi", $name, $email, $phone, $access_level, $id);
         }
 
         $stmt->execute();
-        if ($stmt->affected_rows === 0 && $stmt->error) {
+        if ($stmt->affected_rows === 0 && $stmt->error)
+        {
             throw new Exception("SQL Mutation Fault: " . $stmt->error);
         }
         $stmt->close();
@@ -73,15 +80,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $conn->commit();
         $_SESSION['toast'] = ['type' => 'success', 'msg' => "Mutation Success: Configuration for entity [$id] updated."];
 
-    } catch (Exception $e) {
+    } catch (Exception $e)
+    {
         $conn->rollback();
         $_SESSION['toast'] = ['type' => 'error', 'msg' => "Update Aborted: " . $e->getMessage()];
     }
 
- // Redirect back to the directory
+
     header("Location: ../admin/staff_directory.php");
     exit;
-} else {
+} else
+{
     header("Location: ../admin/staff_directory.php");
     exit;
 }

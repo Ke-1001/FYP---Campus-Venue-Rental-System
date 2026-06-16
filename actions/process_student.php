@@ -1,32 +1,35 @@
 <?php
-// File path: actions/process_student.php
+// This section checks and saves student account details.
 session_start();
 require_once __DIR__ . '/../config/db.php';
-require_once __DIR__ . '/../includes/admin_auth.php'; 
+require_once __DIR__ . '/../includes/admin_auth.php';
 
 $action = $_POST['action'] ?? $_GET['action'] ?? '';
 
-if ($action === 'add' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    // === ENTITY REGISTRATION (Natural Key Parsing) ===
- $uid = htmlspecialchars(trim($_POST['uid'])); // Must receive real student ID
+if ($action === 'add' && $_SERVER['REQUEST_METHOD'] === 'POST')
+{
+
+ $uid = htmlspecialchars(trim($_POST['uid']));
     $username = htmlspecialchars(trim($_POST['username'] ?? $_POST['full_name'] ?? ''));
     $email = trim($_POST['email']);
     $phone_num = htmlspecialchars(trim($_POST['phone_num'] ?? ''));
     $password_hash = password_hash($_POST['password'], PASSWORD_DEFAULT);
 
-    if (empty($uid)) {
+    if (empty($uid))
+    {
         $_SESSION['toast'] = ['type' => 'error', 'msg' => 'Registration Halted: Student ID (Natural Key) is missing.'];
         header("Location: ../admin/manage_students.php");
         exit;
     }
 
-    // Invariant Check: Double Collision Detection
+
     $sql_check = "SELECT uid FROM user WHERE email = ? OR uid = ?";
     $stmt_check = $conn->prepare($sql_check);
     $stmt_check->bind_param("ss", $email, $uid);
     $stmt_check->execute();
-    
-    if ($stmt_check->get_result()->num_rows > 0) {
+
+    if ($stmt_check->get_result()->num_rows > 0)
+    {
         $_SESSION['toast'] = ['type' => 'error', 'msg' => 'Conflict: Student ID or Email already exists.'];
         $stmt_check->close();
         header("Location: ../admin/manage_students.php");
@@ -34,15 +37,18 @@ if ($action === 'add' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     $stmt_check->close();
 
- // Save to user table (set uid directly)
+
     $sql = "INSERT INTO user (uid, username, email, password, phone_num) VALUES (?, ?, ?, ?, ?)";
     $stmt = $conn->prepare($sql);
-    
-    if ($stmt) {
+
+    if ($stmt)
+    {
         $stmt->bind_param("sssss", $uid, $username, $email, $password_hash, $phone_num);
-        if ($stmt->execute()) {
+        if ($stmt->execute())
+        {
             $_SESSION['toast'] = ['type' => 'success', 'msg' => 'Student entity registered successfully.'];
-        } else {
+        } else
+        {
             $_SESSION['toast'] = ['type' => 'error', 'msg' => 'Database Fault: ' . $stmt->error];
         }
         $stmt->close();
@@ -50,20 +56,22 @@ if ($action === 'add' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     header("Location: ../admin/manage_students.php");
     exit;
 
-} elseif ($action === 'edit' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    // === CONFIGURATION UPDATE ===
-    $uid = htmlspecialchars(trim($_POST['uid'] ?? $_POST['user_id'] ?? '')); // VARCHAR
+} elseif ($action === 'edit' && $_SERVER['REQUEST_METHOD'] === 'POST')
+{
+
+    $uid = htmlspecialchars(trim($_POST['uid'] ?? $_POST['user_id'] ?? ''));
     $username = htmlspecialchars(trim($_POST['username'] ?? $_POST['full_name'] ?? ''));
     $email = trim($_POST['email']);
     $phone_num = htmlspecialchars(trim($_POST['phone_num'] ?? ''));
 
-    // Email Collision Detection (Excluding self)
+
     $sql_check = "SELECT uid FROM user WHERE email = ? AND uid != ?";
     $stmt_check = $conn->prepare($sql_check);
     $stmt_check->bind_param("ss", $email, $uid);
     $stmt_check->execute();
-    
-    if ($stmt_check->get_result()->num_rows > 0) {
+
+    if ($stmt_check->get_result()->num_rows > 0)
+    {
         $_SESSION['toast'] = ['type' => 'error', 'msg' => 'Update Blocked: Email overlaps with an existing entity.'];
         $stmt_check->close();
         header("Location: ../admin/manage_students.php");
@@ -71,15 +79,18 @@ if ($action === 'add' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     $stmt_check->close();
 
- // Update user table (No role check needed because the entity is separated)
+
     $sql = "UPDATE user SET username = ?, email = ?, phone_num = ? WHERE uid = ?";
     $stmt = $conn->prepare($sql);
-    
-    if ($stmt) {
+
+    if ($stmt)
+    {
         $stmt->bind_param("ssss", $username, $email, $phone_num, $uid);
-        if ($stmt->execute()) {
+        if ($stmt->execute())
+        {
             $_SESSION['toast'] = ['type' => 'success', 'msg' => 'Student profile updated.'];
-        } else {
+        } else
+        {
             $_SESSION['toast'] = ['type' => 'error', 'msg' => 'Database Fault: ' . $stmt->error];
         }
         $stmt->close();
@@ -87,9 +98,10 @@ if ($action === 'add' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     header("Location: ../admin/manage_students.php");
     exit;
 
-} elseif ($action === 'delete') {
-    // === REVOCATION PROTOCOL ===
-    $uid = htmlspecialchars(trim($_GET['uid'] ?? $_GET['id'] ?? '')); // VARCHAR
+} elseif ($action === 'delete')
+{
+
+    $uid = htmlspecialchars(trim($_GET['uid'] ?? $_GET['id'] ?? ''));
 
     $sql_check = "SELECT uid FROM user WHERE uid = ?";
     $stmt_check = $conn->prepare($sql_check);
@@ -97,7 +109,8 @@ if ($action === 'add' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt_check->execute();
     $result = $stmt_check->get_result();
 
-    if ($result->num_rows === 0) {
+    if ($result->num_rows === 0)
+    {
         $_SESSION['toast'] = ['type' => 'error', 'msg' => 'Entity not found.'];
         $stmt_check->close();
         header("Location: ../admin/manage_students.php");
@@ -107,12 +120,15 @@ if ($action === 'add' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $sql = "DELETE FROM user WHERE uid = ?";
     $stmt = $conn->prepare($sql);
-    
-    if ($stmt) {
-        $stmt->bind_param("s", $uid); // "s"
-        if ($stmt->execute()) {
+
+    if ($stmt)
+    {
+        $stmt->bind_param("s", $uid);
+        if ($stmt->execute())
+        {
             $_SESSION['toast'] = ['type' => 'success', 'msg' => 'Student record eradicated.'];
-        } else {
+        } else
+        {
             $_SESSION['toast'] = ['type' => 'error', 'msg' => 'Database Deletion Fault: ' . $stmt->error];
         }
         $stmt->close();
@@ -120,7 +136,8 @@ if ($action === 'add' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     header("Location: ../admin/manage_students.php");
     exit;
 
-} else {
+} else
+{
     $_SESSION['toast'] = ['type' => 'error', 'msg' => 'Malformed request vector.'];
     header("Location: ../admin/manage_students.php");
     exit;

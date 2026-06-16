@@ -1,17 +1,13 @@
 <?php
-// File: core/components/FioriTileBuilder.php
-
+// This section provides the shared FioriTileBuilder component.
 namespace Core\Components;
 
-class FioriTileBuilder {
-    
-    /**
- * Render one Launchpad section (Render Launchpad Section)
- * @param string $title section title
- * @param string $description section description
- * @param array $tiles tile config array
-     */
-    public static function renderSection(string $title, string $description, array $tiles): string {
+class FioriTileBuilder
+{
+
+
+    public static function renderSection(string $title, string $description, array $tiles): string
+    {
         $html = '
         <div class="mt-8 mb-6 border-b border-slate-200 pb-4">
             <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">' . htmlspecialchars($title) . '</h1>
@@ -19,7 +15,8 @@ class FioriTileBuilder {
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-10">';
 
-        foreach ($tiles as $tile) {
+        foreach ($tiles as $tile)
+        {
             $html .= self::renderTile($tile);
         }
 
@@ -27,15 +24,14 @@ class FioriTileBuilder {
         return $html;
     }
 
-    /**
- * Render one tile (Render Discrete Tile)
-     */
-    private static function renderTile(array $t): string {
+
+    private static function renderTile(array $t): string
+    {
         $url = htmlspecialchars($t['url'] ?? '#');
         $title = htmlspecialchars($t['title']);
         $icon = htmlspecialchars($t['icon']);
         $desc = htmlspecialchars($t['desc']);
- $kpi = $t['kpi'] ?? ''; // KPI can be a number or icon (HTML)
+ $kpi = $t['kpi'] ?? '';
         $action = htmlspecialchars($t['action'] ?? 'View Records');
 
         return "

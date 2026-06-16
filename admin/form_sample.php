@@ -1,7 +1,7 @@
 <?php
-// File: admin/add_admin.php
+// This section prepares the admin form sample page.
 session_start();
-require_once '../includes/super_admin_auth.php'; // 🔒 Enforce Super Admin Privilege
+require_once '../includes/super_admin_auth.php';
 require_once '../config/db.php';
 ?>
 <!DOCTYPE html>
@@ -13,7 +13,12 @@ require_once '../config/db.php';
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
-        tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b', accent: '#38bdf8' } } } } }
+        tailwind.config =
+        { theme:
+        { extend:
+        { colors:
+        { cstyle:
+        { blue: '#004aad', dark: '#1e293b', accent: '#38bdf8' } } } } }
     </script>
     <link rel="stylesheet" href="../assets/css/admin_css.css?v=2.0">
 </head>
@@ -22,27 +27,27 @@ require_once '../config/db.php';
     <?php include('../includes/admin_sidebar.php'); ?>
 
     <main class="flex-1 flex flex-col h-screen overflow-hidden bg-fiori-bg relative">
-        
+
         <?php
         $topbar_content = '<h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Personnel Management / Register Admin</h2>';
-        include('../includes/admin_topbar.php'); 
+        include('../includes/admin_topbar.php');
         ?>
 
         <form action="../actions/process_add_admin.php" method="POST" id="addAdminForm" class="flex-1 flex flex-col overflow-hidden">
-            
+
             <div class="flex-1 overflow-y-auto">
                 <div class="fiori-form-container">
-                    
+
                     <div class="fiori-section-header">
                         <h2 class="text-base font-bold text-fiori-text">Basic Data</h2>
                         <a href="#" class="text-fiori-blue hover:underline text-sm font-semibold">Change Role Assignment Data</a>
                     </div>
 
                     <div class="p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
-                        
+
                         <div class="lg:col-span-6 space-y-4">
                             <h3 class="text-sm font-bold text-fiori-text mb-4">Identity Data</h3>
-                            
+
                             <div class="grid grid-cols-3 gap-4 items-center">
                                 <label class="col-span-1 text-sm text-fiori-label">Access Level:</label>
                                 <div class="col-span-2 relative">
@@ -79,7 +84,7 @@ require_once '../config/db.php';
 
                         <div class="lg:col-span-6 space-y-4">
                             <h3 class="text-sm font-bold text-fiori-text mb-4">System Credentials Data</h3>
-                            
+
                             <div class="grid grid-cols-3 gap-4 items-start">
                                 <label class="col-span-1 text-sm text-fiori-label mt-1">Email Address:</label>
                                 <div class="col-span-2 relative">
@@ -105,7 +110,8 @@ require_once '../config/db.php';
                                         <span id="rule-upper" class="validation-tag">Upper [A-Z]</span>
                                         <span id="rule-lower" class="validation-tag">Lower [a-z]</span>
                                         <span id="rule-number" class="validation-tag">Num [0-9]</span>
-                                        <span id="rule-special" class="validation-tag">Spec {@$!%*?&}</span>
+                                        <span id="rule-special" class="validation-tag">Spec
+                                        {@$!%*?&}</span>
                                     </div>
                                 </div>
                             </div>
@@ -132,33 +138,41 @@ require_once '../config/db.php';
     <script>
         lucide.createIcons();
 
-        function toggleSidebar() {
+        function toggleSidebar()
+        {
             document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed');
         }
 
- // Fix: function name is validateERPForm to solve event binding issue
-        function validateERPForm() {
+
+        function validateERPForm()
+        {
             const emailInput = document.getElementById('email');
             const emailFeedback = document.getElementById('email-feedback');
-            const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]
+            {2,}$/;
             const isEmailValid = emailRegex.test(emailInput.value);
 
-            if (emailInput.value.length > 0) {
-                if (isEmailValid) {
+            if (emailInput.value.length > 0)
+            {
+                if (isEmailValid)
+                {
                     emailInput.style.borderColor = 'var(--fiori-border)';
                     emailFeedback.classList.add('hidden');
-                } else {
+                } else
+                {
                     emailInput.style.borderColor = 'var(--fiori-error)';
                     emailFeedback.classList.remove('hidden');
                 }
-            } else {
+            } else
+            {
                 emailInput.style.borderColor = 'var(--fiori-border)';
                 emailFeedback.classList.add('hidden');
             }
 
             const pwd = document.getElementById('password').value;
-            
-            const reqs = {
+
+            const reqs =
+            {
                 length: pwd.length >= 8,
                 upper: /[A-Z]/.test(pwd),
                 lower: /[a-z]/.test(pwd),
@@ -166,12 +180,15 @@ require_once '../config/db.php';
                 special: /[@$!%*?&]/.test(pwd)
             };
 
- // Fix: align mapping with.validation-tag in fiori_forms.css to avoid null reference
-            const toggleRule = (id, isValid) => {
+
+            const toggleRule = (id, isValid) =>
+            {
                 const el = document.getElementById(id);
-                if (isValid) {
+                if (isValid)
+                {
                     el.classList.add('valid');
-                } else {
+                } else
+                {
                     el.classList.remove('valid');
                 }
             };
@@ -185,11 +202,13 @@ require_once '../config/db.php';
             const isPwdSecure = Object.values(reqs).every(val => val === true);
             const btn = document.getElementById('submitBtn');
 
- // Control button status
-            if (isPwdSecure && isEmailValid) {
+
+            if (isPwdSecure && isEmailValid)
+            {
                 btn.disabled = false;
                 btn.style.opacity = "1";
-            } else {
+            } else
+            {
                 btn.disabled = true;
                 btn.style.opacity = "0.5";
             }

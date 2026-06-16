@@ -1,10 +1,11 @@
 <?php
+// This section prepares the user my bookings page.
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/user_auth.php';
 require_once __DIR__ . '/../includes/user_header.php';
 require_once __DIR__ . '/../includes/user_navbar.php';
 require_once __DIR__ . '/../includes/booking_functions.php';
-    
+
 syncCompletedBookings($conn);
 
 $user_id = $_SESSION['uid'];
@@ -29,7 +30,7 @@ $total_bookings = (int)($count_result['total'] ?? 0);
 $count_stmt->close();
 
 $sql = "
-    SELECT 
+    SELECT
         b.bid,
         b.date_booked,
         b.time_start,
@@ -51,29 +52,34 @@ $sql = "
 $params = [$user_id];
 $types = "s";
 
-// Filter by booking status
-if ($status_filter !== '') {
+
+if ($status_filter !== '')
+{
     $sql .= " AND b.status = ?";
     $params[] = $status_filter;
     $types .= "s";
 }
 
-// Filter by payment status
-if ($payment_filter !== '') {
+
+if ($payment_filter !== '')
+{
     $sql .= " AND b.payment_status = ?";
     $params[] = $payment_filter;
     $types .= "s";
 }
 
-// Filter by date
-if ($date_filter === 'upcoming') {
+
+if ($date_filter === 'upcoming')
+{
     $sql .= " AND b.date_booked >= CURDATE()";
-} elseif ($date_filter === 'past') {
+} elseif ($date_filter === 'past')
+{
     $sql .= " AND b.date_booked < CURDATE()";
 }
 
-// Search by booking ID or venue name
-if ($search !== '') {
+
+if ($search !== '')
+{
     $sql .= " AND (CAST(b.bid AS CHAR) LIKE ? OR v.vname LIKE ? OR v.vid LIKE ?)";
     $search_like = "%" . $search . "%";
     $params[] = $search_like;
@@ -89,44 +95,54 @@ $stmt->bind_param($types, ...$params);
 $stmt->execute();
 $result = $stmt->get_result();
 
-function bookingStatusBadgeClass($status) {
+function bookingStatusBadgeClass($status)
+{
     $status = strtolower((string)$status);
 
-    if ($status === "approved") {
+    if ($status === "approved")
+    {
         return "bg-emerald-100 text-emerald-700 border-emerald-200";
     }
 
-    if ($status === "rejected") {
+    if ($status === "rejected")
+    {
         return "bg-red-100 text-red-700 border-red-200";
     }
 
-    if ($status === "completed") {
+    if ($status === "completed")
+    {
         return "bg-blue-100 text-blue-700 border-blue-200";
     }
 
-    if ($status === "cancelled") {
+    if ($status === "cancelled")
+    {
     return "bg-slate-100 text-slate-600 border-slate-200";
     }
 
     return "bg-yellow-100 text-yellow-700 border-yellow-200";
 }
 
-function paymentStatusBadgeClass($status) {
+function paymentStatusBadgeClass($status)
+{
     $status = strtolower((string)$status);
 
-    if ($status === "paid") {
+    if ($status === "paid")
+    {
         return "bg-emerald-100 text-emerald-700 border-emerald-200";
     }
 
-    if ($status === "refunded") {
+    if ($status === "refunded")
+    {
         return "bg-blue-100 text-blue-700 border-blue-200";
     }
 
     return "bg-orange-100 text-orange-700 border-orange-200";
 }
 
-function formatBookingDate($date) {
-    if (empty($date) || $date === "0000-00-00") {
+function formatBookingDate($date)
+{
+    if (empty($date) || $date === "0000-00-00")
+    {
         return "-";
     }
 
@@ -141,7 +157,7 @@ function formatBookingDate($date) {
 <div class="min-h-screen bg-transparent py-12 px-4 sm:px-6 lg:px-8 font-sans">
     <div class="max-w-6xl mx-auto">
 
-        <!-- Page Header -->
+
         <div class="mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
             <div>
                 <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">
@@ -159,20 +175,20 @@ function formatBookingDate($date) {
             </a>
         </div>
 
-        <!-- Booking Filter Section -->
+
         <?php if ($total_bookings > 0): ?>
             <form method="GET" action="my_bookings.php" id="bookingFilterForm" class="bg-white/95 backdrop-blur-sm border border-slate-200 rounded-2xl shadow-sm p-6 mb-8">
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
 
-                    <!-- Search -->
+
                     <div>
                         <label class="block text-xs font-black uppercase tracking-widest text-slate-700 mb-2">
                             Search
                         </label>
                         <div class="relative">
                             <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-3"></i>
-                            <input 
-                                type="text" 
+                            <input
+                                type="text"
                                 name="search"
                                 id="bookingSearchInput"
                                 value="<?php echo htmlspecialchars($search); ?>"
@@ -182,12 +198,12 @@ function formatBookingDate($date) {
                         </div>
                     </div>
 
-                    <!-- Status Filter -->
+
                     <div>
                         <label class="block text-xs font-black uppercase tracking-widest text-slate-700 mb-2">
                             Booking Status
                         </label>
-                        <select 
+                        <select
                             name="status"
                             class="auto-submit w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         >
@@ -200,12 +216,12 @@ function formatBookingDate($date) {
                         </select>
                     </div>
 
-                    <!-- Payment Filter -->
+
                     <div>
                         <label class="block text-xs font-black uppercase tracking-widest text-slate-700 mb-2">
                             Payment Status
                         </label>
-                        <select 
+                        <select
                             name="payment"
                             class="auto-submit w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         >
@@ -216,12 +232,12 @@ function formatBookingDate($date) {
                         </select>
                     </div>
 
-                    <!-- Date Filter -->
+
                     <div>
                         <label class="block text-xs font-black uppercase tracking-widest text-slate-700 mb-2">
                             Date
                         </label>
-                        <select 
+                        <select
                             name="date_filter"
                             class="auto-submit w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                         >
@@ -238,7 +254,7 @@ function formatBookingDate($date) {
                     </p>
 
                     <?php if ($search !== '' || $status_filter !== '' || $payment_filter !== '' || $date_filter !== ''): ?>
-                        <a 
+                        <a
                             href="my_bookings.php"
                             class="inline-flex items-center px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition-colors"
                         >
@@ -252,7 +268,7 @@ function formatBookingDate($date) {
 
         <?php if ($result && $result->num_rows > 0): ?>
 
-            <!-- Desktop Table -->
+
             <div class="hidden md:block bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
 
                 <div class="px-6 py-4 border-b border-slate-100 bg-slate-50">
@@ -360,11 +376,11 @@ function formatBookingDate($date) {
             </div>
 
             <?php
-            // Reset result pointer for mobile list rendering.
+
             $result->data_seek(0);
             ?>
 
-            <!-- Mobile List -->
+
             <div class="md:hidden space-y-4">
                 <?php while ($row = $result->fetch_assoc()): ?>
                     <?php
@@ -437,7 +453,8 @@ function formatBookingDate($date) {
 
         <?php else: ?>
             <?php if ($total_bookings === 0): ?>
-                <!-- User has no booking at all -->
+
+
                 <div class="py-12 text-center text-slate-500 bg-white rounded-2xl border border-slate-200">
                     <i data-lucide="calendar-plus" class="w-12 h-12 mx-auto text-slate-300 mb-3"></i>
 
@@ -449,7 +466,7 @@ function formatBookingDate($date) {
                         You have not made any venue booking yet.
                     </p>
 
-                    <a 
+                    <a
                         href="venues.php"
                         class="inline-flex items-center justify-center mt-5 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-lg shadow-sm transition"
                     >
@@ -459,7 +476,8 @@ function formatBookingDate($date) {
                 </div>
 
             <?php else: ?>
-                <!-- User has bookings, but filter/search found nothing -->
+
+
                 <div class="py-12 text-center text-slate-500 bg-white rounded-2xl border border-slate-200">
                     <i data-lucide="calendar-x" class="w-12 h-12 mx-auto text-slate-300 mb-3"></i>
 
@@ -470,26 +488,33 @@ function formatBookingDate($date) {
                     <p class="text-sm text-slate-400 mt-1">
                         Try changing the keyword, booking status, payment status, or date filter. </p>  <a href="my_bookings.php" class="inline-flex items-center justify-center mt-5 px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold rounded-lg transition" > <i data-lucide="rotate-ccw" class="w-4 h-4 mr-2"></i> Clear Filters </a> </div> <?php endif; ?> <?php endif; ?> </div> </div>   <script> lucide.createIcons();
 
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function ()
+{
     const form = document.getElementById('bookingFilterForm');
     const searchInput = document.getElementById('bookingSearchInput');
     const autoSubmitFields = document.querySelectorAll('.auto-submit');
 
     let searchTimer;
 
-    if (form) {
-        autoSubmitFields.forEach(function (field) {
-            field.addEventListener('change', function () {
+    if (form)
+    {
+        autoSubmitFields.forEach(function (field)
+        {
+            field.addEventListener('change', function ()
+            {
                 form.submit();
             });
         });
     }
 
-    if (form && searchInput) {
-        searchInput.addEventListener('input', function () {
+    if (form && searchInput)
+    {
+        searchInput.addEventListener('input', function ()
+        {
             clearTimeout(searchTimer);
 
-            searchTimer = setTimeout(function () {
+            searchTimer = setTimeout(function ()
+            {
                 form.submit();
             }, 500);
         });

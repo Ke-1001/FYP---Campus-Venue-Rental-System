@@ -1,44 +1,38 @@
 <?php
-// File: admin/execute_inspection.php
+// This section prepares the admin execute inspection page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 
-// Load repository dependency (Zero-SQL Principle)
+
 require_once __DIR__ . '/../core/repositories/InspectionRepository.php';
 use Core\Repositories\InspectionRepository;
 
-/*
-|--------------------------------------------------------------------------
-| I: Repository Initialization & Identifier Validation
-|--------------------------------------------------------------------------
-*/
+
 $inspectionRepo = new InspectionRepository($conn);
 $bid = intval($_GET['bid'] ?? 0);
 
-if ($bid === 0) {
+if ($bid === 0)
+{
     die("Execution Fault: Invalid Booking Identifier.");
 }
 
-/*
-|--------------------------------------------------------------------------
-| D: Data Extraction & Spatiotemporal Validation (Backend Shield)
-|--------------------------------------------------------------------------
-*/
+
 $data = $inspectionRepo->getPendingInspectionDetailById($bid);
 
-// ... existing code ...
+
 $data = $inspectionRepo->getPendingInspectionDetailById($bid);
 
-if (!$data) {
+if (!$data)
+{
     die("Execution Fault: No pending inspection record found for this Reference ID.");
 }
 
-// Add: Get waiver baseline (Waiver Baseline Extraction)
+
 $stmt_waiver = $conn->prepare("
-    SELECT damage_description, admin_remark, damage_photo 
-    FROM damage_report 
-    WHERE bid = ? AND report_status = 'reviewed' 
+    SELECT damage_description, admin_remark, damage_photo
+    FROM damage_report
+    WHERE bid = ? AND report_status = 'reviewed'
     LIMIT 1
 ");
 $stmt_waiver->bind_param("i", $bid);
@@ -47,35 +41,34 @@ $res_waiver = $stmt_waiver->get_result();
 $waiver_data = $res_waiver->num_rows > 0 ? $res_waiver->fetch_assoc() : null;
 $stmt_waiver->close();
 
-// Server-side time protection... (Keep existing code below)
 
-if (!$data) {
+if (!$data)
+{
     die("Execution Fault: No pending inspection record found for this Reference ID.");
 }
 
-// Server-side time protection (If not Ready, redirect with HTTP 302)
+
 $tz = new DateTimeZone('Asia/Kuala_Lumpur');
 $now = new DateTime('now', $tz);
 $start_dt = new DateTime($data['date_booked'] . ' ' . $data['time_start'], $tz);
 $end_dt = new DateTime($data['date_booked'] . ' ' . $data['time_end'], $tz);
 
 $execution_state = 'awaiting';
-if ($now >= $end_dt || $data['status'] === 'completed') {
+if ($now >= $end_dt || $data['status'] === 'completed')
+{
     $execution_state = 'ready';
-} elseif ($now >= $start_dt && $now < $end_dt) {
+} elseif ($now >= $start_dt && $now < $end_dt)
+{
     $execution_state = 'in_use';
 }
 
-if ($execution_state !== 'ready') {
+if ($execution_state !== 'ready')
+{
     header("Location: pending_inspections.php?err=temporal&state=" . urlencode($execution_state));
     exit;
 }
 
-/*
-|--------------------------------------------------------------------------
-| C: Configuration Definitions
-|--------------------------------------------------------------------------
-*/
+
 $page_title = "Execute Assessment";
 $page_description = "Conduct post-usage verification and deposit settlement.";
 $topbar_content = '
@@ -91,11 +84,7 @@ $extra_css = [];
 require_once __DIR__ . '/../core/components/FioriFormBuilder.php';
 use Core\Components\FioriFormBuilder as FB;
 
-/*
-|--------------------------------------------------------------------------
-| V: View Rendering (State Binding via Builder)
-|--------------------------------------------------------------------------
-*/
+
 ob_start();
 ?>
 
@@ -109,11 +98,11 @@ ob_start();
             </div>
 
             <div class="p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
-                
+
                 <div class="lg:col-span-6 space-y-4">
                     <h3 class="text-sm font-bold text-[#1d2d3e] mb-4">Reference Context (Read-Only)</h3>
-                    
-                    <?php 
+
+                    <?php
                     $readOnlyProps = ['readonly' => true, 'extra_css' => 'bg-slate-50 text-slate-500 cursor-not-allowed'];
 
                     echo FB::input('text', 'disp_vname', 'Venue Details', $data['vname'] . ' [' . $data['venue_category'] . ']', $readOnlyProps);
@@ -129,7 +118,7 @@ ob_start();
                     <div class="mt-6 border-2 border-amber-400 bg-amber-50 rounded-lg p-4 shadow-sm animate-pulse-once relative overflow-hidden">
                         <div class="absolute top-0 left-0 w-1 h-full bg-amber-500"></div>
                         <h4 class="text-sm font-black text-amber-800 flex items-center mb-3 uppercase tracking-wider">
-                            <i data-lucide="triangle-alert" class="w-4 h-4 mr-2"></i> 
+                            <i data-lucide="triangle-alert" class="w-4 h-4 mr-2"></i>
                             Pre-existing Damage Waiver
                         </h4>
                         <div class="space-y-3">
@@ -162,8 +151,8 @@ ob_start();
 
                 <div class="lg:col-span-6 space-y-4">
                     <h3 class="text-sm font-bold text-[#1d2d3e] mb-4">Assessment Submission</h3>
-                    
-                    <?php 
+
+                    <?php
                     echo FB::select('ins_status', 'Final Condition', [
                         'passed' => 'Passed (Perfect Condition - Full Refund)',
                         'failed' => 'Failed (Damages/Dirty - Apply Penalties)'
@@ -179,10 +168,10 @@ ob_start();
                     </div>
 
                     <?php
- // Removed PHP readonly; JS handles the state
+
                     echo FB::input('number', 'penalty', 'Assessed Penalty (RM)', '0.00', [
-                        'step' => '0.01', 
-                        'min' => '0', 
+                        'step' => '0.01',
+                        'min' => '0',
                         'prefix' => 'RM',
                         'extra_css' => 'font-mono transition-colors'
                     ]);
@@ -204,15 +193,17 @@ ob_start();
 </form>
 
 <script>
- // Single source of truth status logic (Single Source of Truth State Machine)
-    function evaluateFormState() {
+
+    function evaluateFormState()
+    {
         const selectBox = document.querySelector('select[name="ins_status"]');
         const desc = document.getElementById('damage_desc');
         const penalty = document.querySelector('input[name="penalty"]');
         const btn = document.getElementById('submit-btn');
 
-        if (!selectBox || !desc || !penalty || !btn) return;  const status = selectBox.value;  if (status === 'passed') {
- // Status A: Passed -> lock input, set amount to zero, enable button
+        if (!selectBox || !desc || !penalty || !btn) return;  const status = selectBox.value;  if (status === 'passed')
+        {
+
             selectBox.classList.remove('text-red-600', 'border-red-300');
             selectBox.classList.add('text-emerald-600', 'border-emerald-300');
 
@@ -230,8 +221,9 @@ ob_start();
             btn.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-slate-400', 'border-slate-400');
             btn.classList.add('bg-[#004aad]', 'hover:bg-[#003882]', 'border-[#004aad]');
 
-        } else {
- // Status B: Failed -> unlock input and require validation
+        } else
+        {
+
             selectBox.classList.remove('text-emerald-600', 'border-emerald-300');
             selectBox.classList.add('text-red-600', 'border-red-300');
 
@@ -243,22 +235,25 @@ ob_start();
             penalty.classList.remove('bg-slate-50', 'text-slate-400', 'cursor-not-allowed');
             penalty.classList.add('text-red-600', 'font-bold');
 
- // Enable button only when description exists and amount is above 0
+
             const pVal = parseFloat(penalty.value);
             const isValid = (desc.value.trim() !== '') && (!isNaN(pVal) && pVal > 0);
 
             btn.disabled = !isValid;
-            if (isValid) {
+            if (isValid)
+            {
                 btn.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-slate-400', 'border-slate-400');
                 btn.classList.add('bg-[#004aad]', 'hover:bg-[#003882]', 'border-[#004aad]');
-            } else {
+            } else
+            {
                 btn.classList.add('opacity-50', 'cursor-not-allowed', 'bg-slate-400', 'border-slate-400');
                 btn.classList.remove('bg-[#004aad]', 'hover:bg-[#003882]', 'border-[#004aad]');
             }
         }
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', () =>
+    {
         const selectBox = document.querySelector('select[name="ins_status"]');
         const desc = document.getElementById('damage_desc');
         const penalty = document.querySelector('input[name="penalty"]');
@@ -267,13 +262,15 @@ ob_start();
         if (desc) desc.addEventListener('input', evaluateFormState);
         if (penalty) penalty.addEventListener('input', evaluateFormState);
 
- // Initialize state
+
         evaluateFormState();
     });
 
-    document.getElementById('inspectionForm').addEventListener('submit', function(e) {
+    document.getElementById('inspectionForm').addEventListener('submit', function(e)
+    {
         const btn = document.getElementById('submit-btn');
-        if (btn.disabled) {
+        if (btn.disabled)
+        {
             e.preventDefault();
             return;
         }
@@ -286,10 +283,6 @@ ob_start();
 <?php
 $page_content = ob_get_clean();
 
-/*
-|--------------------------------------------------------------------------
-| L: Global Layout Engine
-|--------------------------------------------------------------------------
-*/
+
 require_once __DIR__ . '/../core/layout.php';
 ?>

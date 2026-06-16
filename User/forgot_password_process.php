@@ -1,25 +1,27 @@
 <?php
-// File: User/forgot_password_process.php
-
+// This section checks and processes forgot password process details.
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../config/app.php';
 require_once __DIR__ . '/../includes/mailer.php';
 
-if ($_SERVER["REQUEST_METHOD"] !== "POST") {
+if ($_SERVER["REQUEST_METHOD"] !== "POST")
+{
     header("Location: forgot_password.php");
     exit;
 }
 
 $email = filter_var(trim($_POST['email'] ?? ''), FILTER_SANITIZE_EMAIL);
 
-if (empty($email)) {
+if (empty($email))
+{
     $_SESSION['error'] = "Please enter your email address.";
     header("Location: forgot_password.php");
     exit;
 }
 
-try {
+try
+{
     $stmt = $conn->prepare("SELECT username FROM user WHERE email = ? LIMIT 1");
     $stmt->bind_param("s", $email);
     $stmt->execute();
@@ -27,7 +29,8 @@ try {
     $user = $result->fetch_assoc();
     $stmt->close();
 
-    if ($user) {
+    if ($user)
+    {
         $token = bin2hex(random_bytes(32));
         $token_hash = hash("sha256", $token);
 
@@ -56,7 +59,8 @@ try {
     header("Location: ../check_email.php");
     exit;
 
-} catch (Exception $e) {
+} catch (Exception $e)
+{
     $_SESSION['error'] = "Unable to process password reset request. Please try again.";
     header("Location: forgot_password.php");
     exit;

@@ -1,10 +1,12 @@
 <?php
+// This section prepares the user report damage page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
 
 date_default_timezone_set('Asia/Kuala_Lumpur');
 
-if (!isset($_SESSION['uid'])) {
+if (!isset($_SESSION['uid']))
+{
     header("Location: login.php");
     exit;
 }
@@ -12,7 +14,8 @@ if (!isset($_SESSION['uid'])) {
 $uid = $_SESSION['uid'];
 $bid = intval($_GET['bid'] ?? 0);
 
-if ($bid <= 0) {
+if ($bid <= 0)
+{
     die("Invalid booking ID.");
 }
 
@@ -28,14 +31,16 @@ $stmt->bind_param("is", $bid, $uid);
 $stmt->execute();
 $result = $stmt->get_result();
 
-if (!$result || $result->num_rows === 0) {
+if (!$result || $result->num_rows === 0)
+{
     die("Booking not found.");
 }
 
 $booking = $result->fetch_assoc();
 $stmt->close();
 
-if (strtolower($booking['status']) !== 'approved') {
+if (strtolower($booking['status']) !== 'approved')
+{
     $_SESSION['error'] = "Damage report is only available for approved bookings.";
     header("Location: booking_details.php?bid=" . urlencode($bid));
     exit;
@@ -45,7 +50,8 @@ $damage_window_start_ts = strtotime($booking['date_booked'] . ' ' . $booking['ti
 $damage_window_end_ts = strtotime($booking['date_booked'] . ' ' . $booking['time_end']);
 $now_ts = time();
 
-if ( $damage_window_start_ts === false || $damage_window_end_ts === false || $now_ts < $damage_window_start_ts || $now_ts > $damage_window_end_ts ) {
+if ( $damage_window_start_ts === false || $damage_window_end_ts === false || $now_ts < $damage_window_start_ts || $now_ts > $damage_window_end_ts )
+{
     $_SESSION['error'] = "Damage report can only be submitted during the booking time.";
     header("Location: booking_details.php?bid=" . urlencode($bid));
     exit;
@@ -56,7 +62,8 @@ $check->bind_param("is", $bid, $uid);
 $check->execute();
 $check_result = $check->get_result();
 
-if ($check_result && $check_result->num_rows > 0) {
+if ($check_result && $check_result->num_rows > 0)
+{
     header("Location: booking_details.php?bid=" . urlencode($bid));
     exit;
 }
@@ -69,7 +76,7 @@ include("../includes/user_navbar.php");
 
 <div class="relative z-10 max-w-4xl mx-auto px-4 py-10">
     <div class="mb-8">
-        <a href="booking_details.php?bid=<?php echo urlencode($booking['bid']); ?>" 
+        <a href="booking_details.php?bid=<?php echo urlencode($booking['bid']); ?>"
            class="inline-flex items-center text-sm font-bold text-blue-700 hover:text-blue-900 transition">
             <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i>
             Back to Booking Details
@@ -141,7 +148,7 @@ include("../includes/user_navbar.php");
 
             <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
                 <a href="booking_details.php?bid=<?php echo urlencode($booking['bid']); ?>" class="px-5 py-2.5 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition">Cancel</a>
-                
+
                 <button type="submit" id="btn_submit" class="px-6 py-2.5 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm transition flex items-center">
                     <i data-lucide="check-circle" class="w-4 h-4 mr-2"></i>
                     Acknowledge & Continue Use
@@ -154,30 +161,36 @@ include("../includes/user_navbar.php");
 <script>
 lucide.createIcons();
 
-function updateUI(severity) {
+function updateUI(severity)
+{
     const warningBox = document.getElementById('level3_warning');
     const actionInput = document.getElementById('user_action');
-    
-    if (severity === 'Level 3') {
+
+    if (severity === 'Level 3')
+    {
         warningBox.classList.remove('hidden');
- // Read current radio button status
+
         const choice = document.querySelector('input[name="level3_choice"]:checked');
         actionInput.value = choice ? choice.value : 'continue';
-    } else {
+    } else
+    {
         warningBox.classList.add('hidden');
         actionInput.value = 'continue';
     }
     updateButtons();
 }
 
-function updateButtons() {
+function updateButtons()
+{
     const action = document.getElementById('user_action').value;
     const btn = document.getElementById('btn_submit');
-    
-    if (action === 'cancel') {
+
+    if (action === 'cancel')
+    {
         btn.innerHTML = '<i data-lucide="x-circle" class="w-4 h-4 mr-2"></i> Cancel Order & Request Refund';
         btn.className = 'px-6 py-2.5 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm transition flex items-center';
-    } else {
+    } else
+    {
         btn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4 mr-2"></i> Acknowledge & Continue Use';
         btn.className = 'px-6 py-2.5 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm transition flex items-center';
     }

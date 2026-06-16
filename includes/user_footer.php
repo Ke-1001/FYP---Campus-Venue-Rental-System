@@ -1,3 +1,4 @@
+<!-- This section provides shared user footer logic or layout. -->
 </main>
 
 <footer class="relative z-50 bg-slate-950 border-t border-white/10 px-6 py-10 mt-20">
@@ -30,7 +31,8 @@
         </div>
 
         <div class="text-center text-slate-500 text-xs">
-            &copy; 2026 Campus Venue Booking Management System. All rights reserved. </div> </div> </footer>  <script> if (window.lucide) { lucide.createIcons();
+            &copy; 2026 Campus Venue Booking Management System. All rights reserved. </div> </div> </footer>  <script> if (window.lucide)
+            { lucide.createIcons();
     }
 </script>
 </body>

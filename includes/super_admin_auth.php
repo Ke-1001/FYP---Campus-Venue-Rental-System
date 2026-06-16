@@ -1,16 +1,16 @@
 <?php
-// File: includes/super_admin_auth.php
+// This section provides shared super admin auth logic or layout.
+require_once 'admin_auth.php';
 
-require_once 'admin_auth.php'; 
 
-// 💡 Privilege Elevation Check (Mapped to new lowercase ENUM)
-if ($_SESSION['role'] !== 'super_admin') {
+if ($_SESSION['role'] !== 'super_admin')
+{
     $_SESSION['toast'] = [
-        'type' => 'error', 
+        'type' => 'error',
         'msg' => 'Access Denied: Root (Super Administrator) privileges required.'
     ];
-    // Redirect unauthorized personnel back to a safe zone
- header("Location:../admin/manage_bookings.php"); // Fix route to new Launchpad
+
+ header("Location:../admin/manage_bookings.php");
     exit();
 }
 ?>

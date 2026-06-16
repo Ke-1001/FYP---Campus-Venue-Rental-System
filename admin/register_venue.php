@@ -1,46 +1,35 @@
 <?php
-// File: admin/register_venue.php
+// This section prepares the admin register venue page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 
-// Load repository dependency
+
 require_once __DIR__ . '/../core/repositories/VenueRepository.php';
 use Core\Repositories\VenueRepository;
 
-/*
-|--------------------------------------------------------------------------
-| I: Repository Initialization & Mode Detection
-|--------------------------------------------------------------------------
-*/
+
 $venueRepo = new VenueRepository($conn);
 
-// Check page mode (State Machine Detection)
+
 $vid_param = trim($_GET['vid'] ?? '');
 $mode = !empty($vid_param) ? 'Update' : 'Create';
 $venue = null;
 
-/*
-|--------------------------------------------------------------------------
-| D: Data Extraction & Dictionary Mapping
-|--------------------------------------------------------------------------
-*/
-// Getentityand, Zero-SQL then
-if ($mode === 'Update') {
+
+if ($mode === 'Update')
+{
     $venue = $venueRepo->getVenueById($vid_param);
-    if (!$venue) {
+    if (!$venue)
+    {
         die("Execution Fault: Venue Node not found.");
     }
 }
 
-// Use form options to get vcid instead of filter text
+
 $categories = $venueRepo->getCategoryDictionary();
 
-/*
-|--------------------------------------------------------------------------
-| C: Configuration Definitions
-|--------------------------------------------------------------------------
-*/
+
 $page_title = "{$mode} Venue";
 $page_description = "Configure physical asset parameters and visual properties.";
 $topbar_content = '
@@ -51,18 +40,14 @@ $topbar_content = '
     <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Venues / ' . $mode . ' Venue</h2>
 </div>';
 
-// Load special Fiori form style
+
 $extra_css = [];
 
-// Load new form builder
+
 require_once __DIR__ . '/../core/components/FioriFormBuilder.php';
 use Core\Components\FioriFormBuilder as FB;
 
-/*
-|--------------------------------------------------------------------------
-| V: View Rendering (State Binding via Builder)
-|--------------------------------------------------------------------------
-*/
+
 ob_start();
 ?>
 
@@ -79,25 +64,25 @@ ob_start();
             </div>
 
             <div class="p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
-                
+
                 <div class="lg:col-span-6 space-y-4">
                     <h3 class="text-sm font-bold text-[#1d2d3e] mb-4">Name and Identity</h3>
-                    
-                    <?php 
+
+                    <?php
                     echo FB::input('text', 'vid', 'Venue ID', $venue['vid'] ?? '', [
-                        'maxlength' => 10, 
+                        'maxlength' => 10,
                         'required' => true,
                         'readonly' => ($mode === 'Update'),
                         'placeholder' => 'e.g. MNBR2002',
                         'extra_css' => ($mode === 'Update') ? '' : 'font-mono uppercase'
-                    ]); 
+                    ]);
 
                     echo FB::input('text', 'vname', 'Venue Name', $venue['vname'] ?? '', [
-                        'required' => true, 
+                        'required' => true,
                         'placeholder' => 'Full Name'
                     ]);
 
- // Convert data list to Builder key-value pairs
+
                     $catOptions = array_column($categories, 'category', 'vcid');
                     echo FB::select('vcid', 'Category', $catOptions, $venue['vcid'] ?? null, [
                         'required' => true,
@@ -108,8 +93,8 @@ ob_start();
 
                 <div class="lg:col-span-6 space-y-4">
                     <h3 class="text-sm font-bold text-[#1d2d3e] mb-4">Capacity and Configuration</h3>
-                    
-                    <?php 
+
+                    <?php
                     echo FB::input('number', 'max_cap', 'Max Capacity', $venue['max_cap'] ?? '', [
                         'min' => 1, 'required' => true, 'suffix' => 'PAX'
                     ]);
@@ -119,9 +104,10 @@ ob_start();
                         'extra_css' => 'text-emerald-700 font-bold'
                     ]);
 
- // Status selector: use extra_css for color and attach onchange event
+
                     $statusColor = 'text-emerald-600';
-                    if ($venue) {
+                    if ($venue)
+                    {
                         $statusColor = ($venue['status'] === 'maintenance') ? 'text-red-600' : (($venue['status'] === 'closed') ? 'text-slate-600' : 'text-emerald-600');
                     }
                     echo "<div class=\"border-t border-slate-100 pt-4 mt-2\">" . FB::select('status', 'Operational State', [ 'available' => 'Available', 'maintenance' => 'Maintenance', 'closed' => 'Closed' ], $venue['status'] ?? 'available', [ 'extra_css' => "font-bold {$statusColor}", 'onchange' => "this.className = this.value === 'maintenance' ? 'fiori-input focus:border-[#004aad] appearance-none pr-8 bg-white cursor-pointer transition-colors font-bold text-red-600' : (this.value === 'closed' ? 'fiori-input focus:border-[#004aad] appearance-none pr-8 bg-white cursor-pointer transition-colors font-bold text-slate-600' : 'fiori-input focus:border-[#004aad] appearance-none pr-8 bg-white cursor-pointer transition-colors font-bold text-emerald-600')" ]) . "</div>";
@@ -143,17 +129,22 @@ ob_start();
     const venuePics = document.getElementById('venue_pics');
     const fileList = document.getElementById('file-list');
 
-    if (venuePics && fileList) {
-        venuePics.addEventListener('change', function(e) {
-            if (this.files.length > 0) {
+    if (venuePics && fileList)
+    {
+        venuePics.addEventListener('change', function(e)
+        {
+            if (this.files.length > 0)
+            {
                 fileList.innerHTML = `${this.files.length} file(s) selected for upload.`;
-            } else {
+            } else
+            {
                 fileList.innerHTML = '';
             }
         });
     }
 
-    document.getElementById('registerVenueForm').addEventListener('submit', function() {
+    document.getElementById('registerVenueForm').addEventListener('submit', function()
+    {
         const btn = document.getElementById('submitBtn');
         btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin mr-2 inline"></i> Processing...';
         btn.classList.add('opacity-70', 'cursor-not-allowed');
@@ -165,10 +156,6 @@ ob_start();
 <?php
 $page_content = ob_get_clean();
 
-/*
-|--------------------------------------------------------------------------
-| L: Global Layout Engine
-|--------------------------------------------------------------------------
-*/
+
 require_once __DIR__ . '/../core/layout.php';
 ?>

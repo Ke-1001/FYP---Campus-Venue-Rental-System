@@ -1,4 +1,6 @@
-body {
+/* This section provides shared user logic or layout. */
+body
+{
     margin: 0;
     font-family: "Century Gothic", CenturyGothic, "Century", "Century Schoolbook", Arial, sans-serif !important;
     font-weight: 700;
@@ -6,7 +8,8 @@ body {
     color: #333;
 }
 
-.navbar {
+.navbar
+{
     background-color: #1e3a5f;
     color: white;
     padding: 15px 40px;
@@ -15,31 +18,36 @@ body {
     align-items: center;
 }
 
-.nav-brand a {
+.nav-brand a
+{
     color: white;
     text-decoration: none;
     font-size: 22px;
     font-weight: bold;
 }
 
-.nav-links a {
+.nav-links a
+{
     color: white;
     text-decoration: none;
     margin-left: 20px;
     font-size: 15px;
 }
 
-.nav-links a:hover {
+.nav-links a:hover
+{
     text-decoration: underline;
 }
 
-.container {
+.container
+{
     width: 90%;
     max-width: 1100px;
     margin: 30px auto;
 }
 
-.card {
+.card
+{
     background: white;
     border-radius: 10px;
     padding: 20px;
@@ -49,11 +57,13 @@ body {
 
 .card h1,
 .card h2,
-.card h3 {
+.card h3
+{
     margin-top: 0;
 }
 
-.btn {
+.btn
+{
     display: inline-block;
     background-color: #1e3a5f;
     color: white;
@@ -64,11 +74,13 @@ body {
     cursor: pointer;
 }
 
-.btn:hover {
+.btn:hover
+{
     background-color: #16304d;
 }
 
-.footer {
+.footer
+{
     text-align: center;
     padding: 20px;
     background-color: #e9ecef;
@@ -76,17 +88,20 @@ body {
     margin-top: 30px;
 }
 
-.grid {
+.grid
+{
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 20px;
 }
 
-.info-row {
+.info-row
+{
     margin-bottom: 10px;
 }
 
-.status {
+.status
+{
     display: inline-block;
     padding: 6px 12px;
     border-radius: 20px;
@@ -94,23 +109,27 @@ body {
     font-weight: bold;
 }
 
-.status-pending {
+.status-pending
+{
     background-color: #fff3cd;
     color: #856404;
 }
 
-.status-approved {
+.status-approved
+{
     background-color: #d4edda;
     color: #155724;
 }
 
-.status-returned {
+.status-returned
+{
     background-color: #d1ecf1;
     color: #0c5460;
 }
 
 input[type="date"],
-input[type="time"] {
+input[type="time"]
+{
     width: 100%;
     padding: 10px;
     margin-top: 6px;
@@ -120,27 +139,32 @@ input[type="time"] {
     box-sizing: border-box;
 }
 
-.glass {
+.glass
+{
             background: rgba(255,255,255,0.08);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255,255,255,0.1);
             border-radius: 16px;
         }
 
-        .btn-primary {
+        .btn-primary
+        {
             background: linear-gradient(to right, #3b82f6, #6366f1);
         }
 
-        .btn-primary:hover {
+        .btn-primary:hover
+        {
             opacity: 0.9;
         }
 
-        .input-dark {
+        .input-dark
+        {
             background: rgba(255,255,255,0.05);
             border: 1px solid rgba(255,255,255,0.1);
             color: white;
         }
 
-        .input-dark::placeholder {
+        .input-dark::placeholder
+        {
             color: #aaa;
         }

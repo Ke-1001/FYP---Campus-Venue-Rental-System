@@ -1,7 +1,7 @@
 <?php
-// File path: includes/admin_auth.php
-
-if (session_status() === PHP_SESSION_NONE) {
+// This section provides shared admin auth logic or layout.
+if (session_status() === PHP_SESSION_NONE)
+{
     session_start();
 }
 
@@ -11,7 +11,8 @@ $admin_role = $_SESSION['role'] ?? '';
 
 $allowed_roles = ['super_admin', 'admin', 'staff'];
 
-if ((!$admin_identifier && !$staff_identifier) || !in_array($admin_role, $allowed_roles, true)) {
+if ((!$admin_identifier && !$staff_identifier) || !in_array($admin_role, $allowed_roles, true))
+{
     session_unset();
     session_destroy();
     header("Location: ../admin/login.php?error=access_denied");
@@ -19,11 +20,14 @@ if ((!$admin_identifier && !$staff_identifier) || !in_array($admin_role, $allowe
 }
 
 global $conn;
-if (isset($conn)) {
-    if ($admin_role === 'staff') {
+if (isset($conn))
+{
+    if ($admin_role === 'staff')
+    {
         $auth_stmt = $conn->prepare("SELECT status FROM staff WHERE sid = ? LIMIT 1");
         $auth_stmt->bind_param("i", $staff_identifier);
-    } else {
+    } else
+    {
         $auth_stmt = $conn->prepare("SELECT status FROM admin WHERE aid = ? LIMIT 1");
         $auth_stmt->bind_param("i", $admin_identifier);
     }
@@ -31,15 +35,18 @@ if (isset($conn)) {
     $auth_stmt->execute();
     $auth_res = $auth_stmt->get_result();
 
-    if ($auth_res->num_rows === 1) {
+    if ($auth_res->num_rows === 1)
+    {
         $auth_row = $auth_res->fetch_assoc();
-        if ($auth_row['status'] === 'inactive') {
+        if ($auth_row['status'] === 'inactive')
+        {
             session_unset();
             session_destroy();
             header("Location: ../admin/login.php?error=account_revoked");
             exit();
         }
-    } else {
+    } else
+    {
         session_unset();
         session_destroy();
         header("Location: ../admin/login.php?error=account_deleted");
@@ -48,14 +55,7 @@ if (isset($conn)) {
     $auth_stmt->close();
 }
 
-/*
-|--------------------------------------------------------------------------
-| Role-based page access
-|--------------------------------------------------------------------------
-| staff       : can only open inspection pages and inspection action
-| admin       : can open all admin modules except inspection pages/actions & identity management
-| super_admin : no restriction
-*/
+
 $current_script = basename($_SERVER['SCRIPT_NAME']);
 
 $inspection_pages = [
@@ -93,17 +93,20 @@ $is_inspection_page = in_array($current_script, $inspection_pages, true);
 $is_staff_allowed_page = in_array($current_script, $staff_allowed_pages, true);
 $is_identity_page = in_array($current_script, $identity_pages, true);
 
-if ($admin_role === 'staff' && !$is_staff_allowed_page) {
+if ($admin_role === 'staff' && !$is_staff_allowed_page)
+{
     header("Location: ../admin/inspections.php?error=staff_restricted");
     exit();
 }
 
-if ($admin_role === 'admin' && $is_inspection_page) {
+if ($admin_role === 'admin' && $is_inspection_page)
+{
     header("Location: ../admin/dashboard.php?error=admin_inspection_restricted");
     exit();
 }
 
-if ($admin_role !== 'super_admin' && $is_identity_page) {
+if ($admin_role !== 'super_admin' && $is_identity_page)
+{
     $redirect = ($admin_role === 'staff') ? '../admin/inspections.php?error=identity_restricted' : '../admin/dashboard.php?error=identity_restricted';
     header("Location: " . $redirect);
     exit();
@@ -111,10 +114,12 @@ if ($admin_role !== 'super_admin' && $is_identity_page) {
 
 $timeout_duration = 1800;
 
-if (isset($_SESSION['last_activity'])) {
+if (isset($_SESSION['last_activity']))
+{
     $elapsed_time = time() - $_SESSION['last_activity'];
 
-    if ($elapsed_time > $timeout_duration) {
+    if ($elapsed_time > $timeout_duration)
+    {
         session_unset();
         session_destroy();
         header("Location: ../admin/login.php?error=timeout");

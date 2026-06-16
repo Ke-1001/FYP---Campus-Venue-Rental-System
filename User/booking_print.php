@@ -1,4 +1,5 @@
 <?php
+// This section prepares the user booking print page.
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/user_auth.php';
 
@@ -6,12 +7,13 @@ $user_id = $_SESSION['uid'];
 
 $bid = trim($_GET['bid'] ?? '');
 
-if ($bid === '' || !ctype_digit($bid)) {
+if ($bid === '' || !ctype_digit($bid))
+{
     die("Invalid Booking ID");
 }
 
 $stmt = $conn->prepare("
-    SELECT 
+    SELECT
         b.bid,
         b.uid,
         b.date_booked,
@@ -56,13 +58,13 @@ $stmt = $conn->prepare("
         ON b.uid = u.uid
 
     JOIN venue v
-        ON b.vid = v.vid 
+        ON b.vid = v.vid
 
     JOIN vcategory vc
-        ON v.vcid = vc.vcid 
+        ON v.vcid = vc.vcid
 
     LEFT JOIN admin a
-        ON b.aid = a.aid 
+        ON b.aid = a.aid
 
     LEFT JOIN inspection i
         ON b.bid = i.bid
@@ -85,20 +87,25 @@ $stmt->execute();
 $result = $stmt->get_result();
 $record = $result->fetch_assoc();
 
-if (!$record) {
+if (!$record)
+{
     die("Booking not found or access denied.");
 }
 
-function safeText($value) {
-    if ($value === null || $value === '') {
+function safeText($value)
+{
+    if ($value === null || $value === '')
+    {
         return '-';
     }
 
     return htmlspecialchars((string)$value);
 }
 
-function safeDate($value, $format = "d M Y") {
-    if (empty($value) || $value === "0000-00-00" || $value === "0000-00-00 00:00:00") {
+function safeDate($value, $format = "d M Y")
+{
+    if (empty($value) || $value === "0000-00-00" || $value === "0000-00-00 00:00:00")
+    {
         return "-";
     }
 
@@ -106,8 +113,10 @@ function safeDate($value, $format = "d M Y") {
     return $timestamp ? date($format, $timestamp) : htmlspecialchars($value);
 }
 
-function safeTime($value) {
-    if (empty($value)) {
+function safeTime($value)
+{
+    if (empty($value))
+    {
         return "-";
     }
 
@@ -115,7 +124,8 @@ function safeTime($value) {
     return $timestamp ? date("h:i A", $timestamp) : htmlspecialchars($value);
 }
 
-function money($value) {
+function money($value)
+{
     return "RM " . number_format((float)$value, 2);
 }
 
@@ -135,11 +145,13 @@ $document_no = "BR-" . date("Y") . "-" . str_pad((string)$record['bid'], 6, "0",
     <title>Booking Record <?php echo htmlspecialchars($document_no); ?></title>
 
     <style>
-        * {
+        *
+        {
             box-sizing: border-box;
         }
 
-        body {
+        body
+        {
             font-family: "Century Gothic", CenturyGothic, "Century", Arial, sans-serif;
             background: #f1f5f9;
             color: #0f172a;
@@ -147,7 +159,8 @@ $document_no = "BR-" . date("Y") . "-" . str_pad((string)$record['bid'], 6, "0",
             padding: 30px;
         }
 
-        .page {
+        .page
+        {
             max-width: 850px;
             margin: 0 auto;
             background: #ffffff;
@@ -155,7 +168,8 @@ $document_no = "BR-" . date("Y") . "-" . str_pad((string)$record['bid'], 6, "0",
             padding: 34px;
         }
 
-        .top-actions {
+        .top-actions
+        {
             max-width: 850px;
             margin: 0 auto 16px auto;
             display: flex;
@@ -163,7 +177,8 @@ $document_no = "BR-" . date("Y") . "-" . str_pad((string)$record['bid'], 6, "0",
             gap: 10px;
         }
 
-        .btn {
+        .btn
+        {
             display: inline-block;
             padding: 10px 16px;
             border-radius: 8px;
@@ -176,13 +191,15 @@ $document_no = "BR-" . date("Y") . "-" . str_pad((string)$record['bid'], 6, "0",
             cursor: pointer;
         }
 
-        .btn-primary {
+        .btn-primary
+        {
             background: #4f46e5;
             color: white;
             border-color: #4f46e5;
         }
 
-        .header {
+        .header
+        {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
@@ -191,41 +208,48 @@ $document_no = "BR-" . date("Y") . "-" . str_pad((string)$record['bid'], 6, "0",
             margin-bottom: 24px;
         }
 
-        .system-title {
+        .system-title
+        {
             font-size: 22px;
             font-weight: 800;
             margin: 0;
         }
 
-        .system-subtitle {
+        .system-subtitle
+        {
             font-size: 12px;
             color: #64748b;
             margin-top: 5px;
         }
 
-        .document-title {
+        .document-title
+        {
             text-align: right;
         }
 
-        .document-title h2 {
+        .document-title h2
+        {
             font-size: 18px;
             margin: 0;
             text-transform: uppercase;
         }
 
-        .document-no {
+        .document-no
+        {
             font-size: 12px;
             color: #64748b;
             margin-top: 6px;
         }
 
-        .status-row {
+        .status-row
+        {
             display: flex;
             gap: 10px;
             margin-bottom: 22px;
         }
 
-        .badge {
+        .badge
+        {
             display: inline-block;
             padding: 6px 10px;
             border-radius: 999px;
@@ -237,13 +261,15 @@ $document_no = "BR-" . date("Y") . "-" . str_pad((string)$record['bid'], 6, "0",
             background: #f8fafc;
         }
 
-        .section {
+        .section
+        {
             margin-top: 22px;
             break-inside: avoid;
             page-break-inside: avoid;
         }
 
-        .section-title {
+        .section-title
+        {
             font-size: 13px;
             font-weight: 800;
             text-transform: uppercase;
@@ -254,20 +280,23 @@ $document_no = "BR-" . date("Y") . "-" . str_pad((string)$record['bid'], 6, "0",
             margin-bottom: 12px;
         }
 
-        .grid {
+        .grid
+        {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px 18px;
         }
 
-        .field {
+        .field
+        {
             border: 1px solid #e2e8f0;
             padding: 10px 12px;
             border-radius: 8px;
             background: #f8fafc;
         }
 
-        .label {
+        .label
+        {
             font-size: 10px;
             font-weight: 800;
             color: #64748b;
@@ -275,22 +304,26 @@ $document_no = "BR-" . date("Y") . "-" . str_pad((string)$record['bid'], 6, "0",
             margin-bottom: 5px;
         }
 
-        .value {
+        .value
+        {
             font-size: 13px;
             font-weight: 700;
             color: #0f172a;
         }
 
-        .full {
+        .full
+        {
             grid-column: 1 / -1;
         }
 
-        .amount {
+        .amount
+        {
             font-weight: 800;
             color: #047857;
         }
 
-        .footer {
+        .footer
+        {
             margin-top: 34px;
             border-top: 1px solid #e2e8f0;
             padding-top: 14px;
@@ -301,24 +334,29 @@ $document_no = "BR-" . date("Y") . "-" . str_pad((string)$record['bid'], 6, "0",
             gap: 20px;
         }
 
-        @media print {
-            body {
+        @media print
+        {
+            body
+            {
                 background: #ffffff;
                 padding: 0;
             }
 
-            .top-actions {
+            .top-actions
+            {
                 display: none;
             }
 
-            .page {
+            .page
+            {
                 max-width: none;
                 border: none;
                 padding: 0;
                 margin: 0;
             }
 
-            @page {
+            @page
+            {
                 size: A4;
                 margin: 14mm;
             }

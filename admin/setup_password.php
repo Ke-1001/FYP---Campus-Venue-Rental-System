@@ -1,22 +1,24 @@
 <?php
-// File: admin/setup_password.php
+// This section prepares the admin setup password page.
 require_once __DIR__ . '/../config/db.php';
 
-// 1. Get and validate token
+
 $token = $_GET['token'] ?? '';
 $is_valid = false;
 $email = '';
 
-if (!empty($token)) {
+if (!empty($token))
+{
     $token_hash = hash('sha256', $token);
-    
- // Check if token exists and is not expired
+
+
     $stmt = $conn->prepare("SELECT email FROM password_resets WHERE token_hash = ? AND expires_at > NOW()");
     $stmt->bind_param("s", $token_hash);
     $stmt->execute();
     $result = $stmt->get_result();
-    
-    if ($result->num_rows === 1) {
+
+    if ($result->num_rows === 1)
+    {
         $is_valid = true;
         $email = $result->fetch_assoc()['email'];
     }
@@ -32,7 +34,12 @@ if (!empty($token)) {
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
-        tailwind.config = { theme: { extend: { colors: { fiori: { text: '#1d2d3e', label: '#6b7280', blue: '#0a6ed1' } } } } }
+        tailwind.config =
+        { theme:
+        { extend:
+        { colors:
+        { fiori:
+        { text: '#1d2d3e', label: '#6b7280', blue: '#0a6ed1' } } } } }
     </script>
     <link rel="stylesheet" href="../assets/css/admin_css.css?v=2.0">
 </head>
@@ -45,7 +52,7 @@ if (!empty($token)) {
         </div>
 
         <div class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
-            
+
             <?php if (!$is_valid): ?>
                 <div class="p-8 text-center">
                     <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -105,13 +112,15 @@ if (!empty($token)) {
     <script>
         lucide.createIcons();
 
-        function validateComplexity() {
+        function validateComplexity()
+        {
             const pwd = document.getElementById('password').value;
             const confirmPwd = document.getElementById('confirm_password').value;
             const matchFeedback = document.getElementById('match-feedback');
             const btn = document.getElementById('submitBtn');
 
-            const reqs = {
+            const reqs =
+            {
                 length: pwd.length >= 8,
                 upper: /[A-Z]/.test(pwd),
                 lower: /[a-z]/.test(pwd),
@@ -119,7 +128,8 @@ if (!empty($token)) {
                 special: /[@$!%*?&]/.test(pwd)
             };
 
-            const toggleRule = (id, isValid) => {
+            const toggleRule = (id, isValid) =>
+            {
                 const el = document.getElementById(id);
                 if (isValid) el.classList.add('valid');
                 else el.classList.remove('valid');
@@ -134,17 +144,21 @@ if (!empty($token)) {
             const isPwdSecure = Object.values(reqs).every(val => val === true);
             const isMatch = pwd === confirmPwd && pwd !== '';
 
-            if (confirmPwd.length > 0) {
-                if (isMatch) matchFeedback.classList.add('hidden'); else matchFeedback.classList.remove('hidden'); }  if (isPwdSecure && isMatch) {
+            if (confirmPwd.length > 0)
+            {
+                if (isMatch) matchFeedback.classList.add('hidden'); else matchFeedback.classList.remove('hidden'); }  if (isPwdSecure && isMatch)
+                {
                 btn.disabled = false;
                 btn.classList.remove('opacity-50', 'cursor-not-allowed');
-            } else {
+            } else
+            {
                 btn.disabled = true;
                 btn.classList.add('opacity-50', 'cursor-not-allowed');
             }
         }
 
-        document.getElementById('setupForm')?.addEventListener('submit', function() {
+        document.getElementById('setupForm')?.addEventListener('submit', function()
+        {
             const btn = document.getElementById('submitBtn');
             btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin mr-2 inline"></i> Finalizing...';
             btn.classList.add('opacity-70', 'cursor-not-allowed');

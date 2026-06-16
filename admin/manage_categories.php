@@ -1,27 +1,33 @@
 <?php
-// File: admin/manage_categories.php
+// This section prepares the admin manage categories page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 
-// Handle add or delete request
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['action']) && $_POST['action'] === 'add') {
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST')
+{
+    if (isset($_POST['action']) && $_POST['action'] === 'add')
+    {
         $new_cat = trim($_POST['new_category']);
-        if (!empty($new_cat)) {
+        if (!empty($new_cat))
+        {
             $stmt = $conn->prepare("INSERT IGNORE INTO venue_category (category_name) VALUES (?)");
             $stmt->bind_param("s", $new_cat);
             $stmt->execute();
             $stmt->close();
             $_SESSION['toast'] = ['type' => 'success', 'msg' => "Category '$new_cat' persisted to system."];
         }
-    } elseif (isset($_POST['action']) && $_POST['action'] === 'delete') {
+    } elseif (isset($_POST['action']) && $_POST['action'] === 'delete')
+    {
         $del_cat = $_POST['category_name'];
- // Safety rule: reject delete if venues still use this category
+
         $check = $conn->query("SELECT COUNT(*) FROM venue WHERE category = '" . $conn->real_escape_string($del_cat) . "'")->fetch_row()[0];
-        if ($check > 0) {
+        if ($check > 0)
+        {
             $_SESSION['toast'] = ['type' => 'error', 'msg' => "Failed to Delete: Category is currently in use by $check venue(s)."];
-        } else {
+        } else
+        {
             $stmt = $conn->prepare("DELETE FROM venue_category WHERE category_name = ?");
             $stmt->bind_param("s", $del_cat);
             $stmt->execute();
@@ -43,7 +49,12 @@ $result = $conn->query("SELECT * FROM venue_category ORDER BY category_name ASC"
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
-        tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b' } } } } }
+        tailwind.config =
+        { theme:
+        { extend:
+        { colors:
+        { cstyle:
+        { blue: '#004aad', dark: '#1e293b' } } } } }
     </script>
     <link rel="stylesheet" href="../assets/css/admin_css.css?v=2.0">
 </head>
@@ -52,9 +63,9 @@ $result = $conn->query("SELECT * FROM venue_category ORDER BY category_name ASC"
     <?php include('../includes/admin_sidebar.php'); ?>
 
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-50">
-        
+
         <header class="h-16 glass-panel border-b border-slate-200 flex items-center justify-between px-6 z-10 shrink-0">
-            <?php 
+            <?php
             $topbar_content = '
             <div class="flex items-center">
                 <a href="manage_venues.php" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 flex items-center mr-4 transition-colors">
@@ -62,13 +73,13 @@ $result = $conn->query("SELECT * FROM venue_category ORDER BY category_name ASC"
                 </a>
                 <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Asset Management / Classifications</h2>
             </div>';
-            include('../includes/admin_topbar.php'); 
+            include('../includes/admin_topbar.php');
             ?>
         </header>
 
         <div class="flex-1 overflow-y-auto p-8 scroll-smooth flex justify-center">
             <div class="w-full max-w-3xl">
-                
+
                 <div class="mb-8">
                     <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">System Categories</h1>
                     <p class="text-sm text-slate-500 mt-1">Govern the persistent classification dictionary used by all venue entities.</p>
@@ -121,7 +132,8 @@ $result = $conn->query("SELECT * FROM venue_category ORDER BY category_name ASC"
     <?php include('../includes/ui_components.php'); ?>
     <script>
         lucide.createIcons();
-        function toggleSidebar() { document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed'); }
+        function toggleSidebar()
+        { document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed'); }
     </script>
 </body>
 </html>

@@ -1,49 +1,46 @@
 <?php
-// File: admin/add_exclusion.php
+// This section prepares the admin add exclusion page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 
-// Load repository dependency (Zero-SQL Principle)
+
 require_once __DIR__ . '/../core/repositories/ScheduleRepository.php';
 use Core\Repositories\ScheduleRepository;
 
-/*
-|--------------------------------------------------------------------------
-| I: Repository Initialization & Mode Detection
-|--------------------------------------------------------------------------
-*/
+
 $scheduleRepo = new ScheduleRepository($conn);
 
 $sch_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
-$mode = ($sch_id > 0) ? 'Update' : 'Add'; 
+$mode = ($sch_id > 0) ? 'Update' : 'Add';
 $exclusion = null;
 
-/*
-|--------------------------------------------------------------------------
-| D: Data Extraction & Dictionary Mapping
-|--------------------------------------------------------------------------
-*/
-if ($mode === 'Update') {
+
+if ($mode === 'Update')
+{
     $exclusion = $scheduleRepo->getScheduleById($sch_id);
-    if (!$exclusion) {
+    if (!$exclusion)
+    {
         die("Execution Fault: Schedule Node not found.");
     }
 }
 
-// Get data list and convert it to FormBuilder key-value format
+
 $venuesData = $scheduleRepo->getVenuesForDropdown();
 $venueOptions = ['' => 'Select Venue'];
-foreach ($venuesData as $v) {
+foreach ($venuesData as $v)
+{
     $venueOptions[$v['vid']] = "[{$v['vid']}] " . $v['vname'];
 }
 
 $semestersData = $scheduleRepo->getSemestersForDropdown();
 $semOptions = ['' => 'Select Semester'];
 $activeSemId = null;
-foreach ($semestersData as $sem) {
+foreach ($semestersData as $sem)
+{
     $semOptions[$sem['sem_id']] = $sem['sem_name'] . ($sem['is_active'] ? ' (Active)' : '');
-    if ($sem['is_active']) {
+    if ($sem['is_active'])
+    {
         $activeSemId = $sem['sem_id'];
     }
 }
@@ -53,11 +50,7 @@ $dayOptions = [
     'Thursday' => 'Thursday', 'Friday' => 'Friday', 'Saturday' => 'Saturday', 'Sunday' => 'Sunday'
 ];
 
-/*
-|--------------------------------------------------------------------------
-| C: Configuration Definitions
-|--------------------------------------------------------------------------
-*/
+
 $page_title = "{$mode} Schedule";
 $page_description = "Configure academic class schedule exclusions.";
 $topbar_content = '
@@ -73,16 +66,12 @@ $extra_css = [];
 require_once __DIR__ . '/../core/components/FioriFormBuilder.php';
 use Core\Components\FioriFormBuilder as FB;
 
-/*
-|--------------------------------------------------------------------------
-| V: View Rendering (State Binding via Builder)
-|--------------------------------------------------------------------------
-*/
+
 ob_start();
 ?>
 
 <div class="mb-24 space-y-8">
-    
+
     <form action="../actions/process_schedule.php" method="POST" id="exclusionForm" class="bg-white rounded-lg shadow-sm border border-slate-200 relative">
         <input type="hidden" name="action" value="<?php echo ($mode === 'Add') ? 'create' : 'update'; ?>">
         <?php if ($mode === 'Update'): ?>
@@ -93,16 +82,16 @@ ob_start();
             <div class="fiori-section-header">
                 <h2 class="text-base font-bold text-[#1d2d3e]">Basic Info (Single Entry)</h2>
             </div>
-            
+
             <div class="p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
                 <div class="lg:col-span-6 space-y-4">
-                    <?php 
+                    <?php
                     echo FB::input('text', 'subject', 'Subject Name', $exclusion['subject_name'] ?? '', [
-                        'required' => true, 
+                        'required' => true,
                         'placeholder' => 'e.g., Data Structures'
                     ]);
 
- // Default selection: use database value for edit, active semester for add
+
                     $defaultSem = $exclusion ? $exclusion['sem_id'] : $activeSemId;
                     echo FB::select('sem_id', 'Semester', $semOptions, $defaultSem, [
                         'required' => true,
@@ -112,7 +101,7 @@ ob_start();
                 </div>
 
                 <div class="lg:col-span-6 space-y-4">
-                    <?php 
+                    <?php
                     echo FB::select('vid', 'Venue', $venueOptions, $exclusion['vid'] ?? null, [
                         'required' => true,
                         'extra_css' => 'font-bold text-slate-700'
@@ -125,7 +114,7 @@ ob_start();
                     ?>
 
                     <div class="grid grid-cols-2 gap-4 pt-2 border-t border-slate-100">
-                        <?php 
+                        <?php
                         echo FB::input('time', 'start_time', 'Start Time', $exclusion['start_time'] ?? '08:00', [
                             'required' => true,
                             'extra_css' => 'font-mono font-bold text-emerald-600'
@@ -145,7 +134,7 @@ ob_start();
     <?php if ($mode === 'Add'): ?>
     <form action="../actions/process_schedule.php" method="POST" enctype="multipart/form-data" id="csvSubmitForm" class="bg-white rounded-lg shadow-sm border border-slate-200 relative">
         <input type="hidden" name="action" value="batch_import">
-        
+
         <div class="fiori-form-container">
             <div class="fiori-section-header flex justify-between items-center bg-slate-50">
                 <h2 class="text-base font-bold text-[#1d2d3e]">Batch Import</h2>
@@ -154,7 +143,7 @@ ob_start();
 
             <div class="p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
                 <div class="lg:col-span-6 space-y-4">
-                    <?php 
+                    <?php
                     echo FB::select('sem_id', 'Target Semester', $semOptions, $activeSemId, [
                         'required' => true,
                         'extra_css' => 'font-bold text-slate-700'
@@ -195,7 +184,8 @@ ob_start();
 </div>
 
 <script>
-    document.getElementById('exclusionForm').addEventListener('submit', function() {
+    document.getElementById('exclusionForm').addEventListener('submit', function()
+    {
         const btn = document.getElementById('submitBtn');
         btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin mr-2 inline"></i> Saving...';
         btn.classList.add('opacity-70', 'cursor-not-allowed');
@@ -204,8 +194,10 @@ ob_start();
     });
 
     const csvForm = document.getElementById('csvSubmitForm');
-    if (csvForm) {
-        csvForm.addEventListener('submit', function() {
+    if (csvForm)
+    {
+        csvForm.addEventListener('submit', function()
+        {
             const btn = document.getElementById('btnCsvSubmit');
             btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin mr-2 inline"></i> Importing...';
             btn.classList.add('opacity-70', 'cursor-not-allowed');
@@ -218,10 +210,6 @@ ob_start();
 <?php
 $page_content = ob_get_clean();
 
-/*
-|--------------------------------------------------------------------------
-| L: Global Layout Engine
-|--------------------------------------------------------------------------
-*/
+
 require_once __DIR__ . '/../core/layout.php';
 ?>

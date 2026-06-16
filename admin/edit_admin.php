@@ -1,5 +1,5 @@
 <?php
-// File: admin/edit_admin.php
+// This section prepares the admin edit admin page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
@@ -22,7 +22,12 @@ if (!$admin) die("Anomaly: Admin object not found.");
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
-        tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b' } } } } }
+        tailwind.config =
+        { theme:
+        { extend:
+        { colors:
+        { cstyle:
+        { blue: '#004aad', dark: '#1e293b' } } } } }
     </script>
     <link rel="stylesheet" href="../assets/css/admin_css.css?v=2.0">
 </head>
@@ -31,9 +36,9 @@ if (!$admin) die("Anomaly: Admin object not found.");
     <?php include('../includes/admin_sidebar.php'); ?>
 
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-50">
-        
+
         <header class="h-16 glass-panel border-b border-slate-200 flex items-center justify-between px-6 z-10 shrink-0">
-            <?php 
+            <?php
             $topbar_content = '
             <div class="flex items-center">
                 <a href="staff_directory.php" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 flex items-center mr-4 transition-colors">
@@ -41,13 +46,13 @@ if (!$admin) die("Anomaly: Admin object not found.");
                 </a>
                 <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Staff Management / Edit Admin</h2>
             </div>';
-            include('../includes/admin_topbar.php'); 
+            include('../includes/admin_topbar.php');
             ?>
         </header>
 
         <div class="flex-1 overflow-y-auto p-8 scroll-smooth flex justify-center">
             <div class="w-full max-w-2xl">
-                
+
                 <div class="mb-8 flex justify-between items-end">
                     <div>
                         <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Edit Admin</h1>
@@ -108,7 +113,8 @@ if (!$admin) die("Anomaly: Admin object not found.");
 
     <script>
         lucide.createIcons();
-        function toggleSidebar() { document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed'); }
+        function toggleSidebar()
+        { document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed'); }
     </script>
 </body>
 </html>

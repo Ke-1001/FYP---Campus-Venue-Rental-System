@@ -1,28 +1,29 @@
 <?php
-// File: core/repositories/StudentRepository.php
-
+// This section provides database access for StudentRepository data.
 namespace Core\Repositories;
 
 use mysqli;
 use Core\Components\FilterBuilder;
 
-class StudentRepository {
+class StudentRepository
+{
     private mysqli $conn;
 
-    public function __construct(mysqli $conn) {
+    public function __construct(mysqli $conn)
+    {
         $this->conn = $conn;
     }
 
-    /**
- * Get student directory (Student Directory Matrix)
-     */
-    public function getAllStudents(FilterBuilder $filterBuilder, string $sortOption) {
- // Add SQL alias (account_status AS status), connect to DataGrid renderer
+
+    public function getAllStudents(FilterBuilder $filterBuilder, string $sortOption)
+    {
+
         $sql = "SELECT uid, username, email, phone_num, account_status AS status, created_at FROM user WHERE 1=1";
 
         $sql .= $filterBuilder->buildSqlWhere($this->conn);
 
-        switch ($sortOption) {
+        switch ($sortOption)
+        {
             case 'oldest':
                 $sql .= " ORDER BY created_at ASC";
                 break;
@@ -34,32 +35,31 @@ class StudentRepository {
                 $sql .= " ORDER BY created_at DESC";
                 break;
         }
-        
+
         return $this->conn->query($sql);
     }
 
-    /**
- * Get one student record (Single Entity Extraction)
- * @return array|null associative array
-     */
-    public function getStudentById(string $uid): ?array {
- // Sync alias mapping so edit_student.php status logic (FioriFormBuilder) reads correctly
+
+    public function getStudentById(string $uid): ?array
+    {
+
         $sql = "SELECT uid, username, email, phone_num, account_status AS status, created_at FROM user WHERE uid = ? LIMIT 1";
-        
+
         $stmt = $this->conn->prepare($sql);
-        if (!$stmt) {
+        if (!$stmt)
+        {
             error_log("Statement Preparation Fault in StudentRepository: " . $this->conn->error);
             return null;
         }
 
         $stmt->bind_param("s", $uid);
         $stmt->execute();
-        
+
         $result = $stmt->get_result();
         $entity = $result->fetch_assoc();
-        
+
         $stmt->close();
-        
+
         return $entity ?: null;
     }
 }

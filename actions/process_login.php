@@ -1,24 +1,23 @@
 <?php
-// File path: actions/process_login.php
+// This section checks admin or staff login details and starts the session.
 session_start();
 require_once __DIR__ . '/../config/db.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST')
+{
     $email = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
 
-    if ($email === '' || $password === '') {
+    if ($email === '' || $password === '')
+    {
         header("Location: ../admin/login.php?error=invalid");
         exit();
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | 1. Try admin account first
-    |--------------------------------------------------------------------------
-    */
+
     $stmt = $conn->prepare("SELECT aid, admin_name, password, role FROM admin WHERE email = ? AND status = 'active' LIMIT 1");
-    if (!$stmt) {
+    if (!$stmt)
+    {
         die("SQL Prepare Fault: " . $conn->error);
     }
 
@@ -26,10 +25,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->execute();
     $result = $stmt->get_result();
 
-    if ($result && $result->num_rows === 1) {
+    if ($result && $result->num_rows === 1)
+    {
         $admin = $result->fetch_assoc();
 
-        if (password_verify($password, $admin['password'])) {
+        if (password_verify($password, $admin['password']))
+        {
             session_regenerate_id(true);
 
             $_SESSION['aid'] = $admin['aid'];
@@ -42,13 +43,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     $stmt->close();
 
-    /*
-    |--------------------------------------------------------------------------
-    | 2. Try staff / inspector account
-    |--------------------------------------------------------------------------
-    */
+
     $stmt = $conn->prepare("SELECT sid, staff_name, password, position FROM staff WHERE email = ? AND status = 'active' LIMIT 1");
-    if (!$stmt) {
+    if (!$stmt)
+    {
         die("SQL Prepare Fault: " . $conn->error);
     }
 
@@ -56,10 +54,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->execute();
     $result = $stmt->get_result();
 
-    if ($result && $result->num_rows === 1) {
+    if ($result && $result->num_rows === 1)
+    {
         $staff = $result->fetch_assoc();
 
-        if (password_verify($password, $staff['password'])) {
+        if (password_verify($password, $staff['password']))
+        {
             session_regenerate_id(true);
 
             $_SESSION['sid'] = $staff['sid'];

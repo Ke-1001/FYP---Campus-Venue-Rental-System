@@ -1,8 +1,10 @@
 <?php
+// This section prepares the user dashboard page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
 
-if (!isset($_SESSION['uid'])) {
+if (!isset($_SESSION['uid']))
+{
     header("Location: user_login.php");
     exit();
 }
@@ -11,7 +13,7 @@ $uid = $_SESSION['uid'];
 $display_name = isset($_SESSION['username']) ? $_SESSION['username'] : $uid;
 
 $damage_booking_stmt = $conn->prepare("
-    SELECT 
+    SELECT
         b.bid,
         b.date_booked,
         b.time_start,
@@ -36,18 +38,18 @@ $damage_booking_stmt->bind_param("s", $uid);
 $damage_booking_stmt->execute();
 $damage_booking_result = $damage_booking_stmt->get_result();
 
-// 1. FIXED: Query Stats with correct column references (no single quotes around column names)
-$stats_stmt = $conn->prepare("SELECT 
+
+$stats_stmt = $conn->prepare("SELECT
     COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending,
     COUNT(CASE WHEN status = 'approved' THEN 1 END) as approved,
-    COUNT(*) as total 
+    COUNT(*) as total
     FROM booking WHERE uid = ?");
 $stats_stmt->bind_param("s", $uid);
 $stats_stmt->execute();
 $stats = $stats_stmt->get_result()->fetch_assoc();
 
-// 2. Query Activity
-$history_stmt = $conn->prepare("SELECT v.vname, b.date_booked, b.status 
+
+$history_stmt = $conn->prepare("SELECT v.vname, b.date_booked, b.status
     FROM booking b
     JOIN venue v ON b.vid = v.vid
     WHERE b.uid = ?
@@ -74,7 +76,8 @@ include("../includes/user_navbar.php");
         </div>
 
         <?php if ($damage_booking_result && $damage_booking_result->num_rows > 0): ?>
-        <!-- Report Existing Damage Quick Access -->
+
+
         <div class="mt-8 bg-white/10 border border-white/10 rounded-2xl shadow-sm overflow-hidden backdrop-blur">
             <div class="px-6 py-5 border-b border-white/10">
                 <h2 class="text-xl font-black text-white flex items-center">
@@ -108,7 +111,7 @@ include("../includes/user_navbar.php");
 
                                 <div class="flex-shrink-0">
                                     <?php if (!empty($damage_booking['report_id'])): ?>
-                                        <a 
+                                        <a
                                             href="booking_details.php?bid=<?php echo urlencode($damage_booking['bid']); ?>"
                                             class="inline-flex items-center justify-center px-4 py-2 bg-emerald-100 text-emerald-700 text-sm font-bold rounded-lg border border-emerald-200"
                                         >
@@ -116,7 +119,7 @@ include("../includes/user_navbar.php");
                                             Report Submitted
                                         </a>
                                     <?php else: ?>
-                                        <a 
+                                        <a
                                             href="user_report_damage.php?bid=<?php echo urlencode($damage_booking['bid']); ?>"
                                             class="inline-flex items-center justify-center px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold rounded-lg shadow-sm transition"
                                         >
@@ -132,7 +135,7 @@ include("../includes/user_navbar.php");
                 <?php endif; ?>
             </div>
         </div>
-        <?php endif; ?>        
+        <?php endif; ?>
         <div class="glass-card p-8 text-white">
             <h3 class="text-2xl font-bold mb-6">Recent Activity</h3>
             <table class="w-full text-left">

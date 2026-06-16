@@ -1,9 +1,12 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
+// This section provides shared user header logic or layout.
+if (session_status() === PHP_SESSION_NONE)
+{
     session_start();
 }
 
-if (!isset($page_title)) {
+if (!isset($page_title))
+{
     $page_title = "CVBMS | Campus Venue Booking";
 }
 
@@ -24,21 +27,28 @@ $body_theme_class = $is_light_user_page
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        mmu: {
+        tailwind.config =
+        {
+            theme:
+            {
+                extend:
+                {
+                    colors:
+                    {
+                        mmu:
+                        {
                             core: '#004aad',
                             glow: '#3b82f6'
                         },
-                        cstyle: {
+                        cstyle:
+                        {
                             blue: '#004aad',
                             dark: '#1e293b',
                             accent: '#38bdf8'
                         }
                     },
-                    fontFamily: {
+                    fontFamily:
+                    {
                         sans: ['Century Gothic', 'CenturyGothic', 'Century', 'Arial', 'sans-serif']
                     }
                 }

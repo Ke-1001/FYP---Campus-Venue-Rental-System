@@ -1,17 +1,16 @@
 <?php
-// File: core/components/FilterBuilder.php
-
+// This section provides the shared FilterBuilder component.
 namespace Core\Components;
 use mysqli;
 
-class FilterBuilder {
+class FilterBuilder
+{
     private array $fields = [];
     private string $action_url;
     private string $form_id;
     private bool $show_submit_btn;
-    
- // Global design tokens (Global Design Token Matrix)
- // Control global filter style here
+
+
     private array $layout_config = [
         'container_class' => 'mb-6 bg-white border border-slate-200 rounded-lg p-4 shadow-sm shrink-0',
         'form_class'      => 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end',
@@ -23,33 +22,37 @@ class FilterBuilder {
         'btn_reset'       => 'px-4 py-2 bg-transparent text-slate-500 text-xs font-bold rounded-md hover:bg-slate-100 transition border border-transparent flex items-center h-[36px]'
     ];
 
-    public function __construct(string $action_url, bool $show_submit_btn = true, string $form_id = 'filterForm') {
+    public function __construct(string $action_url, bool $show_submit_btn = true, string $form_id = 'filterForm')
+    {
         $this->action_url = $action_url;
         $this->show_submit_btn = $show_submit_btn;
         $this->form_id = $form_id;
     }
 
-    /**
- * Register filter item dynamically (auto_submit support restored)
-     */
-    public function addField(string $type, string $name, string $label, array $options = [], string $placeholder = '', string $db_column = '', string $operator = '=', bool $auto_submit = false): self {
+
+    public function addField(string $type, string $name, string $label, array $options = [], string $placeholder = '', string $db_column = '', string $operator = '=', bool $auto_submit = false): self
+    {
         $value = isset($_GET[$name]) ? trim($_GET[$name]) : '';
         $this->fields[] = [
             'type' => $type, 'name' => $name, 'label' => $label,
             'options' => $options, 'placeholder' => $placeholder,
-            'db_column' => $db_column, 'operator' => $operator, 
+            'db_column' => $db_column, 'operator' => $operator,
             'value' => $value, 'auto_submit' => $auto_submit
         ];
         return $this;
     }
 
-    public function buildSqlWhere(mysqli $conn): string {
+    public function buildSqlWhere(mysqli $conn): string
+    {
         $sql = "";
-        foreach ($this->fields as $field) {
-            if ($field['value'] !== '' && !empty($field['db_column'])) {
+        foreach ($this->fields as $field)
+        {
+            if ($field['value'] !== '' && !empty($field['db_column']))
+            {
                 $sanitized = $conn->real_escape_string($field['value']);
                 $col = $field['db_column'];
-                switch (strtoupper($field['operator'])) {
+                switch (strtoupper($field['operator']))
+                {
                     case 'LIKE': $sql .= " AND {$col} LIKE '%{$sanitized}%'"; break;
                     case 'LIKE_UPPER': $sql .= " AND UPPER({$col}) LIKE UPPER('%{$sanitized}%')"; break;
                     case '=': default: $sql .= " AND {$col} = '{$sanitized}'"; break;
@@ -59,33 +62,38 @@ class FilterBuilder {
         return $sql;
     }
 
-    public function render(): string {
+    public function render(): string
+    {
         $html = '<div class="' . $this->layout_config['container_class'] . '">';
         $html .= '<form method="GET" action="' . htmlspecialchars($this->action_url) . '" id="' . htmlspecialchars($this->form_id) . '" class="' . $this->layout_config['form_class'] . '">';
 
-        foreach ($this->fields as $field) {
+        foreach ($this->fields as $field)
+        {
             $name = htmlspecialchars($field['name']);
             $value = htmlspecialchars($field['value']);
             $placeholder = htmlspecialchars($field['placeholder']);
-            
+
             $html .= '<div class="flex flex-col">';
             $html .= '<label class="' . $this->layout_config['label_class'] . '">' . htmlspecialchars($field['label']) . '</label>';
 
-            switch ($field['type']) {
+            switch ($field['type'])
+            {
                 case 'text':
- case 'date': // Add date support
- case 'number': // Add number support
+ case 'date':
+ case 'number':
                     $html .= '<input type="'.$field['type'].'" name="'.$name.'" value="'.$value.'" placeholder="'.$placeholder.'" class="'.$this->layout_config['input_class'].'">';
                     break;
 
                 case 'select':
- // Check state and add auto_submit behavior
+
                     $auto_attr = $field['auto_submit'] ? 'onchange="this.form.submit()"' : '';
                     $html .= '<select name="'.$name.'" '.$auto_attr.' class="'.$this->layout_config['select_class'].'">';
-                    if (!empty($field['placeholder'])) {
+                    if (!empty($field['placeholder']))
+                    {
                         $html .= '<option value="">' . $placeholder . '</option>';
                     }
-                    foreach ($field['options'] as $opt_val => $opt_label) {
+                    foreach ($field['options'] as $opt_val => $opt_label)
+                    {
                         $selected = ((string)$value === (string)$opt_val) ? 'selected' : '';
                         $html .= '<option value="'.htmlspecialchars($opt_val).'" '.$selected.'>'.htmlspecialchars($opt_label).'</option>';
                     }
@@ -96,7 +104,8 @@ class FilterBuilder {
                     $list_id = 'list_' . $name;
                     $html .= '<input list="'.$list_id.'" name="'.$name.'" value="'.$value.'" oninput="this.value = this.value.toUpperCase()" placeholder="'.$placeholder.'" class="'.$this->layout_config['input_class'].'">';
                     $html .= '<datalist id="'.$list_id.'">';
-                    foreach ($field['options'] as $opt_val) {
+                    foreach ($field['options'] as $opt_val)
+                    {
                         $html .= '<option value="' . htmlspecialchars($opt_val) . '"></option>';
                     }
                     $html .= '</datalist>';
@@ -106,7 +115,8 @@ class FilterBuilder {
         }
 
         $html .= '<div class="' . $this->layout_config['btn_container'] . '">';
-        if ($this->show_submit_btn) {
+        if ($this->show_submit_btn)
+        {
             $html .= '<button type="submit" class="' . $this->layout_config['btn_submit'] . '">Filter</button>';
         }
         $html .= '<a href="' . htmlspecialchars($this->action_url) . '" class="' . $this->layout_config['btn_reset'] . '">Reset</a>';

@@ -1,19 +1,21 @@
 <?php
+// This section prepares the user venue details page.
 $page_title = "Venue Details";
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/user_header.php';
 require_once __DIR__ . '/../includes/user_navbar.php';
 
-if (!isset($_GET['vid']) || !preg_match('/^[A-Za-z0-9]+$/', $_GET['vid'])) {
+if (!isset($_GET['vid']) || !preg_match('/^[A-Za-z0-9]+$/', $_GET['vid']))
+{
     die("Invalid venue");
 }
 
 $venue_id = $_GET['vid'];
 
 $stmt = $conn->prepare("
-    SELECT v.*, vc.category 
-    FROM venue v 
-    JOIN vcategory vc ON v.vcid = vc.vcid 
+    SELECT v.*, vc.category
+    FROM venue v
+    JOIN vcategory vc ON v.vcid = vc.vcid
     WHERE v.vid = ?
 ");
 $stmt->bind_param("s", $venue_id);
@@ -24,7 +26,8 @@ $row = $result->fetch_assoc();
 
 $pics = [];
 
-if ($row) {
+if ($row)
+{
     $pic_stmt = $conn->prepare("
         SELECT pic_id, pic, description
         FROM vpic
@@ -35,7 +38,8 @@ if ($row) {
     $pic_stmt->execute();
     $pic_result = $pic_stmt->get_result();
 
-    while ($pic = $pic_result->fetch_assoc()) {
+    while ($pic = $pic_result->fetch_assoc())
+    {
         $pics[] = $pic;
     }
 
@@ -43,7 +47,8 @@ if ($row) {
 }
 
 $main_pic = "";
-if (!empty($pics)) {
+if (!empty($pics))
+{
     $main_pic = "../uploads/venues/" . $pics[0]["pic"];
 }
 
@@ -56,7 +61,7 @@ $is_available = $row && strtolower($row['status']) === 'available';
 
 <div class="min-h-screen bg-transparent py-12 px-4 sm:px-6 lg:px-8 font-sans">
     <div class="max-w-4xl mx-auto">
-        
+
         <?php if ($row): ?>
             <div class="mb-6 flex items-center">
                 <a href="venues.php" class="text-sm font-bold text-blue-700 hover:text-blue-900 flex items-center transition">
@@ -66,11 +71,11 @@ $is_available = $row && strtolower($row['status']) === 'available';
 
             <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
 
-                <!-- Main Venue Image -->
+
                 <div class="h-72 bg-slate-100 overflow-hidden relative">
                     <?php if (!empty($main_pic)): ?>
-                        <img 
-                            src="<?php echo htmlspecialchars($main_pic); ?>" 
+                        <img
+                            src="<?php echo htmlspecialchars($main_pic); ?>"
                             alt="<?php echo htmlspecialchars($row["vname"]); ?>"
                             class="w-full h-full object-cover"
                         >
@@ -176,8 +181,8 @@ $is_available = $row && strtolower($row['status']) === 'available';
                                     <?php $gallery_pic_path = "../uploads/venues/" . $pic["pic"]; ?>
 
                                     <div class="h-28 bg-slate-100 rounded-xl overflow-hidden border border-slate-200">
-                                        <img 
-                                            src="<?php echo htmlspecialchars($gallery_pic_path); ?>" 
+                                        <img
+                                            src="<?php echo htmlspecialchars($gallery_pic_path); ?>"
                                             alt="<?php echo htmlspecialchars($row["vname"]); ?>"
                                             class="w-full h-full object-cover cursor-zoom-in hover:scale-105 transition-transform duration-300"
                                             onclick="openImageModal('<?php echo htmlspecialchars($gallery_pic_path); ?>')"
@@ -202,21 +207,21 @@ $is_available = $row && strtolower($row['status']) === 'available';
 
                     <div class="flex justify-end pt-6 border-t border-slate-100">
                         <?php if ($is_available): ?>
-                            <a href="booking_form.php?vid=<?php echo urlencode($row["vid"]); ?>" 
+                            <a href="booking_form.php?vid=<?php echo urlencode($row["vid"]); ?>"
                             class="px-8 py-3 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-md transition flex items-center">
-                                Proceed to Book 
+                                Proceed to Book
                                 <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
                             </a>
                         <?php elseif ($is_maintenance): ?>
-                            <button disabled 
+                            <button disabled
                                     class="px-8 py-3 text-sm font-bold text-amber-700 bg-amber-100 border border-amber-200 rounded-lg cursor-not-allowed flex items-center">
-                                <i data-lucide="wrench" class="w-4 h-4 mr-2"></i> 
+                                <i data-lucide="wrench" class="w-4 h-4 mr-2"></i>
                                 Booking Closed for Maintenance
                             </button>
                         <?php else: ?>
-                            <button disabled 
+                            <button disabled
                                     class="px-8 py-3 text-sm font-bold text-slate-400 bg-slate-100 border border-slate-200 rounded-lg cursor-not-allowed flex items-center">
-                                <i data-lucide="lock" class="w-4 h-4 mr-2"></i> 
+                                <i data-lucide="lock" class="w-4 h-4 mr-2"></i>
                                 Unavailable for Booking
                             </button>
                         <?php endif; ?>
@@ -245,13 +250,13 @@ $is_available = $row && strtolower($row['status']) === 'available';
     </div>
 </div>
 
-<!-- Image Preview Modal -->
-<div 
-    id="imageModal" 
+
+<div
+    id="imageModal"
     class="fixed inset-0 bg-black/80 z-50 hidden items-center justify-center px-4"
     onclick="closeImageModal()"
 >
-    <button 
+    <button
         type="button"
         onclick="closeImageModal()"
         class="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition"
@@ -260,7 +265,7 @@ $is_available = $row && strtolower($row['status']) === 'available';
         <i data-lucide="x" class="w-6 h-6"></i>
     </button>
 
-    <img 
+    <img
         id="modalImage"
         src=""
         alt="Venue image preview"
@@ -272,7 +277,8 @@ $is_available = $row && strtolower($row['status']) === 'available';
 <script>
 lucide.createIcons();
 
-function openImageModal(imageSrc) {
+function openImageModal(imageSrc)
+{
     const modal = document.getElementById('imageModal');
     const modalImage = document.getElementById('modalImage');
 
@@ -283,7 +289,8 @@ function openImageModal(imageSrc) {
     document.body.classList.add('overflow-hidden');
 }
 
-function closeImageModal() {
+function closeImageModal()
+{
     const modal = document.getElementById('imageModal');
     const modalImage = document.getElementById('modalImage');
 
@@ -294,8 +301,10 @@ function closeImageModal() {
     document.body.classList.remove('overflow-hidden');
 }
 
-document.addEventListener('keydown', function (event) {
-    if (event.key === 'Escape') {
+document.addEventListener('keydown', function (event)
+{
+    if (event.key === 'Escape')
+    {
         closeImageModal();
     }
 });

@@ -1,4 +1,5 @@
 <?php
+// This section prepares the user mock payment page.
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/user_auth.php';
 require_once __DIR__ . '/../includes/booking_functions.php';
@@ -7,14 +8,15 @@ expireUnpaidBookings($conn);
 
 $user_id = $_SESSION['uid'];
 
-if (!isset($_GET['bid']) || !ctype_digit($_GET['bid'])) {
+if (!isset($_GET['bid']) || !ctype_digit($_GET['bid']))
+{
     die("<div style='font-family:'Century Gothic', CenturyGothic, Century, Arial, sans-serif; text-align:center; margin-top:50px; color:#ef4444;'><h2>Invalid Payment Access.</h2></div>");
 }
 
 $bid = intval($_GET['bid']);
 
 $stmt = $conn->prepare("
-    SELECT 
+    SELECT
         b.bid,
         b.uid,
         b.status,
@@ -42,7 +44,8 @@ $result = $stmt->get_result();
 $booking = $result->fetch_assoc();
 $stmt->close();
 
-if (!$booking) {
+if (!$booking)
+{
     die("<div style='font-family:'Century Gothic', CenturyGothic, Century, Arial, sans-serif; text-align:center; margin-top:50px; color:#ef4444;'><h2>Booking not found or access denied.</h2></div>");
 }
 
@@ -51,12 +54,14 @@ $payment_status = strtolower($booking['payment_status']);
 $amount = number_format((float)$booking['deposit'], 2);
 $raw_amount = (float)$booking['deposit'];
 
-if ($payment_status === 'paid') {
+if ($payment_status === 'paid')
+{
     header("Location: booking_details.php?bid=" . urlencode($bid));
     exit;
 }
 
-if ($status === 'cancelled') {
+if ($status === 'cancelled')
+{
     die("<div style='font-family:'Century Gothic', CenturyGothic, Century, Arial, sans-serif; text-align:center; margin-top:50px; color:#ef4444;'>
             <h2>Booking Cancelled</h2>
             <p>This booking was cancelled because the payment deadline expired.</p>
@@ -66,7 +71,8 @@ if ($status === 'cancelled') {
 
 $remaining_seconds = max(0, (int)$booking['remaining_seconds']);
 
-if ($remaining_seconds <= 0) {
+if ($remaining_seconds <= 0)
+{
     expireUnpaidBookings($conn);
     header("Location: my_bookings.php");
     exit;

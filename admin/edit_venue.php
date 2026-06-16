@@ -1,5 +1,5 @@
 <?php
-// File: admin/edit_venue.php
+// This section prepares the admin edit venue page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
@@ -13,9 +13,9 @@ $stmt->execute();
 $venue = $stmt->get_result()->fetch_assoc();
 if (!$venue) die("Anomaly: Venue object not found in persistent storage.");
 
-// Get unique normalized existing categories
-$cat_sql = "SELECT DISTINCT UPPER(TRIM(category)) AS category_name 
-            FROM venue WHERE category IS NOT NULL AND category != '' 
+
+$cat_sql = "SELECT DISTINCT UPPER(TRIM(category)) AS category_name
+            FROM venue WHERE category IS NOT NULL AND category != ''
             ORDER BY category_name ASC";
 $categories_result = $conn->query($cat_sql);
 ?>
@@ -26,14 +26,19 @@ $categories_result = $conn->query($cat_sql);
     <title>MMU Admin | Edit Venue</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script>tailwind.config = { theme: { extend: { colors: { cstyle: { blue: '#004aad', dark: '#1e293b' } } } } }</script>
+    <script>tailwind.config =
+    { theme:
+    { extend:
+    { colors:
+    { cstyle:
+    { blue: '#004aad', dark: '#1e293b' } } } } }</script>
     <link rel="stylesheet" href="../assets/css/admin_css.css?v=2.0">
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
     <?php include('../includes/admin_sidebar.php'); ?>
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-50">
         <header class="h-16 glass-panel border-b border-slate-200 flex items-center justify-between px-6 z-10 shrink-0">
-            <?php 
+            <?php
             $topbar_content = '
             <div class="flex items-center">
                 <a href="venue_directory.php" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 flex items-center mr-4 transition-colors">
@@ -41,7 +46,7 @@ $categories_result = $conn->query($cat_sql);
                 </a>
                 <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Asset Management / Edit Node</h2>
             </div>';
-            include('../includes/admin_topbar.php'); 
+            include('../includes/admin_topbar.php');
             ?>
         </header>
         <div class="flex-1 overflow-y-auto p-8 scroll-smooth flex justify-center">
@@ -67,15 +72,17 @@ $categories_result = $conn->query($cat_sql);
                                 <label class="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-wide">Venue Name</label>
                                 <input type="text" name="vname" value="<?php echo htmlspecialchars($venue['vname']); ?>" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm transition-all">
                             </div>
-                            
- <!-- Mixed input: preload existing value and output uppercase -->
+
+
                             <div>
                                 <label class="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-wide">Category</label>
                                 <input list="category-options" name="category" value="<?php echo htmlspecialchars(strtoupper($venue['category'])); ?>" required oninput="this.value = this.value.toUpperCase()" placeholder="Select or type category..." class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm bg-white font-mono font-bold text-indigo-700 transition-all uppercase">
                                 <datalist id="category-options">
-                                    <?php 
-                                    if ($categories_result && $categories_result->num_rows > 0) {
-                                        while ($cat_row = $categories_result->fetch_assoc()) {
+                                    <?php
+                                    if ($categories_result && $categories_result->num_rows > 0)
+                                    {
+                                        while ($cat_row = $categories_result->fetch_assoc())
+                                        {
                                             echo '<option value="' . htmlspecialchars($cat_row['category_name']) . '"></option>';
                                         }
                                     }
@@ -116,7 +123,8 @@ $categories_result = $conn->query($cat_sql);
     </main>
     <script>
         lucide.createIcons();
-        function toggleSidebar() { document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed'); }
+        function toggleSidebar()
+        { document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed'); }
     </script>
 </body>
 </html>

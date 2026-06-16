@@ -1,6 +1,5 @@
 <?php
-// File path: includes/admin_sidebar.php
-
+// This section provides shared admin sidebar logic or layout.
 $current_page = basename($_SERVER['PHP_SELF']);
 $current_role = $_SESSION['role'] ?? '';
 $is_staff_user = ($current_role === 'staff');
@@ -12,38 +11,42 @@ $pending_bookings_count = 0;
 $pending_inspections_count = 0;
 $damage_reports_count = 0;
 
-if (isset($conn)) {
+if (isset($conn))
+{
     $sql_bookings_count = "SELECT COUNT(*) FROM booking WHERE status = 'pending' AND payment_status = 'paid'";
     $res_bookings = $conn->query($sql_bookings_count);
-    if ($res_bookings) {
+    if ($res_bookings)
+    {
         $pending_bookings_count = $res_bookings->fetch_row()[0];
     }
 
     $sql_inspections_count = "
-        SELECT COUNT(*) 
-        FROM inspection i 
-        JOIN booking b ON i.bid = b.bid 
+        SELECT COUNT(*)
+        FROM inspection i
+        JOIN booking b ON i.bid = b.bid
         WHERE i.ins_status = 'pending' AND b.status = 'completed'
     ";
     $res_inspections = $conn->query($sql_inspections_count);
-    if ($res_inspections) {
+    if ($res_inspections)
+    {
         $pending_inspections_count = $res_inspections->fetch_row()[0];
     }
 
     $sql_damage_count = "SELECT COUNT(*) FROM damage_report WHERE report_status = 'submitted'";
     $res_damage = $conn->query($sql_damage_count);
-    if ($res_damage) {
+    if ($res_damage)
+    {
         $damage_reports_count = $res_damage->fetch_row()[0];
     }
 }
 ?>
 
 <aside id="system-sidebar" class="sidebar bg-[#1e293b] text-white flex flex-col shadow-xl z-20 shrink-0 border-r border-slate-800">
-    
+
     <div class="brand-header h-16 flex items-center px-5 border-b border-slate-700/50 shrink-0 transition-all bg-[#0f172a]/30">
         <span class="text-sm font-black tracking-widest text-slate-100 uppercase brand-text"><?php echo htmlspecialchars($sidebar_brand_label, ENT_QUOTES, 'UTF-8'); ?></span>
     </div>
-    
+
     <nav class="flex-1 overflow-y-auto py-4 scrollbar-hide">
         <ul class="space-y-1 px-3">
 
@@ -54,7 +57,7 @@ if (isset($conn)) {
                     <span class="ml-3 nav-text">System Dashboard</span>
                 </a>
             </li>
-            
+
             <li>
                 <a href="manage_bookings.php" class="nav-item flex items-center px-3 py-2.5 text-sm font-semibold <?php echo (in_array($current_page, ['manage_bookings.php', 'pending_requests.php', 'assign_inspector.php', 'assign_inspector_detail.php', 'track_bookings.php', 'process_flow.php'])) ? 'bg-cstyle-blue text-white shadow-sm' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'; ?> rounded-md transition-all">
                     <i data-lucide="calendar-check" class="w-4 h-4 shrink-0"></i>
@@ -98,10 +101,10 @@ if (isset($conn)) {
                 </a>
             </li>
             <?php endif; ?>
-            
+
             <?php if ($is_super_admin_user): ?>
             <li class="pt-5 pb-1.5 px-3 text-[11px] font-bold text-slate-500 uppercase tracking-widest nav-header">Identity Matrix</li>
-            
+
             <li>
                 <a href="manage_admins.php" class="nav-item flex items-center px-3 py-2.5 text-sm font-semibold <?php echo (in_array($current_page, ['manage_admins.php', 'add_admin.php', 'admin_directory.php', 'add_staff.php', 'staff_directory.php', 'edit_admin.php', 'edit_staff.php'])) ? 'bg-cstyle-blue text-white shadow-sm' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'; ?> rounded-md transition-all">
                     <i data-lucide="shield" class="w-4 h-4 shrink-0"></i>
@@ -109,10 +112,10 @@ if (isset($conn)) {
                 </a>
             </li>
             <?php endif; ?>
-            
+
             <?php if (!$is_staff_user): ?>
             <li class="pt-5 pb-1.5 px-3 text-[11px] font-bold text-slate-500 uppercase tracking-widest nav-header">Analytics & Operations</li>
-                
+
             <li>
                 <a href="report.php" class="nav-item flex items-center px-3 py-2.5 text-sm font-semibold <?php echo ($current_page == 'report.php') ? 'bg-cstyle-blue text-white shadow-sm' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'; ?> rounded-md transition-all">
                     <i data-lucide="line-chart" class="w-4 h-4 shrink-0"></i>

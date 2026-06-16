@@ -1,10 +1,9 @@
-/* File: assets/css/fiori-tile.css */
-
-/* Main card container */
-.fiori-tile {
+/* This section handles fiori tile logic. */
+.fiori-tile
+{
     background-color: #ffffff;
- border: 1px solid #e2e8f0; /* Soft border: slate-200 */
- border-radius: 0.375rem; /* Use smaller radius for a clean business style */
+ border: 1px solid #e2e8f0;
+ border-radius: 0.375rem;
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
@@ -14,48 +13,55 @@
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
-/* Hover state: darker border and light shadow, no vertical movement */
-.fiori-tile:hover {
-    border-color: #94a3b8; /* slate-400 */
+
+.fiori-tile:hover
+{
+    border-color: #94a3b8;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
 
-/* Header and icon alignment */
-.fiori-tile-header {
+
+.fiori-tile-header
+{
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 0.125rem;
 }
 
-.fiori-tile-icon {
- color: #64748b; /* Use slate-500 to keep color consistent */
+.fiori-tile-icon
+{
+ color: #64748b;
     transition: color 0.2s ease;
 }
 
-.fiori-tile:hover .fiori-tile-icon {
- color: #0f172a; /* turn dark gray on hover */
+.fiori-tile:hover .fiori-tile-icon
+{
+ color: #0f172a;
 }
 
-/* Title style: medium weight and tight spacing */
-.fiori-tile-title {
- font-size: 14px; /* Reduce title size */
+
+.fiori-tile-title
+{
+ font-size: 14px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #334155; /* slate-700 */
+    color: #334155;
 }
 
-/* Description style: compact text */
-.fiori-tile-desc {
+
+.fiori-tile-desc
+{
     font-size: 12px;
     color: #64748b;
     line-height: 1.5;
     margin-bottom: 1rem;
 }
 
-/* KPI value: use monospace font (Monospace), highlight data accuracy */
-.fiori-tile-kpi {
+
+.fiori-tile-kpi
+{
     font-size: 2.25rem;
     font-weight: 300;
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
@@ -64,8 +70,9 @@
     line-height: 1;
 }
 
-/* Bottom action hint: divider and simple arrow */
-.fiori-tile-footer {
+
+.fiori-tile-footer
+{
     margin-top: 1.25rem;
     padding-top: 0.75rem;
     border-top: 1px solid #f1f5f9;
@@ -79,6 +86,7 @@
     transition: color 0.2s ease;
 }
 
-.fiori-tile:hover .fiori-tile-footer {
- color: #004aad; /* Use brand color only for interactive point */
+.fiori-tile:hover .fiori-tile-footer
+{
+ color: #004aad;
 }

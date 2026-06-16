@@ -1,5 +1,5 @@
 <?php
-// File: admin/dashboard.php
+// This section prepares the admin dashboard page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
@@ -10,7 +10,7 @@ require_once __DIR__ . '/../core/components/FioriTileBuilder.php';
 use Core\Repositories\MetricsRepository;
 use Core\Components\FioriTileBuilder as TileBuilder;
 
-// global
+
 $metricsRepo = new MetricsRepository($conn);
 $kpi = $metricsRepo->getDashboardKPIs();
 syncCompletedBookings($conn);
@@ -26,7 +26,7 @@ $topbar_content = '
 
 ob_start();
 
-// Module 1: Booking Management
+
 echo TileBuilder::renderSection('Booking Operations', 'Manage venue reservations, staff assignments, and financial tracking.', [
     [
         'url' => 'pending_requests.php', 'title' => 'Approval Queue', 'icon' => 'shield-alert',
@@ -46,7 +46,7 @@ echo TileBuilder::renderSection('Booking Operations', 'Manage venue reservations
     ]
 ]);
 
-// Module 2: Venue Inspections
+
 echo TileBuilder::renderSection('Post-Usage Inspections', 'Execute physical assessments and finalize deposit logistics.', [
     [
         'url' => 'pending_inspections.php', 'title' => 'Pending Queue', 'icon' => 'clipboard-list',
@@ -58,7 +58,7 @@ echo TileBuilder::renderSection('Post-Usage Inspections', 'Execute physical asse
     ]
 ]);
 
-// Module 3: Asset & Academic Configuration
+
 echo TileBuilder::renderSection('Assets & Academic Matrix', 'Configure physical spaces and temporal academic bounds.', [
     [
         'url' => 'manage_vcategory.php', 'title' => 'Venue Categories', 'icon' => 'tags',
@@ -78,8 +78,9 @@ echo TileBuilder::renderSection('Assets & Academic Matrix', 'Configure physical 
     ]
 ]);
 
-// Module 4: Identity & Personnel (Super Admin only)
-if (($_SESSION['role'] ?? '') === 'super_admin') {
+
+if (($_SESSION['role'] ?? '') === 'super_admin')
+{
     echo TileBuilder::renderSection('Identity Directory', 'Manage system access for staff, administrators, and students.', [
         [
             'url' => 'staff_directory.php', 'title' => 'Staff Directory', 'icon' => 'shield',

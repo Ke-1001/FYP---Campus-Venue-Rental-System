@@ -1,7 +1,9 @@
 <?php
+// This section prepares the user change password page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
-if (!isset($_SESSION['uid'])) { header("Location: user_login.php"); exit(); }
+if (!isset($_SESSION['uid']))
+{ header("Location: user_login.php"); exit(); }
 ?>
 
 <!DOCTYPE html>
@@ -43,7 +45,7 @@ if (!isset($_SESSION['uid'])) { header("Location: user_login.php"); exit(); }
                     <input type="password" id="password" name="new_password" required oninput="evaluateEntropy()" placeholder="••••••••" class="input-glass">
                     <i data-lucide="eye" class="toggle-btn" onclick="togglePass('password', this)"></i>
                 </div>
-                
+
                 <div class="entropy-container"><div id="entropy-bar" class="entropy-bar"></div></div>
 
                 <div class="rule-grid bg-black/20 p-3 rounded-xl border border-white/5">
@@ -58,7 +60,7 @@ if (!isset($_SESSION['uid'])) { header("Location: user_login.php"); exit(); }
             <button type="submit" id="submitBtn" disabled class="w-full bg-white hover:bg-slate-100 disabled:bg-slate-600 disabled:text-slate-400 text-slate-900 font-black py-4 rounded-2xl transition-all shadow-lg">
                 Update Password
             </button>
-            
+
             <a href="profile.php" class="block text-center text-blue-400 text-sm font-bold py-2 hover:text-white transition">← Return to Profile</a>
         </form>
     </div>
@@ -66,7 +68,8 @@ if (!isset($_SESSION['uid'])) { header("Location: user_login.php"); exit(); }
 
 <script>
     lucide.createIcons();
-    function togglePass(id, icon) {
+    function togglePass(id, icon)
+    {
         const input = document.getElementById(id);
         const isPass = input.type === "password";
         input.type = isPass ? "text" : "password";
@@ -74,21 +77,25 @@ if (!isset($_SESSION['uid'])) { header("Location: user_login.php"); exit(); }
         lucide.createIcons();
     }
 
-    // Toast Logic
+
     const urlParams = new URLSearchParams(window.location.search);
     const status = urlParams.get('status');
-    if (status === 'success') {
+    if (status === 'success')
+    {
         const t = document.getElementById('toast-success');
         t.classList.remove('hidden');
         setTimeout(() => window.location.href = 'profile.php', 2000);
-    } else if (status === 'error') {
+    } else if (status === 'error')
+    {
         document.getElementById('toast-error').classList.remove('hidden');
         setTimeout(() => document.getElementById('toast-error').classList.add('hidden'), 3000);
     }
 
-    function evaluateEntropy() {
+    function evaluateEntropy()
+    {
         const p = document.getElementById('password').value;
-        const v = { length: p.length >= 8, upper: /[A-Z]/.test(p), lower: /[a-z]/.test(p), number: /\d/.test(p), special: /[!@#$%^&*(),.?":{}|<>]/.test(p) };
+        const v =
+        { length: p.length >= 8, upper: /[A-Z]/.test(p), lower: /[a-z]/.test(p), number: /\d/.test(p), special: /[!@#$%^&*(),.?":{}|<>]/.test(p) };
         let score = 0;
         ['length', 'upper', 'lower', 'number', 'special'].forEach(rule => {
             const el = document.getElementById('rule-' + rule);

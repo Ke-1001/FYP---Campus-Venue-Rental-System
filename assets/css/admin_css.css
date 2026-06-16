@@ -1,169 +1,150 @@
-
-/* CVBMS global admin adjustment: increase all rem-based text by around 2pt */
-:root {
+/* This section handles admin css logic. */
+:root
+{
     font-size: 100%;
 }
 
-/* File: assets/css/admin_css.css
-   Centralized admin stylesheet for CVBMS.
-*/
 
-/* Global font requirement: Century Bold */
-html, body, body *, button, input, select, textarea {
+html, body, body *, button, input, select, textarea
+{
     font-family: "Century Gothic", CenturyGothic, "Century", "Century Schoolbook", Arial, sans-serif !important;
     font-weight: 700;
 }
 
-/* Sidebar scrollbar helper moved from includes/admin_sidebar.php */
-.scrollbar-hide::-webkit-scrollbar { display: none; }
-.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+.scrollbar-hide::-webkit-scrollbar
+{ display: none; }
+.scrollbar-hide
+{ -ms-overflow-style: none; scrollbar-width: none; }
 
 
-/* ===== Source: assets/css/layout.css ===== */
-/* * ==========================================
- * MMU Admin Interface - Core Layout Template
- * ==========================================
- * Structure notes: 
- * 1. Customize scrollbar to make the UI cleaner
- * 2. Handle sidebar (Sidebar) width transition logic
- * 3. Handle DOM rendering for expanded and collapsed states
- */
-
-/* ------------------------------------------
- * 1. Scrollbar override (Scrollbar Override)
- * ------------------------------------------ */
-::-webkit-scrollbar { 
-    width: 6px; 
-    height: 6px; 
+::-webkit-scrollbar
+{
+    width: 6px;
+    height: 6px;
 }
-::-webkit-scrollbar-track { 
-    background: transparent; 
+::-webkit-scrollbar-track
+{
+    background: transparent;
 }
-::-webkit-scrollbar-thumb { 
-    background: #cbd5e1; 
-    border-radius: 3px; 
+::-webkit-scrollbar-thumb
+{
+    background: #cbd5e1;
+    border-radius: 3px;
 }
-::-webkit-scrollbar-thumb:hover { 
-    background: #94a3b8; 
+::-webkit-scrollbar-thumb:hover
+{
+    background: #94a3b8;
 }
 
-/* ------------------------------------------
- * 2. Visual material components (Material Components)
- * ------------------------------------------ */
-/* Glass effect for top navigation and layered UI elements */
-.glass-panel { 
-    background: rgba(255, 255, 255, 0.95); 
-    backdrop-filter: blur(10px); 
+
+.glass-panel
+{
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
 }
 
-/* ------------------------------------------
- * 3. Sidebar navigation state (Rail Navigation State Machine)
- * ------------------------------------------ */
-/* * Default state (Ground State): S_expanded 
- * default width is 16rem (256px) space usage
- */
-.sidebar {
- width: 16rem; /* same as Tailwind w-64 */
+
+.sidebar
+{
+ width: 16rem;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     white-space: nowrap;
     overflow-x: hidden;
- will-change: width; /* Hint browser to optimize rendering */
+ will-change: width;
 }
 
-/* * Collapsed state (Collapsed State): S_collapsed 
- * Trigger: add.sidebar-collapsed class
- * Result: width becomes 4rem (64px)
- */
-.sidebar.sidebar-collapsed {
-    width: 4rem; 
+
+.sidebar.sidebar-collapsed
+{
+    width: 4rem;
 }
 
 .sidebar.sidebar-collapsed .nav-text,
 .sidebar.sidebar-collapsed .brand-text,
 .sidebar.sidebar-collapsed .nav-badge,
 .sidebar.sidebar-collapsed .profile-text,
-.sidebar.sidebar-collapsed .nav-header {
+.sidebar.sidebar-collapsed .nav-header
+{
     display: none !important;
 }
 
 .sidebar.sidebar-collapsed .nav-item,
 .sidebar.sidebar-collapsed .brand-header,
-.sidebar.sidebar-collapsed .profile-container {
+.sidebar.sidebar-collapsed .profile-container
+{
     justify-content: center !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
 }
 
 
-.brand-header {
+.brand-header
+{
     transition: padding 0.3s ease;
 }
 
-/* ===== Source: assets/css/admin_style.css ===== */
-/* File Path: assets/css/admin_style.css */
-/* * ∴ Deprecated rules removed. 
- * This file now ONLY contains legacy components awaiting Tailwind/Fiori migration.
- */
 
-/* ================= Legacy Navigation Bar ================= */
-.nav-bar { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    margin-bottom: 20px; 
-    background-color: #fff; 
-    padding: 15px 20px; 
-    border-radius: 0.375rem; /* Aligned to Fiori radius */
-    box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); /* Aligned to Fiori shadow */
+.nav-bar
+{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    background-color: #fff;
+    padding: 15px 20px;
+    border-radius: 0.375rem;
+    box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
 }
 
-.nav-links a { 
-    text-decoration: none; 
-    color: #004aad; /* Aligned to Fiori Blue */
-    margin-right: 15px; 
-    font-weight: 700; 
-    font-size: 16px; 
+.nav-links a
+{
+    text-decoration: none;
+    color: #004aad;
+    margin-right: 15px;
+    font-weight: 700;
+    font-size: 16px;
 }
 
-.nav-links a:hover { 
-    color: #003882; 
-    text-decoration: underline; 
+.nav-links a:hover
+{
+    color: #003882;
+    text-decoration: underline;
 }
 
-/* Legacy Logout Button */
-.btn-logout { 
-    background-color: #dc2626; /* Aligned to Fiori Error */
-    color: white; 
-    padding: 0.5rem 1rem; 
-    border-radius: 0.375rem; 
-    text-decoration: none; 
-    font-weight: 600; 
+
+.btn-logout
+{
+    background-color: #dc2626;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    text-decoration: none;
+    font-weight: 600;
     font-size: 0.875rem;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.btn-logout:hover { 
-    background-color: #b91c1c; 
-    color: white; 
-    text-decoration: none; 
+.btn-logout:hover
+{
+    background-color: #b91c1c;
+    color: white;
+    text-decoration: none;
 }
 
-/* ================= Legacy Status Color Tags ================= */
-/* * Note: These should eventually be replaced by the .validation-tag 
- * logic or standard Fiori status badges. 
- */
-.status-available { color: #059669; font-weight: bold; } /* emerald-600 */
-.status-maintenance { color: #dc2626; font-weight: bold; } /* red-600 */
 
-/* ===== Source: assets/css/fiori-tile.css ===== */
-/* File: assets/css/fiori-tile.css */
+.status-available
+{ color: #059669; font-weight: bold; }
+.status-maintenance
+{ color: #dc2626; font-weight: bold; }
 
-/* Main card container */
-.fiori-tile {
+
+.fiori-tile
+{
     background-color: #ffffff;
- border: 1px solid #e2e8f0; /* Soft border: slate-200 */
- border-radius: 0.375rem; /* Use smaller radius for a clean business style */
+ border: 1px solid #e2e8f0;
+ border-radius: 0.375rem;
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
@@ -173,48 +154,55 @@ html, body, body *, button, input, select, textarea {
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
-/* Hover state: darker border and light shadow, no vertical movement */
-.fiori-tile:hover {
-    border-color: #94a3b8; /* slate-400 */
+
+.fiori-tile:hover
+{
+    border-color: #94a3b8;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
 
-/* Header and icon alignment */
-.fiori-tile-header {
+
+.fiori-tile-header
+{
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 0.125rem;
 }
 
-.fiori-tile-icon {
- color: #64748b; /* Use slate-500 to keep color consistent */
+.fiori-tile-icon
+{
+ color: #64748b;
     transition: color 0.2s ease;
 }
 
-.fiori-tile:hover .fiori-tile-icon {
- color: #0f172a; /* turn dark gray on hover */
+.fiori-tile:hover .fiori-tile-icon
+{
+ color: #0f172a;
 }
 
-/* Title style: medium weight and tight spacing */
-.fiori-tile-title {
- font-size: 14px; /* Reduce title size */
+
+.fiori-tile-title
+{
+ font-size: 14px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #334155; /* slate-700 */
+    color: #334155;
 }
 
-/* Description style: compact text */
-.fiori-tile-desc {
+
+.fiori-tile-desc
+{
     font-size: 12px;
     color: #64748b;
     line-height: 1.5;
     margin-bottom: 1rem;
 }
 
-/* KPI value: use monospace font (Monospace), highlight data accuracy */
-.fiori-tile-kpi {
+
+.fiori-tile-kpi
+{
     font-size: 2.25rem;
     font-weight: 300;
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
@@ -223,8 +211,9 @@ html, body, body *, button, input, select, textarea {
     line-height: 1;
 }
 
-/* Bottom action hint: divider and simple arrow */
-.fiori-tile-footer {
+
+.fiori-tile-footer
+{
     margin-top: 1.25rem;
     padding-top: 0.75rem;
     border-top: 1px solid #f1f5f9;
@@ -238,43 +227,40 @@ html, body, body *, button, input, select, textarea {
     transition: color 0.2s ease;
 }
 
-.fiori-tile:hover .fiori-tile-footer {
- color: #004aad; /* Use brand color only for interactive point */
+.fiori-tile:hover .fiori-tile-footer
+{
+ color: #004aad;
 }
 
-/* ===== Source: assets/css/fiori_forms.css ===== */
-/* * File: assets/css/fiori_forms.css
- * Standardized ERP Form Framework V1.2
- * ∴ Aligned with fiori-tile.css Design System (Slate/Enterprise Minimalist)
- */
 
-:root {
+:root
+{
     --fiori-bg: #ffffff;
- --fiori-blue: #004aad; /* Match tile brand color */
-    --fiori-text: #334155; /* slate-700 */
-    --fiori-label: #64748b; /* slate-500 */
- --fiori-border: #e2e8f0; /* slate-200, soft border */
-    --fiori-readonly-bg: #f8fafc; /* slate-50 */
+ --fiori-blue: #004aad;
+    --fiori-text: #334155;
+    --fiori-label: #64748b;
+ --fiori-border: #e2e8f0;
+    --fiori-readonly-bg: #f8fafc;
     --fiori-input-focus: #004aad;
-    --fiori-success: #059669; /* emerald-600 */
-    --fiori-error: #dc2626; /* red-600 */
+    --fiori-success: #059669;
+    --fiori-error: #dc2626;
 }
 
-/* Layout container: remove fixed margin and align with tile radius and shadow */
-.fiori-form-container {
+
+.fiori-form-container
+{
     background: var(--fiori-bg);
     border: 1px solid var(--fiori-border);
- border-radius: 0.375rem; /* Simple UI style note. */
- margin-bottom: 100px; /* Keep only bottom spacing */
+ border-radius: 0.375rem;
+ margin-bottom: 100px;
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 
-
-/* Block header: align with tile header text style */
-.fiori-section-header {
-    background: #f8fafc; /* slate-50 */
+.fiori-section-header
+{
+    background: #f8fafc;
     border-bottom: 1px solid var(--fiori-border);
     padding: 1rem 1.5rem;
     display: flex;
@@ -284,49 +270,55 @@ html, body, body *, button, input, select, textarea {
     border-top-right-radius: 0.375rem;
 }
 
-/* Input controls: taller click area and better contrast */
-.fiori-input {
+
+.fiori-input
+{
     border: 1px solid var(--fiori-border);
     border-radius: 0.375rem;
     height: 38px;
     padding: 0 12px;
     font-size: 0.875rem;
-    color: #0f172a; /* slate-900 */
+    color: #0f172a;
     width: 100%;
     background-color: #ffffff;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.02) inset;
 }
 
-.fiori-input:focus {
+.fiori-input:focus
+{
     outline: none;
     border-color: var(--fiori-input-focus);
     box-shadow: 0 0 0 1px var(--fiori-input-focus);
 }
 
-.fiori-readonly {
+.fiori-readonly
+{
     background-color: var(--fiori-readonly-bg);
-    border-color: #f1f5f9; /* slate-100 */
+    border-color: #f1f5f9;
     pointer-events: none;
     color: var(--fiori-label);
     box-shadow: none;
 }
 
-/* Validation tag system */
-.validation-tag {
- font-size: 0.75rem; /* 12px, slightly clearer than before */
+
+.validation-tag
+{
+ font-size: 0.75rem;
     font-weight: 600;
     color: var(--fiori-label);
     transition: color 0.2s ease;
 }
 
-.validation-tag.valid {
+.validation-tag.valid
+{
     color: var(--fiori-success);
     font-weight: 700;
 }
 
-/* Fixed bottom toolbar: use glass effect and soft shadow */
-.fiori-footer-toolbar {
+
+.fiori-footer-toolbar
+{
     position: fixed;
     bottom: 0;
     right: 0;
@@ -343,8 +335,9 @@ html, body, body *, button, input, select, textarea {
     box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.02);
 }
 
-/* Button rule: use standard 0.375rem radius instead of 2px (rounded-md) */
-.fiori-btn-primary {
+
+.fiori-btn-primary
+{
     background: var(--fiori-blue);
     color: white;
     font-weight: 600;
@@ -357,21 +350,24 @@ html, body, body *, button, input, select, textarea {
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
-.fiori-btn-primary:hover:not(:disabled) {
- background: #003882; /* darker on interaction */
+.fiori-btn-primary:hover:not(:disabled)
+{
+ background: #003882;
     border-color: #003882;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-.fiori-btn-primary:disabled {
-    background: #94a3b8; /* slate-400 */
+.fiori-btn-primary:disabled
+{
+    background: #94a3b8;
     border-color: #94a3b8;
     cursor: not-allowed;
     opacity: 0.7;
     box-shadow: none;
 }
 
-.fiori-btn-cancel {
+.fiori-btn-cancel
+{
     background: transparent;
     color: var(--fiori-label);
     font-weight: 600;
@@ -382,127 +378,135 @@ html, body, body *, button, input, select, textarea {
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.fiori-btn-cancel:hover {
-    background-color: #f1f5f9; /* slate-100 */
-    color: #0f172a; /* slate-900 */
+.fiori-btn-cancel:hover
+{
+    background-color: #f1f5f9;
+    color: #0f172a;
 }
 
-/* ===== Source: assets/css/table.css ===== */
-/* =========================================
-   Table Layout & Container
-========================================= */
-.custom-table-container {
+
+.custom-table-container
+{
     background-color: #ffffff;
     border-radius: 0.5rem;
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    border: 1px solid #e2e8f0; /* border-slate-200 */
+    border: 1px solid #e2e8f0;
     overflow: hidden;
 }
 
-.custom-table {
+.custom-table
+{
     width: 100%;
     text-align: left;
     border-collapse: collapse;
 }
 
-/* =========================================
-   Table Header (Thead & Th)
-========================================= */
-.custom-table thead {
+
+.custom-table thead
+{
     background-color: #ffffff;
- font-size: 14px; /* Chrome standard table header size */
-    color: #64748b; /* text-slate-500 */
- font-weight: 600; /* Chrome native style usually avoids very heavy font (900), use 600 or bold for better readability */
+ font-size: 14px;
+    color: #64748b;
+ font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.05em; 
-    border-bottom: 1px solid #e2e8f0; /* border-slate-200 */
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #e2e8f0;
 }
 
-.custom-table th {
-    padding: 1rem; /* px-4 py-4 */
+.custom-table th
+{
+    padding: 1rem;
 }
 
-/* =========================================
-   Table Body (Tbody, Tr, Td)
-========================================= */
-.custom-table tbody {
- font-size: 14px; /* Chrome standard body text size */
+
+.custom-table tbody
+{
+ font-size: 14px;
 }
 
-.custom-table tr {
+.custom-table tr
+{
     transition: background-color 150ms ease-in-out;
     vertical-align: middle;
     cursor: pointer;
-    border-bottom: 1px solid #f1f5f9; /* divide-y divide-slate-100 */
+    border-bottom: 1px solid #f1f5f9;
 }
 
-.custom-table tr:last-child {
+.custom-table tr:last-child
+{
     border-bottom: none;
 }
 
-.custom-table tr:hover {
-    background-color: #f8fafc; /* hover:bg-slate-50 */
+.custom-table tr:hover
+{
+    background-color: #f8fafc;
 }
 
-.custom-table td {
-    padding: 1.25rem 1rem; /* px-4 py-5 */
+.custom-table td
+{
+    padding: 1.25rem 1rem;
 }
 
-/* =========================================
-   Table Content Design (Fonts, Colors)
-========================================= */
-/* Use common Chrome sans-serif system font stack with 14px size */
-.td-text-mono {
+
+.td-text-mono
+{
     font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    font-size: 14px; 
-    color: #1e293b; /* text-slate-800 */
+    font-size: 14px;
+    color: #1e293b;
     display: block;
     transition: color 150ms ease-in-out;
     font-weight: 600;
 }
 
-a.td-text-mono {
- color: #2563eb; /* Override default color to blue */
+a.td-text-mono
+{
+ color: #2563eb;
     text-decoration: none;
 }
 
-/* Link hover style */
-a.td-text-mono:hover {
+
+a.td-text-mono:hover
+{
     text-decoration: underline;
- filter: brightness(0.8); /* Automatically darken on hover */
+ filter: brightness(0.8);
 }
 
-/* Action button style (only the > symbol) */
-.td-action-btn {
+
+.td-action-btn
+{
     font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
- font-size: 18px; /* slightly larger for click area and visual balance */
+ font-size: 18px;
     color: #1e293b;
     display: block;
     transition: color 150ms ease-in-out;
     text-decoration: none;
 }
 
-.td-action-btn:hover {
-    color: #94a3b8; /* hover:text-slate-400 */
+.td-action-btn:hover
+{
+    color: #94a3b8;
     text-decoration: none;
 }
 
 
-/* ===== Extracted inline styles ===== */
-
-/* Source: admin/form_sample.php */
-/* Hide WebKit native calendar icon to keep Fiori UI clean */
-        input[type="date"]::-webkit-calendar-picker-indicator {
+        input[type="date"]::-webkit-calendar-picker-indicator
+        {
             display: none;
             -webkit-appearance: none;
         }
 
-/* Source: admin/process_flow.php */
-.step-line { content: ''; position: absolute; top: 12px; left: 50%; width: 100%; height: 2px; z-index: -1; }
-        .step-active .step-line { background-color: #4f46e5; }
-        .step-inactive .step-line { background-color: #e2e8f0; }
-        .step-item:last-child .step-line { display: none; }
 
-/* Source: admin/setup_password.php */
-.validation-tag { color: #94a3b8; transition: color 0.2s; }
-        .validation-tag.valid { color: #059669; }
+.step-line
+{ content: ''; position: absolute; top: 12px; left: 50%; width: 100%; height: 2px; z-index: -1; }
+        .step-active .step-line
+        { background-color: #4f46e5; }
+        .step-inactive .step-line
+        { background-color: #e2e8f0; }
+        .step-item:last-child .step-line
+        { display: none; }
+
+
+.validation-tag
+{ color: #94a3b8; transition: color 0.2s; }
+        .validation-tag.valid
+        { color: #059669; }

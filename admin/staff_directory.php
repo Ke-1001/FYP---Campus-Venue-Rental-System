@@ -1,10 +1,10 @@
 <?php
-// File: admin/staff_directory.php
+// This section prepares the admin staff directory page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 
-// Load OOP components and repository
+
 require_once __DIR__ . '/../core/components/FilterBuilder.php';
 require_once __DIR__ . '/../core/components/DataGridBuilder.php';
 require_once __DIR__ . '/../core/repositories/PersonnelRepository.php';
@@ -13,11 +13,7 @@ use Core\Components\FilterBuilder;
 use Core\Components\DataGridBuilder;
 use Core\Repositories\PersonnelRepository;
 
-/*
-|--------------------------------------------------------------------------
-| I: Repository Initialization
-|--------------------------------------------------------------------------
-*/
+
 $personnelRepo = new PersonnelRepository($conn);
 
 $filterBuilder = new FilterBuilder('staff_directory.php', true);
@@ -29,27 +25,21 @@ $filterBuilder
         'inspector'   => 'Inspector'
     ], 'All Roles', 'access_level', '=');
 
-/*
-|--------------------------------------------------------------------------
-| D: Data Execution & Reshaping
-|--------------------------------------------------------------------------
-*/
+
 $result = $personnelRepo->getUnifiedDirectory($filterBuilder);
 
 $records = [];
-if ($result && $result->num_rows > 0) {
-    while($row = $result->fetch_assoc()) {
+if ($result && $result->num_rows > 0)
+{
+    while($row = $result->fetch_assoc())
+    {
         $row['compound_id'] = $row['entity_type'] . '|' . $row['entity_id'];
         $row['joined_fmt'] = 'Joined: ' . date('M Y', strtotime($row['created_at']));
         $records[] = $row;
     }
 }
 
-/*
-|--------------------------------------------------------------------------
-| C: Configuration & OOP Schema Definitions
-|--------------------------------------------------------------------------
-*/
+
 $page_title = "Manage Existing Staff";
 $page_description = "Manage existing personnel details, cross-entity permissions, and access status.";
 $topbar_content = '
@@ -61,7 +51,7 @@ $topbar_content = '
 </div>';
 $extra_css = [];
 
-// Start DataGridBuilder to generate HTML nodes
+
 $gridBuilder = new DataGridBuilder('compound_id', '../actions/process_personnel_deletion.php', 'personnel entity');
 $gridBuilder->setCreateAction('add_staff.php', 'Register Staff')
     ->setRowActionUrl('route_personnel.php?ref=%s')
@@ -80,18 +70,14 @@ $gridBuilder->setCreateAction('add_staff.php', 'Register Staff')
     ]])
     ->addColumn('joined_fmt', 'Record', 'text_muted_mono', ['width' => 'w-32']);
 
-// Inject global controller config for JavaScript and modal logic
+
 $controller_config = [
     'edit_url_base' => 'route_personnel.php?ref=',
     'delete_entity_name' => 'personnel entity'
 ];
 require_once __DIR__ . '/../core/components/datagrid_controller.php';
 
-/*
-|--------------------------------------------------------------------------
-| V: View Rendering
-|--------------------------------------------------------------------------
-*/
+
 ob_start();
 ?>
 
@@ -101,10 +87,6 @@ ob_start();
 <?php
 $page_content = ob_get_clean();
 
-/*
-|--------------------------------------------------------------------------
-| L: Global Layout Engine
-|--------------------------------------------------------------------------
-*/
+
 require_once __DIR__ . '/../core/layout.php';
 ?>

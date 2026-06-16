@@ -1,4 +1,5 @@
 <?php
+// This section prepares the user booking details page.
 require_once __DIR__ . '/../includes/user_auth.php';
 $page_title = "Booking Details | CVBMS";
 require_once __DIR__ . '/../includes/user_header.php';
@@ -12,17 +13,17 @@ syncCompletedBookings($conn);
 
 $user_id = $_SESSION['uid'];
 
-// Validate booking id
+
 $bid = trim($_GET['bid'] ?? '');
 
-if ($bid === '' || !ctype_digit($bid)) {
+if ($bid === '' || !ctype_digit($bid))
+{
     die("<div class='p-10 text-center text-red-600 font-bold'>Invalid Booking ID</div>");
 }
 
-// Fetch booking details together with admin review, inspection, report, and inspector info.
-// This makes the user page reflect what admin/staff already processed.
+
 $stmt = $conn->prepare("
-    SELECT 
+    SELECT
         b.bid,
         b.date_booked,
         b.time_start,
@@ -54,9 +55,9 @@ $stmt = $conn->prepare("
         r.penalty_status,
         r.created_at AS report_created_at
     FROM booking b
-    JOIN venue v ON b.vid = v.vid 
-    JOIN vcategory vc ON v.vcid = vc.vcid 
-    LEFT JOIN admin a ON b.aid = a.aid 
+    JOIN venue v ON b.vid = v.vid
+    JOIN vcategory vc ON v.vcid = vc.vcid
+    LEFT JOIN admin a ON b.aid = a.aid
     LEFT JOIN inspection i ON b.bid = i.bid
     LEFT JOIN staff s ON i.sid = s.sid
     LEFT JOIN report r ON i.ins_id = r.ins_id
@@ -71,7 +72,8 @@ $stmt->execute();
 $result = $stmt->get_result();
 $booking = $result->fetch_assoc();
 
-if (!$booking) {
+if (!$booking)
+{
     die("<div class='p-10 text-center text-slate-600 font-bold'>Booking not found or access denied.</div>");
 }
 
@@ -88,10 +90,11 @@ $damage_stmt->bind_param("is", $booking['bid'], $_SESSION['uid']);
 $damage_stmt->execute();
 $damage_result = $damage_stmt->get_result();
 
-if ($damage_result && $damage_result->num_rows > 0) {
+if ($damage_result && $damage_result->num_rows > 0)
+{
     $damage_report = $damage_result->fetch_assoc();
     }
-    
+
 $damage_stmt->close();
 
 $damage_window_start_ts = strtotime($booking['date_booked'] . ' ' . $booking['time_start']);
@@ -105,13 +108,17 @@ $is_damage_window_open = (
 );
 
 $can_report_damage = (
-    strtolower($booking['status']) === 'approved' && !$damage_report && $is_damage_window_open );  $damage_window_message = 'Damage report is only available from booking start time until booking end time.'; if ($damage_report) {
+    strtolower($booking['status']) === 'approved' && !$damage_report && $is_damage_window_open );  $damage_window_message = 'Damage report is only available from booking start time until booking end time.'; if ($damage_report)
+    {
     $damage_window_message = 'Damage report has already been submitted.';
-} elseif (strtolower($booking['status']) !== 'approved') {
+} elseif (strtolower($booking['status']) !== 'approved')
+{
     $damage_window_message = 'Damage report is only available for approved bookings.';
-} elseif ($damage_window_start_ts !== false && $now_ts < $damage_window_start_ts) {
+} elseif ($damage_window_start_ts !== false && $now_ts < $damage_window_start_ts)
+{
     $damage_window_message = 'Damage report will be available when your booking starts at ' . date('d M Y, h:i A', $damage_window_start_ts) . '.';
-} elseif ($damage_window_end_ts !== false && $now_ts > $damage_window_end_ts) {
+} elseif ($damage_window_end_ts !== false && $now_ts > $damage_window_end_ts)
+{
     $damage_window_message = 'Damage report is no longer available because the booking time has ended.';
 }
 
@@ -123,8 +130,10 @@ $penaltyStatus = strtolower((string)($booking['penalty_status'] ?? ''));
 $hasInspection = !empty($booking['ins_id']);
 $hasReport = !empty($booking['rid']);
 
-function formatDateTimeSafe($value, $format = 'd M Y, h:i A') {
-    if (empty($value) || $value === '0000-00-00' || $value === '0000-00-00 00:00:00') {
+function formatDateTimeSafe($value, $format = 'd M Y, h:i A')
+{
+    if (empty($value) || $value === '0000-00-00' || $value === '0000-00-00 00:00:00')
+    {
         return '-';
     }
 
@@ -132,8 +141,10 @@ function formatDateTimeSafe($value, $format = 'd M Y, h:i A') {
     return $timestamp ? date($format, $timestamp) : htmlspecialchars($value);
 }
 
-function formatTimeSafe($value) {
-    if (empty($value)) {
+function formatTimeSafe($value)
+{
+    if (empty($value))
+    {
         return '-';
     }
 
@@ -141,8 +152,10 @@ function formatTimeSafe($value) {
     return $timestamp ? date('h:i A', $timestamp) : htmlspecialchars($value);
 }
 
-function statusBadgeClass($status) {
-    switch ($status) {
+function statusBadgeClass($status)
+{
+    switch ($status)
+    {
         case 'approved':
             return 'bg-emerald-100 text-emerald-700 border-emerald-200';
         case 'rejected':
@@ -156,8 +169,10 @@ function statusBadgeClass($status) {
     }
 }
 
-function paymentBadgeClass($status) {
-    switch ($status) {
+function paymentBadgeClass($status)
+{
+    switch ($status)
+    {
         case 'paid':
             return 'bg-emerald-100 text-emerald-700 border-emerald-200';
         case 'refunded':
@@ -167,8 +182,10 @@ function paymentBadgeClass($status) {
     }
 }
 
-function flowStepClass($state) {
-    if ($state === 'done') {
+function flowStepClass($state)
+{
+    if ($state === 'done')
+    {
         return [
             'circle' => 'bg-emerald-600 text-white border-emerald-600',
             'line' => 'bg-emerald-200',
@@ -177,7 +194,8 @@ function flowStepClass($state) {
         ];
     }
 
-    if ($state === 'current') {
+    if ($state === 'current')
+    {
         return [
             'circle' => 'bg-indigo-600 text-white border-indigo-600',
             'line' => 'bg-indigo-200',
@@ -186,7 +204,8 @@ function flowStepClass($state) {
         ];
     }
 
-    if ($state === 'danger') {
+    if ($state === 'danger')
+    {
         return [
             'circle' => 'bg-red-600 text-white border-red-600',
             'line' => 'bg-red-200',
@@ -204,9 +223,10 @@ function flowStepClass($state) {
 }
 
 
-function translateSystemText($text) {
+function translateSystemText($text)
+{
     if (empty($text)) return '';
-    
+
     $dictionary = [
         'SYS_TIMEOUT_ADMIN' => 'Admin failed to approve the request within the functional timeframe.',
         'SYS_TIMEOUT_24H_RELEASE' => 'SLA Absolute Timeout: Auto-released after 24 hours of inactivity without consecutive bookings.',
@@ -214,9 +234,11 @@ function translateSystemText($text) {
         '[SYSTEM ABSORBED]' => 'Chain of Custody Fault: Damage was detected, but a preceding SLA violation exists for this venue.'
     ];
 
- // Upgrade: Use stripos for case-insensitive check
-    foreach ($dictionary as $code => $translation) {
-        if (stripos($text, $code) !== false) {
+
+    foreach ($dictionary as $code => $translation)
+    {
+        if (stripos($text, $code) !== false)
+        {
             return str_ireplace($code, $translation, $text);
         }
     }
@@ -247,23 +269,28 @@ $flowSteps[] = [
     'icon' => 'credit-card'
 ];
 
-if ($bookingCancelled) {
+if ($bookingCancelled)
+{
     $reviewState = 'danger';
     $reviewTitle = 'Booking Cancelled';
     $reviewDesc = 'This booking was cancelled before admin review.';
-} elseif ($bookingRejected) {
+} elseif ($bookingRejected)
+{
     $reviewState = 'danger';
     $reviewTitle = 'Booking Rejected';
     $reviewDesc = 'Admin has rejected this booking request.';
-} elseif ($bookingApprovedOrDone) {
+} elseif ($bookingApprovedOrDone)
+{
     $reviewState = 'done';
     $reviewTitle = 'Booking Approved';
     $reviewDesc = 'Admin has approved this booking request.';
-} elseif ($paymentDone) {
+} elseif ($paymentDone)
+{
     $reviewState = 'current';
     $reviewTitle = 'Waiting Admin Approval';
     $reviewDesc = 'Your paid request is waiting for admin review.';
-} else {
+} else
+{
     $reviewState = 'locked';
     $reviewTitle = 'Admin Review';
     $reviewDesc = 'Admin review will start after payment is completed.';
@@ -277,23 +304,28 @@ $flowSteps[] = [
     'icon' => 'shield-check'
 ];
 
-if ($bookingCancelled) {
+if ($bookingCancelled)
+{
     $usageState = 'locked';
     $usageTitle = 'Venue Usage Cancelled';
     $usageDesc = 'This booking cannot continue because the payment deadline expired.';
-} elseif ($bookingRejected) {
+} elseif ($bookingRejected)
+{
     $usageState = 'locked';
     $usageTitle = 'Venue Usage Cancelled';
     $usageDesc = 'This booking cannot continue because it was rejected.';
-} elseif ($bookingCompleted) {
+} elseif ($bookingCompleted)
+{
     $usageState = 'done';
     $usageTitle = 'Venue Usage Completed';
     $usageDesc = 'The booking period is completed.';
-} elseif ($status === 'approved') {
+} elseif ($status === 'approved')
+{
     $usageState = 'current';
     $usageTitle = 'Venue Usage Upcoming';
     $usageDesc = 'Your venue has been approved and reserved.';
-} else {
+} else
+{
     $usageState = 'locked';
     $usageTitle = 'Venue Usage';
     $usageDesc = 'This step starts after admin approval.';
@@ -307,27 +339,33 @@ $flowSteps[] = [
     'icon' => 'calendar-check'
 ];
 
-if ($bookingCancelled) {
+if ($bookingCancelled)
+{
     $inspectionState = 'locked';
     $inspectionTitle = 'Inspection Not Required';
     $inspectionDesc = 'Cancelled bookings do not require inspection.';
-} elseif ($bookingRejected) {
+} elseif ($bookingRejected)
+{
     $inspectionState = 'locked';
     $inspectionTitle = 'Inspection Not Required';
     $inspectionDesc = 'Rejected bookings do not require inspection.';
-} elseif ($hasInspection && in_array($inspectionStatus, ['passed', 'failed'], true)) {
+} elseif ($hasInspection && in_array($inspectionStatus, ['passed', 'failed'], true))
+{
     $inspectionState = $inspectionStatus === 'passed' ? 'done' : 'danger';
     $inspectionTitle = $inspectionStatus === 'passed' ? 'Inspection Passed' : 'Inspection Failed';
     $inspectionDesc = $inspectionStatus === 'passed' ? 'No issue was found during inspection.' : 'Damage or penalty may be recorded.';
-} elseif ($hasInspection) {
+} elseif ($hasInspection)
+{
     $inspectionState = 'current';
     $inspectionTitle = 'Inspection Pending';
     $inspectionDesc = 'Inspector has been assigned and inspection is waiting to be completed.';
-} elseif ($bookingCompleted) {
+} elseif ($bookingCompleted)
+{
     $inspectionState = 'current';
     $inspectionTitle = 'Waiting Inspection Assignment';
     $inspectionDesc = 'Admin needs to assign an inspector for this completed booking.';
-} else {
+} else
+{
     $inspectionState = 'locked';
     $inspectionTitle = 'Inspection';
     $inspectionDesc = 'Inspection will happen after venue usage is completed.';
@@ -341,29 +379,34 @@ $flowSteps[] = [
     'icon' => 'clipboard-check'
 ];
 
-if ($bookingCancelled) {
+if ($bookingCancelled)
+{
     $settlementState = 'locked';
     $settlementTitle = 'No Settlement Required';
     $settlementDesc = 'This booking was cancelled before payment was completed.';
     $isSystemTimeout = strpos($booking['cancel_reason'] ?? '', 'SYS_TIMEOUT') !== false;
     $settlementMeta = $isSystemTimeout ? 'System Auto-Cancellation' : 'Payment deadline expired';
-} elseif ($bookingRejected) {
+} elseif ($bookingRejected)
+{
     $settlementState = $paymentStatus === 'refunded' ? 'done' : ($paymentDone ? 'current' : 'locked');
     $settlementTitle = $paymentStatus === 'refunded' ? 'Refund Completed' : 'Refund Pending';
     $settlementDesc = $paymentDone ? 'Rejected paid booking should be handled for refund by admin.' : 'No payment was completed, so no refund is required.';
     $settlementMeta = strtoupper($paymentStatus ?: 'unpaid');
-} elseif ($hasReport) {
+} elseif ($hasReport)
+{
     $hasPendingSettlement = in_array($refundStatus, ['pending'], true) || in_array($penaltyStatus, ['pending'], true);
     $settlementState = $hasPendingSettlement ? 'current' : 'done';
     $settlementTitle = 'Refund / Penalty Result';
     $settlementDesc = 'Final inspection report has been generated.';
     $settlementMeta = 'Deduct: RM ' . number_format((float)$booking['final_deduct'], 2);
-} elseif ($hasInspection && in_array($inspectionStatus, ['passed', 'failed'], true)) {
+} elseif ($hasInspection && in_array($inspectionStatus, ['passed', 'failed'], true))
+{
     $settlementState = 'current';
     $settlementTitle = 'Waiting Final Report';
     $settlementDesc = 'Inspection is completed and final refund/penalty report is waiting.';
     $settlementMeta = strtoupper($inspectionStatus);
-} else {
+} else
+{
     $settlementState = 'locked';
     $settlementTitle = 'Refund / Penalty Result';
     $settlementDesc = 'This step appears after inspection report is generated.';
@@ -417,10 +460,10 @@ $flowSteps[] = [
                     <?php unset($_SESSION['error']); ?>
                 <?php endif; ?>
 
-                <!-- Report Existing Damage Button -->
+
                 <div class="mt-6">
                     <?php if ($damage_report): ?>
-                        <button 
+                        <button
                             disabled
                             class="w-full inline-flex items-center justify-center px-5 py-3 bg-emerald-100 text-emerald-700 border border-emerald-200 text-sm font-bold rounded-lg cursor-not-allowed"
                         >
@@ -429,7 +472,7 @@ $flowSteps[] = [
                         </button>
 
                     <?php elseif ($can_report_damage): ?>
-                        <a 
+                        <a
                             href="user_report_damage.php?bid=<?php echo urlencode($booking['bid']); ?>"
                             class="w-full inline-flex items-center justify-center px-5 py-3 bg-amber-600 hover:bg-amber-700 text-white text-sm font-bold rounded-lg shadow-sm transition"
                         >
@@ -438,7 +481,7 @@ $flowSteps[] = [
                         </a>
 
                     <?php else: ?>
-                        <button 
+                        <button
                             disabled
                             class="w-full inline-flex items-center justify-center px-5 py-3 bg-slate-100 text-slate-400 text-sm font-bold rounded-lg cursor-not-allowed"
                         >
@@ -452,7 +495,7 @@ $flowSteps[] = [
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2">
-                    <a 
+                    <a
                         href="booking_print.php?bid=<?php echo urlencode($booking['bid']); ?>"
                         target="_blank"
                         class="inline-flex items-center justify-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm transition"
@@ -462,7 +505,7 @@ $flowSteps[] = [
                     </a>
 
                     <?php if ($status === "pending" && $paymentStatus === "unpaid"): ?>
-                        <a 
+                        <a
                             href="mock_payment.php?bid=<?php echo urlencode($booking['bid']); ?>"
                             class="inline-flex items-center justify-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-sm transition"
                         >
@@ -629,11 +672,11 @@ $flowSteps[] = [
                                 </p>
 
                                 <p class="text-xs text-slate-500 mt-1">
-                                    Reason: 
-                                    <?php 
+                                    Reason:
+                                    <?php
                                         $reason = $booking['cancel_reason'] ?? 'Payment deadline expired';
- // Output only once to avoid duplicate display
-                                        echo htmlspecialchars(translateSystemText($reason)); 
+
+                                        echo htmlspecialchars(translateSystemText($reason));
                                     ?>
                                 </p>
 

@@ -1,4 +1,5 @@
 <?php
+// This section prepares the user homepage page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
 

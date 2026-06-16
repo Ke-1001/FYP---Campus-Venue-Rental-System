@@ -1,26 +1,21 @@
 <?php
-// File: admin/track_inspections.php
+// This section prepares the admin track inspections page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
-require_once __DIR__ . '/../core/components/datagrid.php'; 
+require_once __DIR__ . '/../core/components/datagrid.php';
 
-// Load core components and repository
+
 require_once __DIR__ . '/../core/components/FilterBuilder.php';
 require_once __DIR__ . '/../core/repositories/InspectionRepository.php';
 
 use Core\Components\FilterBuilder;
 use Core\Repositories\InspectionRepository;
 
-/*
-|--------------------------------------------------------------------------
-| I: Repository Initialization & System Protocol
-|--------------------------------------------------------------------------
-*/
-// 1. Create inspection repository
+
 $inspectionRepo = new InspectionRepository($conn);
 
-// 2. Build filters (Filter Topology)
+
 $filterBuilder = new FilterBuilder('track_inspections.php', true);
 $filterBuilder
     ->addField('text', 'f_bid', 'Ref ID', [], 'Search BID...', 'i.bid', 'LIKE')
@@ -34,40 +29,35 @@ $filterBuilder
         'failed' => 'Failed'
     ], 'All Results', 'i.ins_status', '=');
 
-/*
-|--------------------------------------------------------------------------
-| D: Abstracted Data Execution & View Reshaping
-|--------------------------------------------------------------------------
-*/
-// 3. Get results from repository
+
 $result = $inspectionRepo->getInspectionHistory($filterBuilder);
 
-// 4. GetdataandRun Data Flattening (data)
+
 $records = [];
-if ($result && $result->num_rows > 0) {
-    while($row = $result->fetch_assoc()) {
- // time
+if ($result && $result->num_rows > 0)
+{
+    while($row = $result->fetch_assoc())
+    {
+
         $row['inspected_at_fmt'] = $row['inspected_at'] ? date('y/m/d H:i', strtotime($row['inspected_at'])) : '--';
         $row['date_booked_fmt'] = date('y/m/d', strtotime($row['date_booked']));
-        
- // Logic: conditiontextandstatusto DataGrid
-        if ($row['ins_status'] === 'passed') {
+
+
+        if ($row['ins_status'] === 'passed')
+        {
             $row['penalty_val'] = 0.00;
             $row['observations'] = 'Clearance granted. Refund authorized.';
-        } else {
+        } else
+        {
             $row['penalty_val'] = (float)$row['penalty'];
             $row['observations'] = $row['damage_desc'] ?: 'No details provided.';
         }
-        
+
         $records[] = $row;
     }
 }
 
-/*
-|--------------------------------------------------------------------------
-| C: Configuration & Schema Definitions
-|--------------------------------------------------------------------------
-*/
+
 $page_title = "Inspection History";
 $page_description = "Trace historical venue assessments and financial penalties.";
 $topbar_content = '
@@ -79,7 +69,7 @@ $topbar_content = '
 </div>';
 $extra_css = [];
 
-// Core DataGrid schema config
+
 $datagrid_schema = [
     'enable_checkbox' => false,
     'primary_key' => 'bid',
@@ -101,11 +91,7 @@ $datagrid_schema = [
     ]
 ];
 
-/*
-|--------------------------------------------------------------------------
-| V: View Rendering (Output Buffer)
-|--------------------------------------------------------------------------
-*/
+
 ob_start();
 ?>
 
@@ -117,7 +103,7 @@ ob_start();
             Global Record Log (<?php echo count($records); ?>)
         </h3>
     </div>
-    
+
     <div class="flex-1 overflow-y-auto">
         <?php echo render_datagrid($datagrid_schema, $records); ?>
     </div>
@@ -126,10 +112,6 @@ ob_start();
 <?php
 $page_content = ob_get_clean();
 
-/*
-|--------------------------------------------------------------------------
-| L: Global Layout Engine
-|--------------------------------------------------------------------------
-*/
+
 require_once __DIR__ . '/../core/layout.php';
 ?>

@@ -1,4 +1,6 @@
-<?php session_start(); ?>
+<?php
+// This section prepares the user register page.
+session_start(); ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,11 +10,17 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: { mmu: { core: '#004aad', glow: '#3b82f6' } },
-                    fontFamily: { sans: ['Century Gothic', 'CenturyGothic', 'Century', 'Arial', 'sans-serif'] }
+        tailwind.config =
+        {
+            theme:
+            {
+                extend:
+                {
+                    colors:
+                    { mmu:
+                    { core: '#004aad', glow: '#3b82f6' } },
+                    fontFamily:
+                    { sans: ['Century Gothic', 'CenturyGothic', 'Century', 'Arial', 'sans-serif'] }
                 }
             }
         }
@@ -26,9 +34,10 @@
         <?php echo htmlspecialchars($_GET['msg']); ?>
     </div>
     <script>
-        setTimeout(() => { 
+        setTimeout(() =>
+        {
             const toast = document.getElementById('toast');
-            toast.style.display = 'none'; 
+            toast.style.display = 'none';
             <?php if ($_GET['status'] == 'success') echo "window.location.href = 'user_login.php';"; ?>
         }, 3000);
     </script>
@@ -97,8 +106,10 @@
 
 <script>
     lucide.createIcons();
-    function validatePhone(input) {
-        if (/[^0-9]/.test(input.value)) {
+    function validatePhone(input)
+    {
+        if (/[^0-9]/.test(input.value))
+        {
             input.value = input.value.replace(/[^0-9]/g, '');
             const toast = document.getElementById('phoneToast');
             toast.classList.remove('hidden');
@@ -107,27 +118,40 @@
     }
     const uidInput = document.getElementById('uid');
     const emailInput = document.getElementById('email');
-    uidInput.addEventListener('input', () => {
-        const regex = /^[0-9]{3}[A-Za-z]{2}[A-Za-z0-9]{5}$/;
+    uidInput.addEventListener('input', () =>
+    {
+        const regex = /^[0-9]
+        {3}[A-Za-z]
+        {2}[A-Za-z0-9]
+        {5}$/;
         const errorEl = document.getElementById('uid-error');
         errorEl.style.display = (uidInput.value.length === 0) ? 'none' : (regex.test(uidInput.value) ? 'none' : 'block');
     });
-    emailInput.addEventListener('input', () => {
+    emailInput.addEventListener('input', () =>
+    {
         const regex = /@student\.mmu\.edu\.my$/;
         const errorEl = document.getElementById('email-error');
         errorEl.style.display = (emailInput.value.length === 0) ? 'none' : (regex.test(emailInput.value) ? 'none' : 'block');
     });
-    function togglePasswordVisibility() {
+    function togglePasswordVisibility()
+    {
         const p = document.getElementById('password');
         const eye = document.getElementById('eyeIcon');
-        if (p.type === 'password') { p.type = 'text'; eye.setAttribute('data-lucide', 'eye-off'); } else { p.type = 'password'; eye.setAttribute('data-lucide', 'eye'); } lucide.createIcons(); } function evaluateEntropy() {
+        if (p.type === 'password')
+        { p.type = 'text'; eye.setAttribute('data-lucide', 'eye-off'); } else
+        { p.type = 'password'; eye.setAttribute('data-lucide', 'eye'); } lucide.createIcons(); } function evaluateEntropy()
+        {
         const p = document.getElementById('password').value;
-        const v = { length: p.length >= 8, upper: /[A-Z]/.test(p), lower: /[a-z]/.test(p), number: /\d/.test(p), special: /[@$!%*?&]/.test(p) };
+        const v =
+        { length: p.length >= 8, upper: /[A-Z]/.test(p), lower: /[a-z]/.test(p), number: /\d/.test(p), special: /[@$!%*?&]/.test(p) };
         let score = 0;
-        const setUI = (id, valid) => {
+        const setUI = (id, valid) =>
+        {
             const el = document.getElementById(id);
-            if (valid) { score++; el.className = 'rule-item rule-valid'; el.querySelector('.rule-icon').textContent = '✓'; }
-            else { el.className = 'rule-item rule-invalid'; el.querySelector('.rule-icon').textContent = '✗'; }
+            if (valid)
+            { score++; el.className = 'rule-item rule-valid'; el.querySelector('.rule-icon').textContent = '✓'; }
+            else
+            { el.className = 'rule-item rule-invalid'; el.querySelector('.rule-icon').textContent = '✗'; }
         };
         setUI('rule-length', v.length); setUI('rule-upper', v.upper); setUI('rule-lower', v.lower); setUI('rule-number', v.number); setUI('rule-special', v.special);
         const bar = document.getElementById('entropy-bar');

@@ -1,7 +1,10 @@
 <?php
+// This section prepares the user profile page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
-if (!isset($_SESSION['uid'])) { header("Location: user_login.php"); exit(); } $uid = $_SESSION['uid']; $stmt = $conn->prepare("SELECT * FROM user WHERE uid = ?"); $stmt->bind_param("s", $uid); $stmt->execute(); $user = $stmt->get_result()->fetch_assoc();  $profile_pic_url = ''; if (!empty($user['profile_pic'])) {
+if (!isset($_SESSION['uid']))
+{ header("Location: user_login.php"); exit(); } $uid = $_SESSION['uid']; $stmt = $conn->prepare("SELECT * FROM user WHERE uid = ?"); $stmt->bind_param("s", $uid); $stmt->execute(); $user = $stmt->get_result()->fetch_assoc();  $profile_pic_url = ''; if (!empty($user['profile_pic']))
+{
     $stored_pic = trim($user['profile_pic']);
     $stored_pic = str_replace('\\', '/', $stored_pic);
     $stored_pic = ltrim($stored_pic, '/');
@@ -9,20 +12,22 @@ if (!isset($_SESSION['uid'])) { header("Location: user_login.php"); exit(); } $u
     $candidate_paths = [];
     $candidate_urls = [];
 
-    // Old records saved by User/update_profile_process.php, for example: uploads/1781073919_0.jpg
+
     $candidate_paths[] = __DIR__ . '/' . $stored_pic;
     $candidate_urls[] = $stored_pic;
 
-    // New preferred records saved under project root, for example: uploads/profile_pic/user/file.jpg
+
     $candidate_paths[] = __DIR__ . '/../' . $stored_pic;
     $candidate_urls[] = '../' . $stored_pic;
 
-    // Legacy compatibility: if database stores only a filename.
+
     $candidate_paths[] = __DIR__ . '/../uploads/profile_pic/user/' . basename($stored_pic);
     $candidate_urls[] = '../uploads/profile_pic/user/' . basename($stored_pic);
 
-    foreach ($candidate_paths as $idx => $path) {
-        if (is_file($path)) {
+    foreach ($candidate_paths as $idx => $path)
+    {
+        if (is_file($path))
+        {
             $profile_pic_url = $candidate_urls[$idx];
             break;
         }
@@ -75,11 +80,11 @@ if (!isset($_SESSION['uid'])) { header("Location: user_login.php"); exit(); } $u
                 <p class="text-white font-semibold"><?php echo htmlspecialchars($user['email']); ?></p>
             </div>
             <div class="space-y-3">
-                <button onclick="document.getElementById('profileView').classList.add('hidden'); document.getElementById('editView').classList.remove('hidden');" 
+                <button onclick="document.getElementById('profileView').classList.add('hidden'); document.getElementById('editView').classList.remove('hidden');"
                         class="w-full bg-white text-slate-900 font-bold py-4 rounded-2xl hover:bg-blue-50 transition">
                     Edit Identity Details
                 </button>
-                <a href="change_password.php" 
+                <a href="change_password.php"
                    class="w-full block text-center bg-white text-slate-900 font-bold py-4 rounded-2xl hover:bg-blue-50 transition">
                     Change Password
                 </a>
@@ -118,19 +123,24 @@ if (!isset($_SESSION['uid'])) { header("Location: user_login.php"); exit(); } $u
 <div id="toast" class="hidden fixed bottom-10 right-10 bg-emerald-600 text-white px-8 py-4 rounded-2xl shadow-2xl font-bold">Profile Updated!</div>
 <script>
     lucide.createIcons();
-    function validatePhone(input) {
-        if (/[^0-9]/.test(input.value)) {
+    function validatePhone(input)
+    {
+        if (/[^0-9]/.test(input.value))
+        {
             input.value = input.value.replace(/[^0-9]/g, '');
             const toast = document.getElementById('phoneToast');
             toast.classList.remove('hidden');
             setTimeout(() => toast.classList.add('hidden'), 2000);
         }
     }
-    document.getElementById('updateForm').onsubmit = async (e) => {
+    document.getElementById('updateForm').onsubmit = async (e) =>
+    {
         e.preventDefault();
         const formData = new FormData(e.target);
-        const res = await fetch('update_profile_process.php', { method: 'POST', body: formData });
-        if(res.ok) {
+        const res = await fetch('update_profile_process.php',
+        { method: 'POST', body: formData });
+        if(res.ok)
+        {
             document.getElementById('toast').classList.remove('hidden');
             setTimeout(() => location.reload(), 1500);
         }

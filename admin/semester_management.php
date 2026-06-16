@@ -1,13 +1,14 @@
 <?php
-// Debug: run this code at the top of the page, then click delete again to see posted data
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+// This section prepares the admin semester management page.
+if ($_SERVER['REQUEST_METHOD'] === 'POST')
+{
     echo "<pre>";
- print_r($_POST); // This shows the variable names sent by the frontend
-    exit; 
+ print_r($_POST);
+    exit;
 }
 ?>
 <?php
-// File: admin/semester_management.php
+
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
@@ -20,15 +21,10 @@ use Core\Components\FilterBuilder;
 use Core\Components\DataGridBuilder;
 use Core\Repositories\SemesterRepository;
 
-/*
-|--------------------------------------------------------------------------
-| I: Repository & Builder Instantiation
-|--------------------------------------------------------------------------
-*/
-// 1. Create repository instance
+
 $semesterRepo = new SemesterRepository($conn);
 
-// 2. Build filters
+
 $filterBuilder = new FilterBuilder('semester_management.php', true);
 $filterBuilder
     ->addField('text', 'filter_search', 'Search', [], 'e.g., 2610', 'sem_name', 'LIKE')
@@ -37,11 +33,11 @@ $filterBuilder
         '0' => 'Inactive Only'
     ], 'All Status', 'is_active', '=', true);
 
-// 3. Important fix: create $gridBuilder first before calling its methods
+
 $gridBuilder = new DataGridBuilder('sem_id', '../actions/process_semester.php', 'semester');
 
-// 4. Match $_POST['selected_ids'] in process_semester.php
-$gridBuilder->setCheckboxName('selected_ids'); 
+
+$gridBuilder->setCheckboxName('selected_ids');
 $gridBuilder->setCreateAction('add_semester.php', 'Create Semester');
 $gridBuilder->setRowActionUrl('add_semester.php?id=%s');
 $gridBuilder
@@ -74,11 +70,7 @@ $controller_config = [
 ];
 require_once __DIR__ . '/../core/components/datagrid_controller.php';
 
-/*
-|--------------------------------------------------------------------------
-| V: View Rendering (Output Buffer)
-|--------------------------------------------------------------------------
-*/
+
 ob_start();
 ?>
 
@@ -86,26 +78,31 @@ ob_start();
 <?php echo $gridBuilder->render($result); ?>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function()
+{
     const confirmBtn = document.getElementById('custom-modal-confirm-btn');
-    
-    if (confirmBtn) {
- // 1. Clone and replace node to remove wrong listener from datagrid_controller.php
+
+    if (confirmBtn)
+    {
+
         const newConfirmBtn = confirmBtn.cloneNode(true);
         confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
 
- // 2. Bind the correct submit flow again
-        newConfirmBtn.addEventListener('click', function() {
+
+        newConfirmBtn.addEventListener('click', function()
+        {
             const form = document.getElementById('bulkActionForm');
             const actionInput = document.getElementById('bulk_action_type');
-            
-            if (form && actionInput) {
- actionInput.value = 'delete'; // Force action value to fix protocol error
+
+            if (form && actionInput)
+            {
+ actionInput.value = 'delete';
                 this.innerHTML = 'Purging...';
                 this.disabled = true;
                 this.classList.add('opacity-70', 'cursor-not-allowed');
- form.submit(); // Submit exact payload (Payload)
-            } else {
+ form.submit();
+            } else
+            {
                 console.error("DOM Matrix Error: Form or Action Input missing.");
             }
         });
@@ -116,10 +113,6 @@ document.addEventListener('DOMContentLoaded', function() {
 <?php
 $page_content = ob_get_clean();
 
-/*
-|--------------------------------------------------------------------------
-| L: Global Layout Engine
-|--------------------------------------------------------------------------
-*/
+
 require_once __DIR__ . '/../core/layout.php';
 ?>

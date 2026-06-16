@@ -1,6 +1,5 @@
 <?php
-// File: config/app.php
-
+// This section handles app logic.
 function getAppBaseUrl(): string
 {
     $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
@@ -11,7 +10,8 @@ function getAppBaseUrl(): string
 
     $knownFolders = ['actions', 'User', 'admin', 'api', 'cron'];
 
-    if (!empty($parts[0]) && !in_array($parts[0], $knownFolders, true)) {
+    if (!empty($parts[0]) && !in_array($parts[0], $knownFolders, true))
+    {
         return $protocol . "://" . $host . "/" . $parts[0];
     }
 
