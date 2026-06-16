@@ -3,16 +3,12 @@
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
-
-
 require_once __DIR__ . '/../core/components/FilterBuilder.php';
 require_once __DIR__ . '/../core/components/DataGridBuilder.php';
 require_once __DIR__. '/../core/repositories/VenueRepository.php';
-
 use Core\Components\FilterBuilder;
 use Core\Components\DataGridBuilder;
 use Core\Repositories\VenueRepository;
-
 $page_title = "Venue Directory";
 $page_description = "Search, filter, and manage existing physical assets.";
 $topbar_content = '
@@ -23,19 +19,13 @@ $topbar_content = '
     <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Asset Management / Directory</h2>
 </div>';
 $extra_css = [];
-
 $controller_config = [
     'edit_url_base' => 'register_venue.php?vid=',
     'delete_entity_name' => 'venue'
 ];
 require_once __DIR__ . '/../core/components/datagrid_controller.php';
-
-
 $venueRepo = new VenueRepository($conn);
-
-
 $cat_options = $venueRepo->getCategoryOptions();
-
 $filterBuilder = new FilterBuilder('venue_directory.php', true);
 $filterBuilder
     ->addField('text', 'f_name', 'Venue Name', [], 'Search name...', 'v.vname', 'LIKE')
@@ -45,7 +35,6 @@ $filterBuilder
         'maintenance' => 'Maintenance',
         'closed' => 'Closed'
     ], 'All States', 'v.status', '=');
-
 $gridBuilder = new DataGridBuilder('vid', '../actions/process_venue.php', 'venue');
 $gridBuilder->setCreateAction('register_venue.php', 'Create Venue');
 $gridBuilder->setRowActionUrl('register_venue.php?vid=%s');
@@ -63,11 +52,7 @@ $gridBuilder
             'closed' => ['label' => 'Closed', 'class' => 'bg-blue-50 text-blue-700 border-blue-200']
         ]
     ]);
-
-
 $result = $venueRepo->getAllWithFilters($filterBuilder);
-
-
 ob_start();
 ?>
 <?php echo $filterBuilder->render(); ?>

@@ -4,28 +4,18 @@ session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 require_once __DIR__ . '/../core/components/datagrid.php';
-
-
 require_once __DIR__ . '/../core/components/FilterBuilder.php';
 require_once __DIR__ . '/../core/repositories/BookingRepository.php';
-
 use Core\Components\FilterBuilder;
 use Core\Repositories\BookingRepository;
-
-
 $bookingRepo = new BookingRepository($conn);
-
 $filterBuilder = new FilterBuilder('pending_requests.php', true);
 $filterBuilder
     ->addField('text', 'f_bid', 'Ref ID', [], 'Search BID...', 'b.bid', 'LIKE')
     ->addField('text', 'f_student', 'Student Entity', [], 'Name or ID...', 'CONCAT(u.uid, " ", u.username)', 'LIKE')
     ->addField('text', 'f_venue', 'Asset', [], 'Name or Category...', 'CONCAT(v.vname, " ", vc.category)', 'LIKE')
     ->addField('date', 'f_date', 'Date', [], '', 'b.date_booked', '=');
-
-
 $result = $bookingRepo->getPendingRequests($filterBuilder);
-
-
 $page_title = "Pending Requests";
 $page_description = "Review full details below and execute booking decisions efficiently via batch processing.";
 $topbar_content = '
@@ -36,8 +26,6 @@ $topbar_content = '
     <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Bookings / Pending Requests</h2>
 </div>';
 $extra_css = [];
-
-
 $datagrid_schema = [
     'enable_checkbox' => true,
     'primary_key' => 'bid',
@@ -53,13 +41,9 @@ $datagrid_schema = [
         ['key' => 'purpose', 'label' => 'Declared Purpose', 'type' => 'text_muted_mono', 'width' => 'w-48']
     ]
 ];
-
-
 ob_start();
 ?>
-
 <?php echo $filterBuilder->render(); ?>
-
 <div class="flex items-center justify-between mb-4 bg-white p-3 rounded-md border border-slate-200 shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] shrink-0">
     <div class="text-xs font-bold text-slate-500 pl-2">
         <span id="cb-counter">0</span> selected
@@ -73,7 +57,6 @@ ob_start();
         </button>
     </div>
 </div>
-
 <div class="custom-table-container flex-1 overflow-hidden flex flex-col relative">
     <form id="bulkActionForm" action="../actions/process_booking_action.php" method="POST" class="flex-1 overflow-hidden flex flex-col">
         <input type="hidden" name="action_type" id="bulk_action_type" value="">
@@ -82,7 +65,6 @@ ob_start();
         </div>
     </form>
 </div>
-
 <div id="decision-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center transition-opacity opacity-0">
     <div class="bg-white rounded-md shadow-lg border border-slate-200 w-full max-w-sm p-6 transform scale-95 transition-transform" id="decision-panel">
         <h3 class="text-lg font-bold text-slate-800 mb-2" id="modal-title">Confirm Action</h3>
@@ -93,28 +75,25 @@ ob_start();
         </div>
     </div>
 </div>
-
 <script>
-
     const toggleAll = (source) =>
     {
         document.querySelectorAll('.row-cb').forEach(cb =>
-        { cb.checked = source.checked; });
+        {
+            cb.checked = source.checked;
+        }
+);
         updateButtonStates();
-    };
-
+    }
+;
     const updateButtonStates = () =>
     {
         const selectedCount = document.querySelectorAll('.row-cb:checked').length;
         const btnApprove = document.getElementById('btn-approve');
         const btnReject = document.getElementById('btn-reject');
         const cbCounter = document.getElementById('cb-counter');
-
         if (cbCounter) cbCounter.innerText = selectedCount;
-
         const hasSelection = selectedCount > 0;
-
-
         if (btnApprove)
         {
             btnApprove.disabled = !hasSelection;
@@ -122,7 +101,6 @@ ob_start();
                 ? "px-4 py-2 text-xs font-semibold text-white bg-[#059669] hover:bg-[#047857] rounded-md shadow-sm transition cursor-pointer border border-[#059669]"
                 : "px-4 py-2 text-xs font-semibold text-slate-400 bg-slate-100 rounded-md transition cursor-not-allowed border border-slate-200";
         }
-
         if (btnReject)
         {
             btnReject.disabled = !hasSelection;
@@ -130,17 +108,16 @@ ob_start();
                 ? "px-4 py-2 text-xs font-semibold text-[#dc2626] bg-white hover:bg-red-50 border border-red-200 rounded-md shadow-sm transition cursor-pointer"
                 : "px-4 py-2 text-xs font-semibold text-slate-400 bg-slate-100 rounded-md transition cursor-not-allowed border border-slate-200";
         }
-    };
-
-
+    }
+;
     document.addEventListener('change', function(e)
     {
         if(e.target && e.target.classList.contains('row-cb'))
         {
             updateButtonStates();
         }
-    });
-
+    }
+);
     const triggerBulkDecision = (actionType) =>
     {
         const selected = document.querySelectorAll('.row-cb:checked');
@@ -149,21 +126,21 @@ ob_start();
             titleEl.innerText = 'Batch Approve Bookings';
             msgEl.innerText = `Are you sure you want to approve ${selected.length} request(s)? The venue slots will be locked.`;
             btnEl.className = 'px-4 py-2 text-xs font-semibold text-white rounded-md shadow-sm transition-colors bg-[#059669] hover:bg-[#047857] border border-[#059669]';
-        } else if (actionType === 'reject')
+        }
+        else if (actionType === 'reject')
         {
             titleEl.innerText = 'Batch Reject Bookings';
             msgEl.innerText = `Are you sure you want to reject ${selected.length} request(s)? The deposits will be flagged for refund.`;
             btnEl.className = 'px-4 py-2 text-xs font-semibold text-white rounded-md shadow-sm transition-colors bg-[#dc2626] hover:bg-[#b91c1c] border border-[#dc2626]';
         }
-
         const modal = document.getElementById('decision-modal');
         const panel = document.getElementById('decision-panel');
         modal.classList.remove('hidden');
         void modal.offsetWidth;
         modal.classList.remove('opacity-0');
         panel.classList.remove('scale-95');
-    };
-
+    }
+;
     const closeDecisionModal = () =>
     {
         const modal = document.getElementById('decision-modal');
@@ -171,21 +148,21 @@ ob_start();
         modal.classList.add('opacity-0');
         panel.classList.add('scale-95');
         setTimeout(() =>
-        { modal.classList.add('hidden'); }, 200);
-    };
-
-
+        {
+            modal.classList.add('hidden');
+        }
+, 200);
+    }
+;
     document.getElementById('modal-confirm-btn').addEventListener('click', function()
     {
         this.innerHTML = 'Processing...';
         this.classList.add('opacity-70', 'cursor-not-allowed');
         document.getElementById('bulkActionForm').submit();
-    });
+    }
+);
 </script>
-
 <?php
 $page_content = ob_get_clean();
-
-
 require_once __DIR__ . '/../core/layout.php';
 ?>

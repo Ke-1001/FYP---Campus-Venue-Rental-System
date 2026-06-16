@@ -3,14 +3,9 @@
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
-
-
 $filter_query = trim($_GET['f_query'] ?? '');
 $filter_role = trim($_GET['f_role'] ?? '');
-
-
 $sql = "SELECT aid, admin_name, email, phone_num, role, created_at FROM admin WHERE 1=1";
-
 if (!empty($filter_query))
 {
     $sql .= " AND (admin_name LIKE '%" . $conn->real_escape_string($filter_query) . "%' OR aid LIKE '%" . $conn->real_escape_string($filter_query) . "%' OR email LIKE '%" . $conn->real_escape_string($filter_query) . "%')";
@@ -19,7 +14,6 @@ if (!empty($filter_role))
 {
     $sql .= " AND role = '" . $conn->real_escape_string($filter_role) . "'";
 }
-
 $sql .= " ORDER BY role DESC, admin_name ASC";
 $result = $conn->query($sql);
 ?>
@@ -32,20 +26,27 @@ $result = $conn->query($sql);
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
         tailwind.config =
-        { theme:
-        { extend:
-        { colors:
-        { cstyle:
-        { blue: '#004aad', dark: '#1e293b' } } } } }
+        {
+            theme:
+        {
+            extend:
+        {
+            colors:
+        {
+            cstyle:
+        {
+            blue: '#004aad', dark: '#1e293b'
+        }
+}
+}
+}
+}
     </script>
     <link rel="stylesheet" href="../assets/css/admin_css.css?v=2.0">
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
-
     <?php include('../includes/admin_sidebar.php'); ?>
-
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-50">
-
         <header class="h-16 glass-panel border-b border-slate-200 flex items-center justify-between px-6 z-10 shrink-0">
             <?php
             $topbar_content = '
@@ -58,20 +59,15 @@ $result = $conn->query($sql);
             include('../includes/admin_topbar.php');
             ?>
         </header>
-
         <div class="flex-1 overflow-y-auto p-8 scroll-smooth">
-
             <div class="mb-6 flex justify-between items-end">
                 <div>
                     <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">System Administrators</h1>
                     <p class="text-xs text-slate-500 mt-1">Manage core system personnel and access privileges.</p>
                 </div>
             </div>
-
-
             <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 mb-6">
                 <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-
                     <div class="md:col-span-2">
                         <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Identity Query</label>
                         <div class="relative">
@@ -79,7 +75,6 @@ $result = $conn->query($sql);
                             <input type="text" name="f_query" value="<?php echo htmlspecialchars($filter_query); ?>" placeholder="Search AID, Name, or Email..." class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:border-indigo-500 outline-none">
                         </div>
                     </div>
-
                     <div>
                         <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Access Level</label>
                         <select name="f_role" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:border-indigo-500 outline-none bg-white font-medium text-slate-700">
@@ -88,7 +83,6 @@ $result = $conn->query($sql);
                             <option value="admin" <?php if($filter_role==='admin') echo 'selected'; ?>>Standard Admin</option>
                         </select>
                     </div>
-
                     <div class="flex space-x-2">
                         <button type="submit" class="w-full px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-700 transition flex items-center justify-center">
                             <i data-lucide="filter" class="w-4 h-4 mr-1"></i> Apply
@@ -99,8 +93,6 @@ $result = $conn->query($sql);
                     </div>
                 </form>
             </div>
-
-
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="px-6 py-4 border-b border-slate-100 bg-slate-50">
                     <h3 class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Administrator Index (<?php echo $result->num_rows; ?>)</h3>
@@ -161,14 +153,14 @@ $result = $conn->query($sql);
                     </tbody>
                 </table>
             </div>
-
         </div>
     </main>
-
     <script>
         lucide.createIcons();
         function toggleSidebar()
-        { document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed'); }
+        {
+            document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed');
+        }
     </script>
 </body>
 </html>

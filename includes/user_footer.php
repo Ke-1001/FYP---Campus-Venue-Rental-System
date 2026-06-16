@@ -1,6 +1,10 @@
 </main>
+<<<<<<< HEAD
 
 <footer class="relative z-10 bg-slate-950 border-t border-white/10 px-6 py-10 mt-20">
+=======
+<footer class="relative z-50 bg-slate-950 border-t border-white/10 px-6 py-10 mt-20">
+>>>>>>> 4eb7fcfe97effc5ab9414f55101cb7135442c26e
     <div class="max-w-7xl mx-auto flex flex-col gap-6">
         <div class="flex flex-wrap justify-between items-start gap-8 border-b border-white/5 pb-6">
             <div>
@@ -12,7 +16,6 @@
                     Campus Venue Booking Management System. Engineered for optimal student resource allocation.
                 </p>
             </div>
-
             <div class="min-w-[250px]">
                 <h4 class="text-white text-base font-bold mb-3">Need Assistance? Contact Helpdesk</h4>
                 <div class="flex flex-col gap-2 text-sm">
@@ -28,7 +31,6 @@
                 </div>
             </div>
         </div>
-
         <div class="text-center text-slate-500 text-xs">
             &copy; 2026 Campus Venue Booking Management System. All rights reserved. 
         </div> 

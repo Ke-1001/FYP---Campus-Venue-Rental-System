@@ -5,23 +5,13 @@ require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 require_once __DIR__ . '/../includes/booking_functions.php';
 require_once __DIR__ . '/../core/components/datagrid.php';
-
-
 require_once __DIR__ . '/../core/components/FilterBuilder.php';
 require_once __DIR__ . '/../core/repositories/BookingRepository.php';
-
 use Core\Components\FilterBuilder;
 use Core\Repositories\BookingRepository;
-
 syncCompletedBookings($conn);
-
-
 expireUnpaidBookings($conn);
-
-
 $bookingRepo = new BookingRepository($conn);
-
-
 $filterBuilder = new FilterBuilder('track_bookings.php', true);
 $filterBuilder
     ->addField('text', 'f_bid', 'Booking ID', [], 'Search ID...', 'b.bid', 'LIKE')
@@ -35,55 +25,44 @@ $filterBuilder
         'completed' => 'Completed',
         'cancelled' => 'Cancelled'
     ], 'All', 'b.status', '=');
-
-
 $result = $bookingRepo->getAllWithFilters($filterBuilder);
-
-
 $records = [];
 if ($result && $result->num_rows > 0)
 {
     while($row = $result->fetch_assoc())
     {
         $remarks = '-';
-
         if ($row['status'] === 'pending' && $row['payment_status'] === 'unpaid')
         {
             $timestamp = strtotime($row['payment_due_at']);
             $remarks = 'Due: ' . ($timestamp ? date('y/m/d H:i', $timestamp) : 'N/A');
-        } elseif ($row['status'] === 'cancelled')
+        }
+        elseif ($row['status'] === 'cancelled')
         {
-
-
             $raw_reason = $row['cancel_reason'];
             if ($raw_reason === 'SYS_TIMEOUT_ADMIN')
             {
                 $friendly_reason = 'Auto-Timeout';
-            } else
+            }
+            else
             {
                 $friendly_reason = $raw_reason ?: 'Time Expired';
             }
-
-
             $cancel_time = strtotime($row['cancelled_at']);
             $time_str = $cancel_time ? date('m/d H:i', $cancel_time) : '';
-
-
             if (!empty($time_str))
             {
                 $remarks = $time_str . ' (' . $friendly_reason . ')';
-            } else
+            }
+            else
             {
                 $remarks = '' . $friendly_reason;
             }
         }
-
         $row['remarks'] = $remarks;
         $records[] = $row;
     }
 }
-
-
 $page_title = "Booking History";
 $page_description = "View paid, unpaid, completed, rejected and cancelled venue booking records.";
 $topbar_content = '
@@ -94,8 +73,6 @@ $topbar_content = '
     <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Bookings / History</h2>
 </div>';
 $extra_css = [];
-
-
 $datagrid_schema = [
     'enable_checkbox' => false,
     'primary_key' => 'bid',
@@ -123,28 +100,20 @@ $datagrid_schema = [
         ['key' => 'remarks', 'label' => 'Remarks', 'type' => 'text_muted_mono', 'width' => 'w-40']
     ]
 ];
-
-
 ob_start();
 ?>
-
 <?php echo $filterBuilder->render(); ?>
-
 <div class="custom-table-container flex-1 overflow-hidden flex flex-col">
     <div class="px-4 py-3 border-b border-slate-200 bg-[#f8fafc] flex justify-between items-center shrink-0">
         <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-widest">
             Records (<?php echo count($records); ?>)
         </h3>
     </div>
-
     <div class="flex-1 overflow-y-auto">
         <?php echo render_datagrid($datagrid_schema, $records); ?>
     </div>
 </div>
-
 <?php
 $page_content = ob_get_clean();
-
-
 require_once __DIR__ . '/../core/layout.php';
 ?>

@@ -4,18 +4,11 @@ session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 require_once __DIR__ . '/../core/components/datagrid.php';
-
-
 require_once __DIR__ . '/../core/components/FilterBuilder.php';
 require_once __DIR__ . '/../core/repositories/InspectionRepository.php';
-
 use Core\Components\FilterBuilder;
 use Core\Repositories\InspectionRepository;
-
-
 $inspectionRepo = new InspectionRepository($conn);
-
-
 $filterBuilder = new FilterBuilder('track_inspections.php', true);
 $filterBuilder
     ->addField('text', 'f_bid', 'Ref ID', [], 'Search BID...', 'i.bid', 'LIKE')
@@ -28,36 +21,27 @@ $filterBuilder
         'overdue' => 'Overdue',
         'failed' => 'Failed'
     ], 'All Results', 'i.ins_status', '=');
-
-
 $result = $inspectionRepo->getInspectionHistory($filterBuilder);
-
-
 $records = [];
 if ($result && $result->num_rows > 0)
 {
     while($row = $result->fetch_assoc())
     {
-
         $row['inspected_at_fmt'] = $row['inspected_at'] ? date('y/m/d H:i', strtotime($row['inspected_at'])) : '--';
         $row['date_booked_fmt'] = date('y/m/d', strtotime($row['date_booked']));
-
-
         if ($row['ins_status'] === 'passed')
         {
             $row['penalty_val'] = 0.00;
             $row['observations'] = 'Clearance granted. Refund authorized.';
-        } else
+        }
+        else
         {
             $row['penalty_val'] = (float)$row['penalty'];
             $row['observations'] = $row['damage_desc'] ?: 'No details provided.';
         }
-
         $records[] = $row;
     }
 }
-
-
 $page_title = "Inspection History";
 $page_description = "Trace historical venue assessments and financial penalties.";
 $topbar_content = '
@@ -68,8 +52,6 @@ $topbar_content = '
     <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Reporting / Inspection History</h2>
 </div>';
 $extra_css = [];
-
-
 $datagrid_schema = [
     'enable_checkbox' => false,
     'primary_key' => 'bid',
@@ -90,28 +72,20 @@ $datagrid_schema = [
         ['key' => 'observations', 'label' => 'Observations', 'type' => 'text_muted_mono', 'width' => 'w-56']
     ]
 ];
-
-
 ob_start();
 ?>
-
 <?php echo $filterBuilder->render(); ?>
-
 <div class="custom-table-container flex-1 overflow-hidden flex flex-col">
     <div class="px-4 py-3 border-b border-slate-200 bg-[#f8fafc] flex justify-between items-center shrink-0">
         <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-widest">
             Global Record Log (<?php echo count($records); ?>)
         </h3>
     </div>
-
     <div class="flex-1 overflow-y-auto">
         <?php echo render_datagrid($datagrid_schema, $records); ?>
     </div>
 </div>
-
 <?php
 $page_content = ob_get_clean();
-
-
 require_once __DIR__ . '/../core/layout.php';
 ?>
