@@ -17,12 +17,14 @@
 {
     background: #94a3b8;
 }
+
 .glass-panel
 {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
 }
+
 .sidebar
 {
  width: 16rem;
@@ -31,10 +33,12 @@
     overflow-x: hidden;
  will-change: width;
 }
+
 .sidebar.sidebar-collapsed
 {
     width: 4rem;
 }
+
 .sidebar.sidebar-collapsed .nav-text,
 .sidebar.sidebar-collapsed .brand-text,
 .sidebar.sidebar-collapsed .nav-badge,
@@ -43,6 +47,7 @@
 {
     display: none !important;
 }
+
 .sidebar.sidebar-collapsed .nav-item,
 .sidebar.sidebar-collapsed .brand-header,
 .sidebar.sidebar-collapsed .profile-container
@@ -51,6 +56,7 @@
     padding-left: 0 !important;
     padding-right: 0 !important;
 }
+
 .brand-header
 {
     transition: padding 0.3s ease;

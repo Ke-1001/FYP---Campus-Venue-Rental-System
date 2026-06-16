@@ -1,15 +1,19 @@
 <?php
+
 // This section prepares the admin edit venue page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
+
 $vid = intval($_GET['vid'] ?? 0);
 if ($vid === 0) die("Error: NULL pointer reference for Venue ID.");
+
 $stmt = $conn->prepare("SELECT * FROM venue WHERE vid = ? LIMIT 1");
 $stmt->bind_param("i", $vid);
 $stmt->execute();
 $venue = $stmt->get_result()->fetch_assoc();
 if (!$venue) die("Anomaly: Venue object not found in persistent storage.");
+
 $cat_sql = "SELECT DISTINCT UPPER(TRIM(category)) AS category_name
             FROM venue WHERE category IS NOT NULL AND category != ''
             ORDER BY category_name ASC";
@@ -23,21 +27,11 @@ $categories_result = $conn->query($cat_sql);
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>tailwind.config =
-    {
-        theme:
-    {
-        extend:
-    {
-        colors:
-    {
-        cstyle:
-    {
-        blue: '#004aad', dark: '#1e293b'
-    }
-}
-}
-}
-}</script>
+{ theme:
+{ extend:
+{ colors:
+{ cstyle:
+{ blue: '#004aad', dark: '#1e293b' } } } } }</script>
     <link rel="stylesheet" href="../assets/css/admin_css.css?v=2.0">
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
@@ -78,6 +72,7 @@ $categories_result = $conn->query($cat_sql);
                                 <label class="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-wide">Venue Name</label>
                                 <input type="text" name="vname" value="<?php echo htmlspecialchars($venue['vname']); ?>" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm transition-all">
                             </div>
+
                             <div>
                                 <label class="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-wide">Category</label>
                                 <input list="category-options" name="category" value="<?php echo htmlspecialchars(strtoupper($venue['category'])); ?>" required oninput="this.value = this.value.toUpperCase()" placeholder="Select or type category..." class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm bg-white font-mono font-bold text-indigo-700 transition-all uppercase">
@@ -94,6 +89,7 @@ $categories_result = $conn->query($cat_sql);
                                 </datalist>
                                 <p class="text-[9px] text-slate-400 mt-1 italic">Input will be strictly normalized to uppercase.</p>
                             </div>
+
                             <div>
                                 <label class="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-wide">Max Capacity</label>
                                 <input type="number" name="max_cap" value="<?php echo $venue['max_cap']; ?>" min="1" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm font-mono transition-all">
@@ -127,9 +123,7 @@ $categories_result = $conn->query($cat_sql);
     <script>
         lucide.createIcons();
         function toggleSidebar()
-        {
-            document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed');
-        }
+{ document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed'); }
     </script>
 </body>
 </html>

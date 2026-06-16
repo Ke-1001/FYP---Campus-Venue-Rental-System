@@ -1,12 +1,15 @@
 <?php
+
 // This section prepares the admin damage reports page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
+
 $filter_bid = trim($_GET['f_bid'] ?? '');
 $filter_student = trim($_GET['f_student'] ?? '');
 $filter_venue = trim($_GET['f_venue'] ?? '');
 $filter_status = trim($_GET['f_status'] ?? '');
+
 $sql = "
     SELECT
         dr.report_id,
@@ -32,33 +35,40 @@ $sql = "
     JOIN vcategory vc ON v.vcid = vc.vcid
     WHERE 1=1
 ";
+
 $params = [];
 $types = '';
+
 if ($filter_bid !== '')
 {
     $sql .= " AND dr.bid LIKE ?";
     $params[] = "%{$filter_bid}%";
     $types .= 's';
 }
+
 if ($filter_student !== '')
 {
     $sql .= " AND CONCAT(dr.uid, ' ', u.username) LIKE ?";
     $params[] = "%{$filter_student}%";
     $types .= 's';
 }
+
 if ($filter_venue !== '')
 {
     $sql .= " AND CONCAT(dr.vid, ' ', v.vname, ' ', vc.category) LIKE ?";
     $params[] = "%{$filter_venue}%";
     $types .= 's';
 }
+
 if ($filter_status !== '')
 {
     $sql .= " AND dr.report_status = ?";
     $params[] = $filter_status;
     $types .= 's';
 }
+
 $sql .= " ORDER BY dr.created_at DESC";
+
 $stmt = $conn->prepare($sql);
 if (!empty($params))
 {
@@ -66,12 +76,14 @@ if (!empty($params))
 }
 $stmt->execute();
 $result = $stmt->get_result();
+
 $reports = [];
 while ($row = $result->fetch_assoc())
 {
     $reports[] = $row;
 }
 $stmt->close();
+
 $page_title = "Damage Reports";
 $page_description = "View damage reports submitted by users during their booking time.";
 $current_role = $_SESSION['role'] ?? '';
@@ -84,8 +96,10 @@ $topbar_content = '
     </a>
     <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Operations / Damage Reports</h2>
 </div>';
+
 ob_start();
 ?>
+
 <form method="GET" class="bg-white border border-slate-200 rounded-xl shadow-sm p-5 mb-6">
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div>
@@ -109,15 +123,18 @@ ob_start();
             </select>
         </div>
     </div>
+
     <div class="flex justify-end gap-3 mt-4 pt-4 border-t border-slate-100">
         <a href="damage_reports.php" class="px-4 py-2 text-sm font-bold text-slate-500 bg-white border border-slate-200 rounded-lg hover:bg-slate-50">Reset</a>
         <button type="submit" class="px-5 py-2 text-sm font-bold text-white bg-[#004aad] rounded-lg hover:bg-[#003882]">Apply Filter</button>
     </div>
 </form>
+
 <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
     <div class="px-5 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
         <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest">Submitted Reports (<?php echo count($reports); ?>)</h3>
     </div>
+
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
             <thead>
@@ -137,6 +154,7 @@ ob_start();
                         <td colspan="7" class="px-5 py-10 text-center text-slate-400 font-semibold">No damage reports found.</td>
                     </tr>
                 <?php endif; ?>
+
                 <?php foreach ($reports as $report): ?>
                     <tr class="hover:bg-slate-50 align-top">
                         <td class="px-5 py-4">
@@ -152,6 +170,7 @@ ob_start();
                                 <?php echo substr($report['time_start'], 0, 5); ?> - <?php echo substr($report['time_end'], 0, 5); ?>
                             </div>
                             <?php
+
                                 $b_status_color = ($report['booking_status'] === 'cancelled') ? 'text-red-600' : 'text-emerald-600';
                             ?>
                             <div class="text-[10px] uppercase font-black <?php echo $b_status_color; ?> mt-1">
@@ -209,6 +228,7 @@ ob_start();
         </table>
     </div>
 </div>
+
 <?php
 $page_content = ob_get_clean();
 include __DIR__ . '/../core/layout.php';

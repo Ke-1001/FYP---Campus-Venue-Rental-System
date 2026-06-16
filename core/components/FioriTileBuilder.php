@@ -1,6 +1,8 @@
 <?php
+
 // This section provides the shared FioriTileBuilder component.
 namespace Core\Components;
+
 class FioriTileBuilder
 {
     public static function renderSection(string $title, string $description, array $tiles): string
@@ -11,13 +13,16 @@ class FioriTileBuilder
             <p class="text-sm text-slate-500 mt-1">' . htmlspecialchars($description) . '</p>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-10">';
+
         foreach ($tiles as $tile)
         {
             $html .= self::renderTile($tile);
         }
+
         $html .= '</div>';
         return $html;
     }
+
     private static function renderTile(array $t): string
     {
         $url = htmlspecialchars($t['url'] ?? '#');
@@ -26,6 +31,7 @@ class FioriTileBuilder
         $desc = htmlspecialchars($t['desc']);
  $kpi = $t['kpi'] ?? '';
         $action = htmlspecialchars($t['action'] ?? 'View Records');
+
         return "
         <a href=\"{$url}\" class=\"fiori-tile group\">
             <div class=\"fiori-tile-header\">
@@ -34,10 +40,10 @@ class FioriTileBuilder
             </div>
             <p class=\"fiori-tile-desc\">{$desc}</p>
             <div class=\"fiori-tile-kpi\">
-                {$kpi}
+{$kpi}
             </div>
             <div class=\"fiori-tile-footer\">
-                {$action} <i data-lucide=\"arrow-right\" class=\"w-3 h-3 ml-2\"></i>
+{$action} <i data-lucide=\"arrow-right\" class=\"w-3 h-3 ml-2\"></i>
             </div>
         </a>";
     }

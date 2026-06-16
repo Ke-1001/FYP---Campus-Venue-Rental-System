@@ -1,22 +1,27 @@
 <?php
+
 // This section prepares the user booking form page.
 session_start();
 $page_title = "Book Venue";
 require_once __DIR__ . '/../config/db.php';
+
 if (!isset($_SESSION['uid']))
 {
     header("Location: ../user/user_login.php?error=access_denied");
     exit();
 }
+
 require_once __DIR__ . '/../includes/user_header.php';
 require_once __DIR__ . '/../includes/user_navbar.php';
 $vid = $_GET['vid'] ?? '';
+
 if (!preg_match('/^[A-Za-z0-9_-]+$/', $vid))
 {
     die(
         "<div class='min-h-screen flex items-center justify-center bg-slate-50 text-xl font-bold text-red-600'>
             Invalid Venue ID: Cannot proceed with the booking. </div>" );
 }
+
 $sql = "SELECT v.vid, v.vname, vc.category, v.max_cap, v.deposit, v.status
         FROM venue v
         JOIN vcategory vc ON v.vcid = vc.vcid
@@ -27,34 +32,38 @@ $stmt->bind_param("s", $vid);
 $stmt->execute();
 $result = $stmt->get_result();
 $venue = $result->fetch_assoc();
+
 if (!$venue)
 {
     die("Venue not found.");
 }
+
 if (strtolower($venue['status']) !== 'available')
 {
     $_SESSION['error'] = "This venue is currently not available for booking.";
     header("Location: venue_details.php?vid=" . urlencode($venue['vid']));
     exit;
 }
+
 if (!$venue)
 {
     die("<div class='min-h-screen flex items-center justify-center bg-slate-50 text-xl font-bold text-slate-800'>Error: Venue is offline or not available for booking.</div>");
 }
 ?>
+
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
 <script>
     tailwind.config =
     {
         theme:
-    {
+        {
         extend:
-    {
+        {
         colors:
-    {
+        {
         cstyle:
-    {
+        {
         blue: '#004aad', dark: '#1e293b'
     }
 }
@@ -179,11 +188,18 @@ if (!$venue)
         </div>
     </div>
 </div>
+<style>
+    #rulesModal
+    {
+        z-index: 2147483647 !important;
+    }
+</style>
+
 <div
     id="rulesModal"
-    class="fixed inset-0 bg-black/70 z-50 hidden items-center justify-center px-4 pt-16"
+    class="fixed inset-0 bg-black/70 hidden items-center justify-center px-4 py-8 overflow-y-auto"
 >
-    <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden">
+    <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden max-h-[88vh] flex flex-col my-auto">
         <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200">
             <div>
                 <h3 class="text-lg font-black text-slate-800">
@@ -201,7 +217,7 @@ if (!$venue)
                 <i data-lucide="x" class="w-5 h-5"></i>
             </button>
         </div>
-        <div class="p-6 max-h-[60vh] overflow-y-auto text-sm text-slate-600 leading-relaxed space-y-4">
+        <div class="p-6 overflow-y-auto text-sm text-slate-600 leading-relaxed space-y-4 flex-1">
             <div>
                 <h4 class="font-bold text-slate-800 mb-1">1. Booking Responsibility</h4>
                 <p>
@@ -238,8 +254,14 @@ if (!$venue)
                     Submitting a booking request does not mean the booking is approved. The booking will only be confirmed after admin approval.
                 </p>
             </div>
+            <div>
+                <h4 class="font-bold text-slate-800 mb-1">Attention!!!</h4>
+                <p>
+                    Users may book a slot that has already started, but any time that has already passed will not be replaced, extended, or refunded.
+                </p>
+            </div>
         </div>
-        <div class="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3">
+        <div class="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3 shrink-0">
             <button
                 type="button"
                 onclick="closeRulesModal()"
@@ -317,7 +339,7 @@ if (!$venue)
             renderCalendar();
         }
 );  document.getElementById('btn-next-month').addEventListener('click', () =>
-        {
+{
         currentMonth++;
         if (currentMonth > 11)
         {
@@ -326,7 +348,7 @@ if (!$venue)
             renderCalendar();
         }
 );  function initiateDaySelect(dateStr)
-        {
+{
         selectedDateStr = dateStr;
         document.getElementById('selected-date-display').innerText = dateStr;
         document.getElementById('payload_date').value = dateStr;
@@ -594,6 +616,12 @@ if (!$venue)
     function openRulesModal()
     {
         const modal = document.getElementById('rulesModal');
+
+        if (modal.parentElement !== document.body)
+        {
+            document.body.appendChild(modal);
+        }
+
         modal.classList.remove('hidden');
         modal.classList.add('flex');
         document.body.classList.add('overflow-hidden');

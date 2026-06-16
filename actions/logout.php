@@ -1,4 +1,5 @@
 <?php
+
 // This section checks and processes logout requests.
 session_start();
 $_SESSION = array();

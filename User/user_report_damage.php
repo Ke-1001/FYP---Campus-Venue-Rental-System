@@ -1,19 +1,24 @@
 <?php
+
 // This section prepares the user report damage page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
 date_default_timezone_set('Asia/Kuala_Lumpur');
+
 if (!isset($_SESSION['uid']))
 {
     header("Location: login.php");
     exit;
 }
+
 $uid = $_SESSION['uid'];
 $bid = intval($_GET['bid'] ?? 0);
+
 if ($bid <= 0)
 {
     die("Invalid booking ID.");
 }
+
 $stmt = $conn->prepare("
     SELECT b.bid, b.uid, b.vid, b.date_booked, b.time_start, b.time_end, b.status, v.vname, vc.category
     FROM booking b
@@ -25,41 +30,50 @@ $stmt = $conn->prepare("
 $stmt->bind_param("is", $bid, $uid);
 $stmt->execute();
 $result = $stmt->get_result();
+
 if (!$result || $result->num_rows === 0)
 {
     die("Booking not found.");
 }
+
 $booking = $result->fetch_assoc();
 $stmt->close();
+
 if (strtolower($booking['status']) !== 'approved')
 {
     $_SESSION['error'] = "Damage report is only available for approved bookings.";
     header("Location: booking_details.php?bid=" . urlencode($bid));
     exit;
 }
+
 $damage_window_start_ts = strtotime($booking['date_booked'] . ' ' . $booking['time_start']);
 $damage_window_end_ts = strtotime($booking['date_booked'] . ' ' . $booking['time_end']);
 $now_ts = time();
+
 if ( $damage_window_start_ts === false || $damage_window_end_ts === false || $now_ts < $damage_window_start_ts || $now_ts > $damage_window_end_ts )
 {
     $_SESSION['error'] = "Damage report can only be submitted during the booking time.";
     header("Location: booking_details.php?bid=" . urlencode($bid));
     exit;
 }
+
 $check = $conn->prepare("SELECT report_id FROM damage_report WHERE bid = ? AND uid = ? LIMIT 1");
 $check->bind_param("is", $bid, $uid);
 $check->execute();
 $check_result = $check->get_result();
+
 if ($check_result && $check_result->num_rows > 0)
 {
     header("Location: booking_details.php?bid=" . urlencode($bid));
     exit;
 }
+
 $check->close();
 $page_title = "Report Existing Damage";
 include("../includes/user_header.php");
 include("../includes/user_navbar.php");
 ?>
+
 <div class="relative z-10 max-w-4xl mx-auto px-4 py-10">
     <div class="mb-8">
         <a href="booking_details.php?bid=<?php echo urlencode($booking['bid']); ?>"

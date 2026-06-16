@@ -1,8 +1,10 @@
 <?php
+
 // This section provides the shared datagrid component.
 function render_datagrid(array $schema, $dataset)
 {
     $html = '<table class="custom-table w-full">';
+
     $html .= '<thead class="sticky top-0 z-10 bg-white"><tr>';
     if (!empty($schema['enable_checkbox']))
     {
@@ -14,6 +16,7 @@ function render_datagrid(array $schema, $dataset)
         $html .= "<th {$width}>" . htmlspecialchars($col['label']) . "</th>";
     }
     $html .= '</tr></thead><tbody>';
+
     $has_data = false;
     if ($dataset instanceof mysqli_result)
     {
@@ -25,6 +28,7 @@ function render_datagrid(array $schema, $dataset)
         $has_data = count($dataset) > 0;
         $rows = $dataset;
     }
+
     if ($has_data)
     {
         foreach ($rows as $row)
@@ -37,16 +41,20 @@ function render_datagrid(array $schema, $dataset)
         $row_attr = 'ondblclick="window.location.href=\''.htmlspecialchars($url).'\'" class="hover:bg-slate-50 transition-colors cursor-pointer"';
     }
     $html .= '<tr '.$row_attr.'>';
+
             if (!empty($schema['enable_checkbox']))
             {
                 $primary_key = $schema['primary_key'] ?? 'id';
                 $html .= '<td class="text-center"><input type="checkbox" name="'.$schema['checkbox_name'].'[]" value="'.$row[$primary_key].'" onclick="updateButtonStates()" class="row-cb w-4 h-4 rounded border-slate-300 text-[#004aad] focus:ring-[#004aad]"></td>';
             }
+
             foreach ($schema['columns'] as $col)
             {
                 $html .= '<td>';
+
                 $col_key = $col['key'] ?? null;
                 $val = ($col_key !== null && isset($row[$col_key])) ? $row[$col_key] : '';
+
                 switch ($col['type'])
                 {
                     case 'text':
@@ -63,9 +71,12 @@ function render_datagrid(array $schema, $dataset)
                         $html .= '<span class="px-2 py-0.5 bg-[#f1f5f9] text-slate-600 text-[10px] font-bold uppercase tracking-wider rounded-sm border border-[#e2e8f0] inline-block">' . htmlspecialchars($val) . '</span>';
                         break;
                     case 'time_range':
+
                         $start = isset($row[$col['start_key']]) ? date('H:i', strtotime($row[$col['start_key']])) : 'N/A';
                         $end = isset($row[$col['end_key']]) ? date('H:i', strtotime($row[$col['end_key']])) : 'N/A';
+
                         $html .= '<div class="td-text-mono flex flex-col space-y-1 text-xs text-slate-700 font-semibold">';
+
                         $html .= '  <div class="flex items-center">';
                         $html .= '    <span class="text-slate-400 font-normal uppercase tracking-wider text-[10px] w-12 block shrink-0">Start</span>';
                         $html .= '    <span class="font-mono text-slate-800">' . $start . '</span>';
@@ -113,6 +124,7 @@ function render_datagrid(array $schema, $dataset)
         $colspan = count($schema['columns']) + (!empty($schema['enable_checkbox']) ? 1 : 0);
         $html .= '<tr><td colspan="'.$colspan.'" class="py-16 text-center text-slate-500 border-none hover:bg-transparent cursor-default"><span class="text-sm font-medium tracking-wide">No records found.</span></td></tr>';
     }
+
     $html .= '</tbody></table>';
     return $html;
 }

@@ -1,13 +1,16 @@
 <?php
 // This section prepares the user reset password page.
 require_once __DIR__ . '/../config/db.php';
+
 $token = $_GET['token'] ?? '';
 $token_hash = hash("sha256", $token);
+
 $stmt = $conn->prepare("SELECT email FROM password_resets WHERE token_hash = ? AND expires_at > NOW()");
 $stmt->bind_param("s", $token_hash);
 $stmt->execute();
 $result = $stmt->get_result();
 $user = $result->fetch_assoc();
+
 if (!$user)
 {
     die("<div class='text-white p-10 text-center'>Invalid or expired reset link. <br><a href='user_login.php' class='text-blue-400'>Back to Login</a></div>");
@@ -23,21 +26,27 @@ if (!$user)
 </head>
 <body class="user-light-theme font-sans antialiased min-h-screen relative">
     <div class="user-page-bg" aria-hidden="true"></div>
+
     <div class="relative z-10 flex items-center justify-center min-h-screen px-4">
         <div class="w-full max-w-sm glass-panel rounded-2xl p-8 shadow-2xl">
             <h2 class="text-white text-xl font-bold mb-6 text-center">Set New Password</h2>
                 <?php if ($_SERVER["REQUEST_METHOD"] == "POST"):
                     $password = $_POST['password'] ?? '';
+
                     $pattern = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/';
+
                     if (!preg_match($pattern, $password))
                     {
                         die("<div class='text-white p-10 text-center'>Password does not meet the security requirements.<br><a href='reset_password.php?token=" . htmlspecialchars($token) . "' class='text-blue-400'>Try again</a></div>");
                     }
+
                     $new_pass = password_hash($password, PASSWORD_DEFAULT);
+
                     $stmt = $conn->prepare("UPDATE user SET password = ? WHERE email = ?");
                     $stmt->bind_param("ss", $new_pass, $user['email']);
                     $stmt->execute();
                     $stmt->close();
+
                     $stmt = $conn->prepare("DELETE FROM password_resets WHERE email = ?");
                     $stmt->bind_param("s", $user['email']);
                     $stmt->execute();
@@ -74,16 +83,19 @@ if (!$user)
             <?php endif; ?>
         </div>
     </div>
+
     <script>
         function togglePassword()
         {
             const input = document.getElementById('password');
             input.type = (input.type === "password") ? "text" : "password";
         }
+
         function checkPassword()
         {
             const val = document.getElementById('password').value;
             const btn = document.getElementById('submit-btn');
+
             const reqs =
             {
                 length: val.length >= 8,
@@ -91,12 +103,13 @@ if (!$user)
                 lower: /[a-z]/.test(val),
                 number: /[0-9]/.test(val),
                 special: /[!@#$%^&*(),.?":{}|<>]/.test(val)
-            }
-;
+            };
+
             for (let id in reqs)
             {
                 document.getElementById(id).style.color = reqs[id] ? '#10b981' : '#f87171';
             }
+
             if (Object.values(reqs).every(Boolean))
             {
                 btn.disabled = false;

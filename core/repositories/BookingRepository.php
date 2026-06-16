@@ -1,15 +1,20 @@
 <?php
+
 // This section provides database access for BookingRepository data.
 namespace Core\Repositories;
+
 use mysqli;
 use Core\Components\FilterBuilder;
+
 class BookingRepository
 {
     private mysqli $conn;
+
     public function __construct(mysqli $conn)
     {
         $this->conn = $conn;
     }
+
     public function getAllWithFilters(FilterBuilder $filterBuilder)
     {
         $sql = "SELECT
@@ -23,9 +28,12 @@ class BookingRepository
                 JOIN venue v ON b.vid = v.vid
                 JOIN vcategory vc ON v.vcid = vc.vcid
                 WHERE 1=1";
+
         $sql .= $filterBuilder->buildSqlWhere($this->conn);
         $sql .= " ORDER BY b.created_at DESC";
+
         $result = $this->conn->query($sql);
+
         if (!$result)
         {
             die("<div style='background:#fee2e2; padding:20px; border:1px solid #ef4444; color:#991b1b; margin:20px; border-radius:8px; font-family:monospace;'>
@@ -34,6 +42,7 @@ class BookingRepository
                 <b>Generated Matrix:</b> " . htmlspecialchars($sql) . "
                 </div>");
         }
+
         if ($result->num_rows === 0)
         {
             echo "<div style='background:#fef3c7; padding:20px; border:1px solid #f59e0b; color:#92400e; margin:20px; border-radius:8px; font-family:monospace;'>
@@ -41,8 +50,10 @@ class BookingRepository
                 <b>Generated Matrix:</b> " . htmlspecialchars($sql) . "
                 </div>";
         }
+
         return $result;
     }
+
     public function getPendingRequests(FilterBuilder $filterBuilder)
     {
         $sql = "SELECT
@@ -62,10 +73,14 @@ class BookingRepository
                       OR
                       (b.date_booked = CURDATE() AND b.time_end > CURTIME())
                   )";
+
         $sql .= $filterBuilder->buildSqlWhere($this->conn);
+
         $sql .= " ORDER BY b.created_at ASC";
+
         return $this->conn->query($sql);
     }
+
     public function getDetailedBookingById(int $bid): ?array
     {
         $sql = "SELECT
@@ -76,9 +91,11 @@ class BookingRepository
                 JOIN user u ON b.uid = u.uid
                 JOIN venue v ON b.vid = v.vid
                 WHERE b.bid = ?";
+
         $stmt = $this->conn->prepare($sql);
         $stmt->bind_param("i", $bid);
         $stmt->execute();
+
         $result = $stmt->get_result();
         return $result->num_rows > 0 ? $result->fetch_assoc() : null;
     }

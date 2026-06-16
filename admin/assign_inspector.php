@@ -1,24 +1,33 @@
 <?php
+
 // This section prepares the admin assign inspector page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 require_once __DIR__ . '/../includes/booking_functions.php';
 require_once __DIR__ . '/../core/components/datagrid.php';
+
 require_once __DIR__ . '/../core/components/FilterBuilder.php';
 require_once __DIR__ . '/../core/repositories/InspectionRepository.php';
+
 use Core\Components\FilterBuilder;
 use Core\Repositories\InspectionRepository;
+
 syncCompletedBookings($conn);
+
 expireUnpaidBookings($conn);
+
 $inspectionRepo = new InspectionRepository($conn);
+
 $filterBuilder = new FilterBuilder('assign_inspector.php', true);
 $filterBuilder
     ->addField('text', 'f_bid', 'Booking ID', [], 'Search ID...', 'b.bid', 'LIKE')
     ->addField('text', 'f_student', 'Student Entity', [], 'Name or ID...', 'CONCAT(u.uid, " ", u.username)', 'LIKE')
     ->addField('text', 'f_venue', 'Asset', [], 'Name or Category...', 'CONCAT(v.vname, " ", vc.category)', 'LIKE')
     ->addField('date', 'f_date', 'Date', [], '', 'b.date_booked', '=');
+
 $result = $inspectionRepo->getPendingAssignments($filterBuilder);
+
 $records = [];
 if ($result && $result->num_rows > 0)
 {
@@ -27,6 +36,7 @@ if ($result && $result->num_rows > 0)
         $records[] = $row;
     }
 }
+
 $page_title = "Assign Inspector";
 $page_description = "Delegate post-event venue inspections to designated personnel.";
 $topbar_content = '
@@ -37,6 +47,7 @@ $topbar_content = '
     <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Bookings / Assign Inspector</h2>
 </div>';
 $extra_css = [];
+
 $datagrid_schema = [
     'enable_checkbox' => false,
     'primary_key' => 'bid',
@@ -52,20 +63,26 @@ $datagrid_schema = [
         ['type' => 'time_range', 'label' => 'Time', 'start_key' => 'time_start', 'end_key' => 'time_end', 'width' => 'w-32']
     ]
 ];
+
 ob_start();
 ?>
+
 <?php echo $filterBuilder->render(); ?>
+
 <div class="custom-table-container flex-1 overflow-hidden flex flex-col">
     <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center shrink-0">
         <h3 class="text-xs font-black text-slate-600 uppercase tracking-widest">
             Pending Assignment (<?php echo count($records); ?>)
         </h3>
     </div>
+
     <div class="flex-1 overflow-y-auto">
         <?php echo render_datagrid($datagrid_schema, $records); ?>
     </div>
 </div>
+
 <?php
 $page_content = ob_get_clean();
+
 require_once __DIR__ . '/../core/layout.php';
 ?>

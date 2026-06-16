@@ -10,6 +10,7 @@
     border-radius: 0.375rem;
     box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
 }
+
 .nav-links a
 {
     text-decoration: none;
@@ -18,11 +19,13 @@
     font-weight: 700;
     font-size: 16px;
 }
+
 .nav-links a:hover
 {
     color: #003882;
     text-decoration: underline;
 }
+
 .btn-logout
 {
     background-color: #dc2626;
@@ -34,17 +37,15 @@
     font-size: 0.875rem;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
 .btn-logout:hover
 {
     background-color: #b91c1c;
     color: white;
     text-decoration: none;
 }
+
 .status-available
-{
-    color: #059669; font-weight: bold;
-}
+{ color: #059669; font-weight: bold; }
 .status-maintenance
-{
-    color: #dc2626; font-weight: bold;
-}
+{ color: #dc2626; font-weight: bold; } 

@@ -3,22 +3,24 @@
 session_start();
 require_once __DIR__ . '/../config/db.php';
 if (!isset($_SESSION['uid']))
-{
-    header("Location: user_login.php"); exit();
-}
-    $uid = $_SESSION['uid']; $stmt = $conn->prepare("SELECT * FROM user WHERE uid = ?"); $stmt->bind_param("s", $uid); $stmt->execute(); $user = $stmt->get_result()->fetch_assoc();  $profile_pic_url = ''; if (!empty($user['profile_pic']))
+{ header("Location: user_login.php"); exit(); } $uid = $_SESSION['uid']; $stmt = $conn->prepare("SELECT * FROM user WHERE uid = ?"); $stmt->bind_param("s", $uid); $stmt->execute(); $user = $stmt->get_result()->fetch_assoc();  $profile_pic_url = ''; if (!empty($user['profile_pic']))
 {
     $stored_pic = trim($user['profile_pic']);
     $stored_pic = str_replace('\\', '/', $stored_pic);
     $stored_pic = ltrim($stored_pic, '/');
+
     $candidate_paths = [];
     $candidate_urls = [];
+
     $candidate_paths[] = __DIR__ . '/' . $stored_pic;
     $candidate_urls[] = $stored_pic;
+
     $candidate_paths[] = __DIR__ . '/../' . $stored_pic;
     $candidate_urls[] = '../' . $stored_pic;
+
     $candidate_paths[] = __DIR__ . '/../uploads/profile_pic/user/' . basename($stored_pic);
     $candidate_urls[] = '../uploads/profile_pic/user/' . basename($stored_pic);
+
     foreach ($candidate_paths as $idx => $path)
     {
         if (is_file($path))
@@ -133,17 +135,13 @@ if (!isset($_SESSION['uid']))
         e.preventDefault();
         const formData = new FormData(e.target);
         const res = await fetch('update_profile_process.php',
-        {
-            method: 'POST', body: formData
-        }
-);
+{ method: 'POST', body: formData });
         if(res.ok)
         {
             document.getElementById('toast').classList.remove('hidden');
             setTimeout(() => location.reload(), 1500);
         }
-    }
-;
+    };
 </script>
 </body>
 </html>

@@ -1,29 +1,34 @@
 <?php
+
 // This section checks and processes admin requests.
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
+
 $action = $_POST['action'] ?? $_GET['action'] ?? '';
+
 if ($action === 'edit' && $_SERVER['REQUEST_METHOD'] === 'POST')
 {
     $aid = intval($_POST['aid'] ?? 0);
     $admin_name = htmlspecialchars(trim($_POST['admin_name']));
     $email = trim($_POST['email']);
     $phone_num = htmlspecialchars(trim($_POST['phone_num']));
+
     if ($aid === 0)
     {
         $_SESSION['toast'] = ['type' => 'error', 'msg' => 'Fatal: Invalid Identity Parameter.'];
         header("Location: ../admin/manage_admins.php");
         exit;
     }
+
     $sql_check = "SELECT aid FROM admin WHERE (email = ? OR admin_name = ?) AND aid != ?";
     $stmt_check = $conn->prepare($sql_check);
+
     $stmt_check->bind_param("ssi", $email, $admin_name, $aid);
     $stmt_check->execute();
     if ($stmt_check->get_result()->num_rows > 0)
     {
-        $_SESSION['toast'] =
-        [
+        $_SESSION['toast'] = [
             'type' => 'error',
             'msg' => 'Update Blocked: Email or Administrator Name already belongs to another entity.'
         ];
@@ -32,8 +37,10 @@ if ($action === 'edit' && $_SERVER['REQUEST_METHOD'] === 'POST')
         exit;
     }
     $stmt_check->close();
+
     $sql = "UPDATE admin SET admin_name = ?, email = ?, phone_num = ? WHERE aid = ? AND role IN ('admin', 'super_admin')";
     $stmt = $conn->prepare($sql);
+
     if ($stmt)
     {
         $stmt->bind_param("sssi", $admin_name, $email, $phone_num, $aid);
@@ -49,8 +56,9 @@ if ($action === 'edit' && $_SERVER['REQUEST_METHOD'] === 'POST')
     }
     header("Location: ../admin/manage_admins.php");
     exit;
+
 }
-else if ($action === 'delete' && isset($_GET['aid']))
+elseif ($action === 'delete' && isset($_GET['aid']))
 {
     if ($_SESSION['role'] !== 'super_admin')
     {
@@ -58,12 +66,16 @@ else if ($action === 'delete' && isset($_GET['aid']))
         header("Location: ../admin/manage_admins.php");
         exit;
     }
+
     $aid = intval($_GET['aid']);
+
     $sql_check = "SELECT role FROM admin WHERE aid = ?";
     $stmt_check = $conn->prepare($sql_check);
+
     $stmt_check->bind_param("i", $aid);
     $stmt_check->execute();
     $result = $stmt_check->get_result();
+
     if ($result->num_rows > 0)
     {
         $target = $result->fetch_assoc();
@@ -82,6 +94,7 @@ else if ($action === 'delete' && isset($_GET['aid']))
         exit;
     }
     $stmt_check->close();
+
     $sql = "DELETE FROM admin WHERE aid = ?";
     $stmt = $conn->prepare($sql);
     if ($stmt)
@@ -99,6 +112,7 @@ else if ($action === 'delete' && isset($_GET['aid']))
     }
     header("Location: ../admin/manage_admins.php");
     exit;
+
 }
 else
 {

@@ -1,4 +1,5 @@
 <?php
+
 // This section prepares the user register page.
 session_start(); ?>
 <!DOCTYPE html>
@@ -19,18 +20,23 @@ session_start(); ?>
                     colors:
                     {
                         mmu:
-                    {
+                        {
                         core: '#004aad', glow: '#3b82f6'
                     }
+
 }
 ,
                     fontFamily:
                     {
                         sans: ['Century Gothic', 'CenturyGothic', 'Century', 'Arial', 'sans-serif']
                     }
+
                 }
+
             }
+
         }
+
     </script>
     <link rel="stylesheet" href="../assets/css/user_css.css?v=2.8">
 </head>
@@ -117,7 +123,9 @@ session_start(); ?>
             toast.classList.remove('hidden');
             setTimeout(() => toast.classList.add('hidden'), 2000);
         }
+
     }
+
     const uidInput = document.getElementById('uid');
     const emailInput = document.getElementById('email');
     uidInput.addEventListener('input', () =>
@@ -126,14 +134,17 @@ session_start(); ?>
         {
             3
         }
+
             [A-Za-z]
-        {
+            {
             2
         }
+
             [A-Za-z0-9]
-        {
+            {
             5
         }
+
             $/;
         const errorEl = document.getElementById('uid-error');
         errorEl.style.display = (uidInput.value.length === 0) ? 'none' : (regex.test(uidInput.value) ? 'none' : 'block');
@@ -150,18 +161,21 @@ session_start(); ?>
     {
         const p = document.getElementById('password');
         const eye = document.getElementById('eyeIcon');
+
         if (p.type === 'password')
         {
             p.type = 'text'; eye.setAttribute('data-lucide', 'eye-off');
         }
             else
-        {
+            {
             p.type = 'password'; eye.setAttribute('data-lucide', 'eye');
         }
+
             lucide.createIcons();
         }
+
             function evaluateEntropy()
-        {
+            {
         const p = document.getElementById('password').value;
         const v =
         {
@@ -172,6 +186,7 @@ session_start(); ?>
         const setUI = (id, valid) =>
         {
             const el = document.getElementById(id);
+
             if (valid)
             {
                 score++; el.className = 'rule-item rule-valid'; el.querySelector('.rule-icon').textContent = '✓';
@@ -180,6 +195,7 @@ session_start(); ?>
             {
                 el.className = 'rule-item rule-invalid'; el.querySelector('.rule-icon').textContent = '✗';
             }
+
         }
 ;
         setUI('rule-length', v.length); setUI('rule-upper', v.upper); setUI('rule-lower', v.lower); setUI('rule-number', v.number); setUI('rule-special', v.special);
@@ -187,6 +203,7 @@ session_start(); ?>
         bar.style.width = (score / 5) * 100 + '%';
         bar.className = 'entropy-bar ' + (score <= 2 ? 'entropy-weak' : score <= 4 ? 'entropy-fair' : 'entropy-strong');
     }
+
 </script>
 </body>
 </html>

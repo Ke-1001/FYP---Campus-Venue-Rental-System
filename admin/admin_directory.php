@@ -1,4 +1,5 @@
 <?php
+
 // This section prepares the admin directory page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
@@ -6,17 +7,21 @@ require_once __DIR__ . '/../includes/admin_auth.php';
 $filter_query = trim($_GET['f_query'] ?? '');
 $filter_role = trim($_GET['f_role'] ?? '');
 $sql = "SELECT aid, admin_name, email, phone_num, role, created_at FROM admin WHERE 1=1";
+
 if (!empty($filter_query))
 {
     $sql .= " AND (admin_name LIKE '%" . $conn->real_escape_string($filter_query) . "%' OR aid LIKE '%" . $conn->real_escape_string($filter_query) . "%' OR email LIKE '%" . $conn->real_escape_string($filter_query) . "%')";
 }
+
 if (!empty($filter_role))
 {
     $sql .= " AND role = '" . $conn->real_escape_string($filter_role) . "'";
 }
+
 $sql .= " ORDER BY role DESC, admin_name ASC";
 $result = $conn->query($sql);
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -28,13 +33,13 @@ $result = $conn->query($sql);
         tailwind.config =
         {
             theme:
-        {
+            {
             extend:
-        {
+            {
             colors:
-        {
+            {
             cstyle:
-        {
+            {
             blue: '#004aad', dark: '#1e293b'
         }
 }
@@ -58,6 +63,7 @@ $result = $conn->query($sql);
             </div>';
             include('../includes/admin_topbar.php');
             ?>
+
         </header>
         <div class="flex-1 overflow-y-auto p-8 scroll-smooth">
             <div class="mb-6 flex justify-between items-end">
@@ -161,6 +167,7 @@ $result = $conn->query($sql);
         {
             document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed');
         }
+
     </script>
 </body>
 </html>

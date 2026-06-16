@@ -1,6 +1,7 @@
 <?php
 // This section provides shared user auth logic or layout.
 session_start();
+
 if (!isset($_SESSION['uid']))
 {
     header("Location: user_login.php");

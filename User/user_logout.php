@@ -1,4 +1,5 @@
 <?php
+
 // This section prepares the user logout page.
 session_start();
 session_unset();

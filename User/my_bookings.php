@@ -5,18 +5,22 @@ require_once __DIR__ . '/../includes/user_auth.php';
 require_once __DIR__ . '/../includes/user_header.php';
 require_once __DIR__ . '/../includes/user_navbar.php';
 require_once __DIR__ . '/../includes/booking_functions.php';
+
 syncCompletedBookings($conn);
+
 $user_id = $_SESSION['uid'];
 $status_filter = trim($_GET['status'] ?? '');
 $payment_filter = trim($_GET['payment'] ?? '');
 $date_filter = trim($_GET['date_filter'] ?? '');
 $search = trim($_GET['search'] ?? '');
+
 $has_filter = (
     $status_filter !== '' ||
     $payment_filter !== '' ||
     $date_filter !== '' ||
     $search !== ''
 );
+
 $count_sql = "SELECT COUNT(*) AS total FROM booking WHERE uid = ?";
 $count_stmt = $conn->prepare($count_sql);
 $count_stmt->bind_param("s", $user_id);
@@ -24,6 +28,7 @@ $count_stmt->execute();
 $count_result = $count_stmt->get_result()->fetch_assoc();
 $total_bookings = (int)($count_result['total'] ?? 0);
 $count_stmt->close();
+
 $sql = "
     SELECT
         b.bid,
@@ -43,20 +48,24 @@ $sql = "
     JOIN vcategory vc ON v.vcid = vc.vcid
     WHERE b.uid = ?
 ";
+
 $params = [$user_id];
 $types = "s";
+
 if ($status_filter !== '')
 {
     $sql .= " AND b.status = ?";
     $params[] = $status_filter;
     $types .= "s";
 }
+
 if ($payment_filter !== '')
 {
     $sql .= " AND b.payment_status = ?";
     $params[] = $payment_filter;
     $types .= "s";
 }
+
 if ($date_filter === 'upcoming')
 {
     $sql .= " AND b.date_booked >= CURDATE()";
@@ -65,6 +74,7 @@ elseif ($date_filter === 'past')
 {
     $sql .= " AND b.date_booked < CURDATE()";
 }
+
 if ($search !== '')
 {
     $sql .= " AND (CAST(b.bid AS CHAR) LIKE ? OR v.vname LIKE ? OR v.vid LIKE ?)";
@@ -74,59 +84,76 @@ if ($search !== '')
     $params[] = $search_like;
     $types .= "sss";
 }
+
 $sql .= " ORDER BY b.date_booked DESC, b.time_start DESC";
+
 $stmt = $conn->prepare($sql);
 $stmt->bind_param($types, ...$params);
 $stmt->execute();
 $result = $stmt->get_result();
+
 function bookingStatusBadgeClass($status)
 {
     $status = strtolower((string)$status);
+
     if ($status === "approved")
     {
         return "bg-emerald-100 text-emerald-700 border-emerald-200";
     }
+
     if ($status === "rejected")
     {
         return "bg-red-100 text-red-700 border-red-200";
     }
+
     if ($status === "completed")
     {
         return "bg-blue-100 text-blue-700 border-blue-200";
     }
+
     if ($status === "cancelled")
     {
     return "bg-slate-100 text-slate-600 border-slate-200";
     }
+
     return "bg-yellow-100 text-yellow-700 border-yellow-200";
 }
+
 function paymentStatusBadgeClass($status)
 {
     $status = strtolower((string)$status);
+
     if ($status === "paid")
     {
         return "bg-emerald-100 text-emerald-700 border-emerald-200";
     }
+
     if ($status === "refunded")
     {
         return "bg-blue-100 text-blue-700 border-blue-200";
     }
+
     return "bg-orange-100 text-orange-700 border-orange-200";
 }
+
 function formatBookingDate($date)
 {
     if (empty($date) || $date === "0000-00-00")
     {
         return "-";
     }
+
     $timestamp = strtotime($date);
     return $timestamp ? date("d M Y", $timestamp) : htmlspecialchars($date);
 }
 ?>
+
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
+
 <div class="min-h-screen bg-transparent py-12 px-4 sm:px-6 lg:px-8 font-sans">
     <div class="max-w-6xl mx-auto">
+
         <div class="mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
             <div>
                 <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">
@@ -136,15 +163,18 @@ function formatBookingDate($date)
                     View your booking records and track each booking progress.
                 </p>
             </div>
+
             <a href="venues.php"
                class="inline-flex items-center justify-center px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl shadow-sm transition">
                 <i data-lucide="plus" class="w-4 h-4 mr-2"></i>
                 New Booking
             </a>
         </div>
+
         <?php if ($total_bookings > 0): ?>
             <form method="GET" action="my_bookings.php" id="bookingFilterForm" class="bg-white/95 backdrop-blur-sm border border-slate-200 rounded-2xl shadow-sm p-6 mb-8">
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+
                     <div>
                         <label class="block text-xs font-black uppercase tracking-widest text-slate-700 mb-2">
                             Search
@@ -161,6 +191,7 @@ function formatBookingDate($date)
                             >
                         </div>
                     </div>
+
                     <div>
                         <label class="block text-xs font-black uppercase tracking-widest text-slate-700 mb-2">
                             Booking Status
@@ -177,6 +208,7 @@ function formatBookingDate($date)
                             <option value="rejected" <?php echo ($status_filter === 'rejected') ? 'selected' : ''; ?>>Rejected</option>
                         </select>
                     </div>
+
                     <div>
                         <label class="block text-xs font-black uppercase tracking-widest text-slate-700 mb-2">
                             Payment Status
@@ -191,6 +223,7 @@ function formatBookingDate($date)
                             <option value="refunded" <?php echo ($payment_filter === 'refunded') ? 'selected' : ''; ?>>Refunded</option>
                         </select>
                     </div>
+
                     <div>
                         <label class="block text-xs font-black uppercase tracking-widest text-slate-700 mb-2">
                             Date
@@ -205,10 +238,12 @@ function formatBookingDate($date)
                         </select>
                     </div>
                 </div>
+
                 <div class="flex items-center justify-between mt-5">
                     <p class="text-xs text-slate-600 font-semibold">
                         Search and filters will be applied automatically.
                     </p>
+
                     <?php if ($search !== '' || $status_filter !== '' || $payment_filter !== '' || $date_filter !== ''): ?>
                         <a
                             href="my_bookings.php"
@@ -221,8 +256,11 @@ function formatBookingDate($date)
                 </div>
             </form>
         <?php endif; ?>
+
         <?php if ($result && $result->num_rows > 0): ?>
+
             <div class="hidden md:block bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+
                 <div class="px-6 py-4 border-b border-slate-100 bg-slate-50">
                     <h2 class="text-lg font-extrabold text-slate-800">
                         Booking Records
@@ -231,6 +269,7 @@ function formatBookingDate($date)
                         Latest bookings are shown first.
                     </p>
                 </div>
+
                 <div class="overflow-x-auto">
                     <table class="w-full text-left">
                         <thead class="bg-white border-b border-slate-100">
@@ -255,18 +294,21 @@ function formatBookingDate($date)
                                 </th>
                             </tr>
                         </thead>
+
                         <tbody class="divide-y divide-slate-100">
                             <?php while ($row = $result->fetch_assoc()): ?>
                                 <?php
                                     $bookingStatus = strtolower((string)$row["status"]);
                                     $paymentStatus = strtolower((string)($row["payment_status"] ?: "unpaid"));
                                 ?>
+
                                 <tr class="hover:bg-slate-50 transition-colors">
                                     <td class="px-6 py-5 align-middle">
                                         <span class="text-sm font-black text-slate-700">
                                             #<?php echo htmlspecialchars($row["bid"]); ?>
                                         </span>
                                     </td>
+
                                     <td class="px-6 py-5 align-middle">
                                         <div>
                                             <p class="text-sm font-extrabold text-slate-800">
@@ -279,22 +321,26 @@ function formatBookingDate($date)
                                             </p>
                                         </div>
                                     </td>
+
                                     <td class="px-6 py-5 align-middle">
                                         <div class="flex items-center text-sm text-slate-600 font-semibold">
                                             <i data-lucide="calendar" class="w-4 h-4 mr-2 text-slate-400"></i>
                                             <?php echo formatBookingDate($row["date_booked"]); ?>
                                         </div>
                                     </td>
+
                                     <td class="px-6 py-5 align-middle">
                                         <span class="inline-flex px-3 py-1 text-[11px] font-black uppercase tracking-wider rounded-full border <?php echo paymentStatusBadgeClass($paymentStatus); ?>">
                                             <?php echo htmlspecialchars($paymentStatus); ?>
                                         </span>
                                     </td>
+
                                     <td class="px-6 py-5 align-middle">
                                         <span class="inline-flex px-3 py-1 text-[11px] font-black uppercase tracking-wider rounded-full border <?php echo bookingStatusBadgeClass($bookingStatus); ?>">
                                             <?php echo htmlspecialchars($bookingStatus); ?>
                                         </span>
                                     </td>
+
                                     <td class="px-6 py-5 align-middle text-right">
                                         <div class="flex items-center justify-end gap-2">
                                             <a href="booking_details.php?bid=<?php echo urlencode($row['bid']); ?>"
@@ -302,6 +348,7 @@ function formatBookingDate($date)
                                                 Progress
                                                 <i data-lucide="arrow-right" class="w-4 h-4 ml-2"></i>
                                             </a>
+
                                             <a href="booking_print.php?bid=<?php echo urlencode($row['bid']); ?>"
                                             target="_blank"
                                             class="inline-flex items-center justify-center px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-xs font-bold rounded-lg shadow-sm transition">
@@ -311,20 +358,25 @@ function formatBookingDate($date)
                                         </div>
                                     </td>
                                 </tr>
+
                             <?php endwhile; ?>
                         </tbody>
                     </table>
                 </div>
             </div>
+
             <?php
+
             $result->data_seek(0);
             ?>
+
             <div class="md:hidden space-y-4">
                 <?php while ($row = $result->fetch_assoc()): ?>
                     <?php
                         $bookingStatus = strtolower((string)$row["status"]);
                         $paymentStatus = strtolower((string)($row["payment_status"] ?: "unpaid"));
                     ?>
+
                     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                         <div class="p-5">
                             <div class="flex items-start justify-between gap-3">
@@ -332,19 +384,23 @@ function formatBookingDate($date)
                                     <p class="text-xs text-slate-400 font-black uppercase tracking-widest">
                                         Booking #<?php echo htmlspecialchars($row["bid"]); ?>
                                     </p>
+
                                     <h3 class="text-lg font-extrabold text-slate-800 mt-1">
                                         <?php echo htmlspecialchars($row["vname"]); ?>
                                     </h3>
+
                                     <p class="text-xs text-slate-400 font-bold uppercase mt-1">
                                         <?php echo htmlspecialchars($row["category"]); ?>
                                         •
                                         <?php echo (int)$row["max_cap"]; ?> Pax
                                     </p>
                                 </div>
+
                                 <span class="inline-flex px-3 py-1 text-[10px] font-black uppercase tracking-wider rounded-full border <?php echo bookingStatusBadgeClass($bookingStatus); ?>">
                                     <?php echo htmlspecialchars($bookingStatus); ?>
                                 </span>
                             </div>
+
                             <div class="mt-4 space-y-3">
                                 <div class="flex items-center text-sm text-slate-600">
                                     <i data-lucide="calendar" class="w-4 h-4 mr-2 text-slate-400"></i>
@@ -353,6 +409,7 @@ function formatBookingDate($date)
                                         <strong><?php echo formatBookingDate($row["date_booked"]); ?></strong>
                                     </span>
                                 </div>
+
                                 <div class="flex items-center text-sm text-slate-600">
                                     <i data-lucide="credit-card" class="w-4 h-4 mr-2 text-slate-400"></i>
                                     <span>
@@ -364,12 +421,14 @@ function formatBookingDate($date)
                                 </div>
                             </div>
                         </div>
+
                         <div class="p-4 border-t border-slate-100 bg-slate-50">
                             <div class="grid grid-cols-2 gap-2">
                                 <a href="booking_details.php?bid=<?php echo urlencode($row['bid']); ?>"
                                 class="flex items-center justify-center w-full px-3 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-lg shadow-sm transition">
                                     Progress
                                 </a>
+
                                 <a href="booking_print.php?bid=<?php echo urlencode($row['bid']); ?>"
                                 target="_blank"
                                 class="flex items-center justify-center w-full px-3 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-sm font-bold rounded-lg shadow-sm transition">
@@ -380,16 +439,21 @@ function formatBookingDate($date)
                     </div>
                 <?php endwhile; ?>
             </div>
+
         <?php else: ?>
             <?php if ($total_bookings === 0): ?>
+
                 <div class="py-12 text-center text-slate-500 bg-white rounded-2xl border border-slate-200">
                     <i data-lucide="calendar-plus" class="w-12 h-12 mx-auto text-slate-300 mb-3"></i>
+
                     <p class="font-bold text-slate-700">
                         No bookings yet.
                     </p>
+
                     <p class="text-sm text-slate-400 mt-1">
                         You have not made any venue booking yet.
                     </p>
+
                     <a
                         href="venues.php"
                         class="inline-flex items-center justify-center mt-5 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-lg shadow-sm transition"
@@ -398,20 +462,27 @@ function formatBookingDate($date)
                         Make Your First Booking
                     </a>
                 </div>
+
             <?php else: ?>
+
                 <div class="py-12 text-center text-slate-500 bg-white rounded-2xl border border-slate-200">
                     <i data-lucide="calendar-x" class="w-12 h-12 mx-auto text-slate-300 mb-3"></i>
+
                     <p class="font-bold text-slate-700">
                         No bookings matched your filter.
                     </p>
+
                     <p class="text-sm text-slate-400 mt-1">
                         Try changing the keyword, booking status, payment status, or date filter. </p>  <a href="my_bookings.php" class="inline-flex items-center justify-center mt-5 px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold rounded-lg transition" > <i data-lucide="rotate-ccw" class="w-4 h-4 mr-2"></i> Clear Filters </a> </div> <?php endif; ?> <?php endif; ?> </div> </div>   <script> lucide.createIcons();
+
 document.addEventListener('DOMContentLoaded', function ()
 {
     const form = document.getElementById('bookingFilterForm');
     const searchInput = document.getElementById('bookingSearchInput');
     const autoSubmitFields = document.querySelectorAll('.auto-submit');
+
     let searchTimer;
+
     if (form)
     {
         autoSubmitFields.forEach(function (field)
@@ -419,25 +490,23 @@ document.addEventListener('DOMContentLoaded', function ()
             field.addEventListener('change', function ()
             {
                 form.submit();
-            }
-);
-        }
-);
+            });
+        });
     }
+
     if (form && searchInput)
     {
         searchInput.addEventListener('input', function ()
         {
             clearTimeout(searchTimer);
+
             searchTimer = setTimeout(function ()
             {
                 form.submit();
-            }
-, 500);
-        }
-);
+            }, 500);
+        });
     }
-}
-);
+});
 </script>
+
 <?php include("../includes/user_footer.php"); ?>

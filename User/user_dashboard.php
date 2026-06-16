@@ -1,12 +1,15 @@
 <?php
+
 // This section prepares the user dashboard page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
+
 if (!isset($_SESSION['uid']))
 {
     header("Location: user_login.php");
     exit();
 }
+
 $uid = $_SESSION['uid'];
 $display_name = isset($_SESSION['username']) ? $_SESSION['username'] : $uid;
 $damage_booking_stmt = $conn->prepare("
@@ -53,6 +56,7 @@ $page_title = "Dashboard | CVBMS";
 include("../includes/user_header.php");
 include("../includes/user_navbar.php");
 ?>
+
 <div class="user-bg"></div>
 <div class="relative z-10 w-full pt-16 pb-20 px-6">
     <div class="max-w-7xl mx-auto">

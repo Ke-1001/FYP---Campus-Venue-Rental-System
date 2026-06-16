@@ -6,6 +6,7 @@ $email = trim($_POST['email']);
 $username = $_POST['username'];
 $phone_num = $_POST['phone_num'];
 $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+
 if (!preg_match('/^[0-9]{3}[A-Za-z]{2}[A-Za-z0-9]{5}$/', $uid))
 {
     header("Location: user_register.php?status=error&msg=Invalid+ID+Format");

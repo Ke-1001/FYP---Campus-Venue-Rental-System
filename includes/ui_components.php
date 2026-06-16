@@ -1,4 +1,5 @@
 <?php
+
 // This section provides shared ui components logic or layout.
 ?>
 <?php if (isset($_SESSION['toast'])): ?>
@@ -7,6 +8,7 @@
         $bg_color = ($toast['type'] === 'success') ? 'bg-emerald-500' : 'bg-red-500';
         $icon = ($toast['type'] === 'success') ? 'check-circle' : 'alert-circle';
     ?>
+
     <div id="system-toast" class="fixed top-5 right-5 z-50 flex items-center p-4 mb-4 text-white rounded-lg shadow-xl <?php echo $bg_color; ?> transform transition-all duration-500 translate-x-0 opacity-100">
         <i data-lucide="<?php echo $icon; ?>" class="w-5 h-5 mr-3"></i>
         <div class="text-sm font-bold tracking-wide"><?php echo htmlspecialchars($toast['msg']); ?></div>
@@ -61,8 +63,10 @@
         document.getElementById('confirm-modal-btn').href = targetUrl;
         document.getElementById('custom-confirm-modal').classList.remove('hidden');
     }
+
     function closeCustomConfirm()
     {
         document.getElementById('custom-confirm-modal').classList.add('hidden');
     }
+
 </script>

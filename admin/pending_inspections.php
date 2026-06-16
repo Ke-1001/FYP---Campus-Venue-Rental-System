@@ -1,16 +1,22 @@
 <?php
+
 // This section prepares the admin pending inspections page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 require_once __DIR__ . '/../includes/booking_functions.php';
 require_once __DIR__ . '/../core/components/datagrid.php';
+
 require_once __DIR__ . '/../core/components/FilterBuilder.php';
 require_once __DIR__ . '/../core/repositories/InspectionRepository.php';
+
 use Core\Components\FilterBuilder;
 use Core\Repositories\InspectionRepository;
+
 syncCompletedBookings($conn);
+
 $inspectionRepo = new InspectionRepository($conn);
+
 $filterBuilder = new FilterBuilder('pending_inspections.php', true);
 $filterBuilder
     ->addField('text', 'f_bid', 'Ref ID', [], 'Search BID...', 'b.bid', 'LIKE')
@@ -18,16 +24,20 @@ $filterBuilder
     ->addField('text', 'f_venue', 'Asset', [], 'Name or Category...', 'CONCAT(v.vname, " ", vc.category)', 'LIKE')
     ->addField('date', 'f_date', 'Date', [], '', 'b.date_booked', '=')
     ->addField('text', 'f_inspector', 'Personnel', [], 'Inspector Name...', 's.staff_name', 'LIKE');
+
 $result = $inspectionRepo->getPendingInspections($filterBuilder);
+
 $tz = new DateTimeZone('Asia/Kuala_Lumpur');
 $now = new DateTime('now', $tz);
 $records = [];
+
 if ($result && $result->num_rows > 0)
 {
     while($row = $result->fetch_assoc())
     {
         $start_dt = new DateTime($row['date_booked'] . ' ' . $row['time_start'], $tz);
         $end_dt = new DateTime($row['date_booked'] . ' ' . $row['time_end'], $tz);
+
         if ($now >= $end_dt || $row['booking_status'] === 'completed')
         {
             $row['execution_state'] = 'ready';
@@ -46,6 +56,7 @@ if ($result && $result->num_rows > 0)
         $records[] = $row;
     }
 }
+
 $page_title = "Pending Inspections";
 $page_description = "Review upcoming physical assessments for post-event venues.";
 $topbar_content = '
@@ -56,6 +67,7 @@ $topbar_content = '
     <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Operations / Pending Inspections</h2>
 </div>';
 $extra_css = [];
+
 $datagrid_schema = [
     'enable_checkbox' => false,
     'primary_key' => 'bid',
@@ -76,19 +88,24 @@ $datagrid_schema = [
         ]]
     ]
 ];
+
 ob_start();
 ?>
+
 <?php echo $filterBuilder->render(); ?>
+
 <div class="custom-table-container flex-1 overflow-hidden flex flex-col">
     <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center shrink-0">
         <h3 class="text-xs font-black text-slate-600 uppercase tracking-widest">
             Inspection Queue (<?php echo count($records); ?>)
         </h3>
     </div>
+
     <div class="flex-1 overflow-y-auto" id="datagrid-wrapper">
         <?php echo render_datagrid($datagrid_schema, $records); ?>
     </div>
 </div>
+
 <div id="temporal-fault-modal" class="fixed inset-0 z-[100] hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center transition-all opacity-0 pointer-events-none">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform scale-95 transition-transform duration-300 border border-slate-200" id="temporal-fault-panel">
         <div class="p-8 text-center">
@@ -105,41 +122,51 @@ ob_start();
         </div>
     </div>
 </div>
+
 <script>
+
     function showTemporalModal(message)
     {
         const modal = document.getElementById('temporal-fault-modal');
         const panel = document.getElementById('temporal-fault-panel');
         document.getElementById('temporal-fault-msg').textContent = message;
+
         modal.classList.remove('hidden');
+
         void modal.offsetWidth;
+
         modal.classList.remove('opacity-0', 'pointer-events-none');
         panel.classList.remove('scale-95');
         panel.classList.add('scale-100');
     }
+
     function closeTemporalModal()
     {
         const modal = document.getElementById('temporal-fault-modal');
         const panel = document.getElementById('temporal-fault-panel');
+
         modal.classList.add('opacity-0', 'pointer-events-none');
         panel.classList.remove('scale-100');
         panel.classList.add('scale-95');
+
         setTimeout(() =>
-        {
-            modal.classList.add('hidden');
-        }
-, 300);
+{ modal.classList.add('hidden'); }, 300);
     }
+
     document.addEventListener('DOMContentLoaded', () =>
     {
         const wrapper = document.getElementById('datagrid-wrapper');
+
         wrapper.addEventListener('click', function(e)
         {
             const targetLink = e.target.closest('a[href*="execute_inspection.php"]');
             if (!targetLink) return;
+
             const row = targetLink.closest('tr');
             if (!row) return;
+
             const invalidBadge = row.querySelector('.bg-amber-50, .bg-slate-50');
+
             if (invalidBadge)
             {
                 e.preventDefault();
@@ -147,22 +174,22 @@ ob_start();
                 const errMsg = `Warning: Booking is currently [${stateText}]. Assessment cannot commence until the reserved slot has concluded.`;
                 showTemporalModal(errMsg);
             }
-        }
-);
+        });
+
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('err') && urlParams.get('err') === 'temporal')
         {
             const state = urlParams.get('state') || 'unauthorized';
             showTemporalModal(`Warning: Assessment cannot commence. Booking state: [${state}].`);
+
             window.history.replaceState(
-            {
-                }
-, document.title, "pending_inspections.php");
+{}, document.title, "pending_inspections.php");
         }
-    }
-);
+    });
 </script>
+
 <?php
 $page_content = ob_get_clean();
+
 require_once __DIR__ . '/../core/layout.php';
 ?>

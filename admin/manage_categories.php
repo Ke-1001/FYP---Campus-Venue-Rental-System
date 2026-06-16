@@ -1,8 +1,10 @@
 <?php
+
 // This section prepares the admin manage categories page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST')
 {
     if (isset($_POST['action']) && $_POST['action'] === 'add')
@@ -20,6 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST')
     elseif (isset($_POST['action']) && $_POST['action'] === 'delete')
     {
         $del_cat = $_POST['category_name'];
+
         $check = $conn->query("SELECT COUNT(*) FROM venue WHERE category = '" . $conn->real_escape_string($del_cat) . "'")->fetch_row()[0];
         if ($check > 0)
         {
@@ -37,6 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST')
     header("Location: manage_categories.php");
     exit;
 }
+
 $result = $conn->query("SELECT * FROM venue_category ORDER BY category_name ASC");
 ?>
 <!DOCTYPE html>
@@ -48,27 +52,20 @@ $result = $conn->query("SELECT * FROM venue_category ORDER BY category_name ASC"
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
         tailwind.config =
-        {
-            theme:
-        {
-            extend:
-        {
-            colors:
-        {
-            cstyle:
-        {
-            blue: '#004aad', dark: '#1e293b'
-        }
-}
-}
-}
-}
+{ theme:
+{ extend:
+{ colors:
+{ cstyle:
+{ blue: '#004aad', dark: '#1e293b' } } } } }
     </script>
     <link rel="stylesheet" href="../assets/css/admin_css.css?v=2.0">
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
+
     <?php include('../includes/admin_sidebar.php'); ?>
+
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-slate-50">
+
         <header class="h-16 glass-panel border-b border-slate-200 flex items-center justify-between px-6 z-10 shrink-0">
             <?php
             $topbar_content = '
@@ -81,12 +78,15 @@ $result = $conn->query("SELECT * FROM venue_category ORDER BY category_name ASC"
             include('../includes/admin_topbar.php');
             ?>
         </header>
+
         <div class="flex-1 overflow-y-auto p-8 scroll-smooth flex justify-center">
             <div class="w-full max-w-3xl">
+
                 <div class="mb-8">
                     <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">System Categories</h1>
                     <p class="text-sm text-slate-500 mt-1">Govern the persistent classification dictionary used by all venue entities.</p>
                 </div>
+
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-6">
                     <form method="POST" class="flex gap-4 items-end">
                         <input type="hidden" name="action" value="add">
@@ -99,6 +99,7 @@ $result = $conn->query("SELECT * FROM venue_category ORDER BY category_name ASC"
                         </button>
                     </form>
                 </div>
+
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                     <table class="w-full text-left border-collapse">
                         <thead class="bg-slate-50 text-[10px] text-slate-400 font-black uppercase tracking-widest border-b border-slate-100">
@@ -125,16 +126,16 @@ $result = $conn->query("SELECT * FROM venue_category ORDER BY category_name ASC"
                         </tbody>
                     </table>
                 </div>
+
             </div>
         </div>
     </main>
+
     <?php include('../includes/ui_components.php'); ?>
     <script>
         lucide.createIcons();
         function toggleSidebar()
-        {
-            document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed');
-        }
+{ document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed'); }
     </script>
 </body>
 </html>

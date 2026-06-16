@@ -1,4 +1,5 @@
 <?php
+
 // This section prepares the user login page.
 session_start(); ?>
 <!DOCTYPE html>
@@ -15,17 +16,22 @@ session_start(); ?>
             theme:
             {
                 extend:
-            {
+                {
                 colors:
-            {
+                {
                 mmu:
-            {
+                {
                 core: '#004aad', glow: '#3b82f6'
             }
+
 }
+
 }
+
 }
+
         }
+
     </script>
     <link rel="stylesheet" href="../assets/css/user_css.css?v=2.8">
 </head>
@@ -96,6 +102,7 @@ session_start(); ?>
     {
         const p = document.getElementById('password');
         const eye = document.getElementById('eyeIcon');
+
         if (p.type === 'password')
         {
             p.type = 'text'; eye.setAttribute('data-lucide', 'eye-off');
@@ -104,8 +111,10 @@ session_start(); ?>
         {
             p.type = 'password'; eye.setAttribute('data-lucide', 'eye');
         }
+
         lucide.createIcons();
     }
+
 </script>
 </body>
 </html>

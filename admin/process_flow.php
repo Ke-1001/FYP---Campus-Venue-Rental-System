@@ -1,13 +1,17 @@
 <?php
+
 // This section prepares the admin flow page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
+
 $bid = intval($_GET['bid'] ?? 0);
+
 if ($bid === 0)
 {
     die("Execution Fault: Invalid or Null Booking ID Reference.");
 }
+
 $sql = "SELECT
             b.*, u.username, u.uid as student_id, u.phone_num as student_phone, u.email as student_email,
             v.vname, v.deposit, vc.category AS venue_category,
@@ -22,19 +26,24 @@ $sql = "SELECT
         LEFT JOIN staff s ON i.sid = s.sid
         LEFT JOIN report r ON i.ins_id = r.ins_id
         WHERE b.bid = ?";
+
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $bid);
 $stmt->execute();
 $data = $stmt->get_result()->fetch_assoc();
+
 if (!$data)
 {
     die("Database Anomaly: Target booking entity not found.");
 }
+
 $status = strtolower((string)$data['status']);
 $payment_status = strtolower((string)$data['payment_status']);
+
 $is_rejected = ($status === 'rejected');
 $is_cancelled = ($status === 'cancelled');
 $is_completed = ($status === 'completed');
+
 $flow_states = [
     'Request'  => true,
     'Payment'  => ($payment_status === 'paid' || $payment_status === 'refunded'),
@@ -43,6 +52,7 @@ $flow_states = [
     'Inspect'  => (!$is_cancelled && !$is_rejected && $data['ins_status'] !== null && $data['ins_status'] !== 'pending'),
     'Settle'   => (!$is_cancelled && !$is_rejected && $status === 'completed' && ($data['ins_status'] === 'passed' || $data['ins_status'] === 'failed'))
 ];
+
 if (!function_exists('translateSystemText'))
 {
     function translateSystemText($text)
@@ -68,27 +78,20 @@ if (!function_exists('translateSystemText'))
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
         tailwind.config =
-        {
-            theme:
-        {
-            extend:
-        {
-            colors:
-        {
-            cstyle:
-        {
-            blue: '#004aad', dark: '#1e293b'
-        }
-}
-}
-}
-}
+{ theme:
+{ extend:
+{ colors:
+{ cstyle:
+{ blue: '#004aad', dark: '#1e293b' } } } } }
     </script>
     <link rel="stylesheet" href="../assets/css/admin_css.css?v=2.0">
 </head>
 <body class="bg-[#f4f4f4] text-slate-800 font-sans antialiased h-screen flex overflow-hidden">
+
     <?php include('../includes/admin_sidebar.php'); ?>
+
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
+
             <?php
             $topbar_content = '
             <div class="flex items-center">
@@ -99,8 +102,10 @@ if (!function_exists('translateSystemText'))
             </div>';
             include('../includes/admin_topbar.php');
             ?>
+
         <div class="flex-1 overflow-y-auto p-8 scroll-smooth">
             <div class="max-w-6xl mx-auto w-full">
+
                 <div class="mb-8 flex flex-col md:flex-row md:justify-between md:items-end gap-4">
                     <div>
                         <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Booking: <?php echo $bid; ?></h1>
@@ -126,22 +131,28 @@ if (!function_exists('translateSystemText'))
                         <?php endif; ?>
                     </div>
                 </div>
+
                 <div class="bg-white p-8 rounded-lg shadow-sm border border-slate-200 mb-8 overflow-x-auto">
                     <h3 class="text-xs font-bold text-slate-800 mb-8">Process Pipeline Tracker</h3>
+
                     <div class="flex justify-between relative z-10 w-full min-w-[600px]">
                         <?php
                         $steps = ['Request', 'Payment', 'Approval', 'Assign', 'Inspect', 'Settle'];
  $interrupt_found = false;
+
                         foreach($steps as $index => $label):
+
                             $isActive = $flow_states[$label];
                             $nextLabel = $steps[$index + 1] ?? null;
                             $isNextActive = $nextLabel ? $flow_states[$nextLabel] : false;
+
                             $isFailedNode = false;
                             if (!$isActive && !$interrupt_found && ($is_cancelled || $is_rejected))
                             {
                                 $isFailedNode = true;
  $interrupt_found = true;
                             }
+
                             if ($isFailedNode)
                             {
                                 $nodeClass = 'bg-red-50 text-red-600 border-red-600';
@@ -173,7 +184,9 @@ if (!function_exists('translateSystemText'))
                         <?php endforeach; ?>
                     </div>
                 </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
                     <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200 flex flex-col">
                         <h3 class="text-xs font-bold text-slate-800 border-b border-slate-200 pb-3 mb-4">Entity & Venue</h3>
                         <div class="space-y-5 text-sm flex-1">
@@ -194,6 +207,7 @@ if (!function_exists('translateSystemText'))
                             </div>
                         </div>
                     </div>
+
                     <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200 flex flex-col">
                         <h3 class="text-xs font-bold text-slate-800 border-b border-slate-200 pb-3 mb-4">Temporal Parameters</h3>
                         <div class="space-y-5 text-sm flex-1">
@@ -213,6 +227,7 @@ if (!function_exists('translateSystemText'))
                             </div>
                         </div>
                     </div>
+
                     <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200 flex flex-col">
                         <h3 class="text-xs font-bold text-slate-800 border-b border-slate-200 pb-3 mb-4">Execution & Finance</h3>
                         <div class="space-y-5 text-sm flex-1">
@@ -220,23 +235,28 @@ if (!function_exists('translateSystemText'))
                                 <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Base Deposit</p>
                                 <p class="font-mono font-bold text-emerald-600">RM <?php echo number_format($data['deposit'], 2); ?></p>
                             </div>
+
                             <?php if($is_cancelled): ?>
                                 <div class="pt-4 border-t border-slate-100">
                                     <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">
                                         Cancellation Status
                                     </p>
+
                                     <p class="font-black text-slate-700 uppercase tracking-widest text-xs">
                                         Cancelled
                                     </p>
+
                                     <div class="mt-3 space-y-2 text-xs text-slate-600">
                                         <p>
                                             <span class="font-bold text-slate-500 uppercase">Cancelled At:</span>
                                             <?php echo !empty($data['cancelled_at']) ? date('Y-m-d H:i', strtotime($data['cancelled_at'])) : '-'; ?>
                                         </p>
+
                                         <p>
                                             <span class="font-bold text-slate-500 uppercase">Payment Due:</span>
                                             <?php echo !empty($data['payment_due_at']) ? date('Y-m-d H:i', strtotime($data['payment_due_at'])) : '-'; ?>
                                         </p>
+
                                         <p class="text-red-600 font-semibold">
                                             <span class="font-bold uppercase">Reason:</span>
                                             <?php
@@ -247,6 +267,7 @@ if (!function_exists('translateSystemText'))
                                     </div>
                                 </div>
                             <?php endif; ?>
+
                             <div>
                                 <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Delegated Inspector</p>
                                 <p class="font-bold text-slate-800">
@@ -262,6 +283,7 @@ if (!function_exists('translateSystemText'))
                                     ?>
                                 </p>
                             </div>
+
                             <?php if($data['ins_status']): ?>
                             <div class="pt-4 border-t border-slate-100">
                                 <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">Inspection Result</p>
@@ -279,19 +301,21 @@ if (!function_exists('translateSystemText'))
                                 <?php endif; ?>
                             </div>
                             <?php endif; ?>
+
                         </div>
                     </div>
+
                 </div>
             </div>
         </div>
     </main>
+
     <?php include('../includes/ui_components.php'); ?>
+
     <script>
         lucide.createIcons();
         function toggleSidebar()
-        {
-            document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed');
-        }
+{ document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed'); }
     </script>
 </body>
 </html>

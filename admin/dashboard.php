@@ -1,4 +1,5 @@
 <?php
+
 // This section prepares the admin dashboard page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
@@ -6,11 +7,14 @@ require_once __DIR__ . '/../includes/admin_auth.php';
 require_once __DIR__ . '/../includes/booking_functions.php';
 require_once __DIR__ . '/../core/repositories/MetricsRepository.php';
 require_once __DIR__ . '/../core/components/FioriTileBuilder.php';
+
 use Core\Repositories\MetricsRepository;
 use Core\Components\FioriTileBuilder as TileBuilder;
+
 $metricsRepo = new MetricsRepository($conn);
 $kpi = $metricsRepo->getDashboardKPIs();
 syncCompletedBookings($conn);
+
 $page_title = "System Dashboard";
 $page_description = "Centralized overview of all system modules and operational metrics.";
 $extra_css = [];
@@ -19,7 +23,9 @@ $topbar_content = '
     <i data-lucide="search" class="w-4 h-4 mr-2"></i>
     <input type="text" placeholder="Search system assets or modules..." class="bg-transparent border-none outline-none w-64 text-sm focus:ring-0">
 </div>';
+
 ob_start();
+
 echo TileBuilder::renderSection('Booking Operations', 'Manage venue reservations, staff assignments, and financial tracking.', [
     [
         'url' => 'pending_requests.php', 'title' => 'Approval Queue', 'icon' => 'shield-alert',
@@ -38,6 +44,7 @@ echo TileBuilder::renderSection('Booking Operations', 'Manage venue reservations
         'desc' => 'Review pre-usage damage declarations by users.', 'kpi' => $kpi['damage_reports'], 'action' => 'Verify Reports'
     ]
 ]);
+
 echo TileBuilder::renderSection('Post-Usage Inspections', 'Execute physical assessments and finalize deposit logistics.', [
     [
         'url' => 'pending_inspections.php', 'title' => 'Pending Queue', 'icon' => 'clipboard-list',
@@ -48,6 +55,7 @@ echo TileBuilder::renderSection('Post-Usage Inspections', 'Execute physical asse
         'desc' => 'Review past assessment logs and applied penalties.', 'kpi' => $kpi['tracked_inspections'], 'action' => 'View Records'
     ]
 ]);
+
 echo TileBuilder::renderSection('Assets & Academic Matrix', 'Configure physical spaces and temporal academic bounds.', [
     [
         'url' => 'manage_vcategory.php', 'title' => 'Venue Categories', 'icon' => 'tags',
@@ -66,6 +74,7 @@ echo TileBuilder::renderSection('Assets & Academic Matrix', 'Configure physical 
         'desc' => 'Manage weekly class routines and venue blocks.', 'kpi' => $kpi['total_schedules'], 'action' => 'Arrange Schedule'
     ]
 ]);
+
 if (($_SESSION['role'] ?? '') === 'super_admin')
 {
     echo TileBuilder::renderSection('Identity Directory', 'Manage system access for staff, administrators, and students.', [
@@ -79,6 +88,7 @@ if (($_SESSION['role'] ?? '') === 'super_admin')
         ]
     ]);
 }
+
 $page_content = ob_get_clean();
 require_once __DIR__ . '/../core/layout.php';
 ?>

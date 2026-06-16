@@ -3,19 +3,18 @@
 {
     font-size: 100%;
 }
+
 html, body, body *, button, input, select, textarea
 {
     font-family: "Century Gothic", CenturyGothic, "Century", "Century Schoolbook", Arial, sans-serif !important;
     font-weight: 700;
 }
+
 .scrollbar-hide::-webkit-scrollbar
-{
-    display: none;
-}
+{ display: none; }
 .scrollbar-hide
-{
-    -ms-overflow-style: none; scrollbar-width: none;
-}
+{ -ms-overflow-style: none; scrollbar-width: none; }
+
 ::-webkit-scrollbar
 {
     width: 6px;
@@ -34,12 +33,14 @@ html, body, body *, button, input, select, textarea
 {
     background: #94a3b8;
 }
+
 .glass-panel
 {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
 }
+
 .sidebar
 {
  width: 16rem;
@@ -48,10 +49,12 @@ html, body, body *, button, input, select, textarea
     overflow-x: hidden;
  will-change: width;
 }
+
 .sidebar.sidebar-collapsed
 {
     width: 4rem;
 }
+
 .sidebar.sidebar-collapsed .nav-text,
 .sidebar.sidebar-collapsed .brand-text,
 .sidebar.sidebar-collapsed .nav-badge,
@@ -60,6 +63,7 @@ html, body, body *, button, input, select, textarea
 {
     display: none !important;
 }
+
 .sidebar.sidebar-collapsed .nav-item,
 .sidebar.sidebar-collapsed .brand-header,
 .sidebar.sidebar-collapsed .profile-container
@@ -68,10 +72,12 @@ html, body, body *, button, input, select, textarea
     padding-left: 0 !important;
     padding-right: 0 !important;
 }
+
 .brand-header
 {
     transition: padding 0.3s ease;
 }
+
 .nav-bar
 {
     display: flex;
@@ -83,6 +89,7 @@ html, body, body *, button, input, select, textarea
     border-radius: 0.375rem;
     box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
 }
+
 .nav-links a
 {
     text-decoration: none;
@@ -91,11 +98,13 @@ html, body, body *, button, input, select, textarea
     font-weight: 700;
     font-size: 16px;
 }
+
 .nav-links a:hover
 {
     color: #003882;
     text-decoration: underline;
 }
+
 .btn-logout
 {
     background-color: #dc2626;
@@ -107,20 +116,19 @@ html, body, body *, button, input, select, textarea
     font-size: 0.875rem;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
 .btn-logout:hover
 {
     background-color: #b91c1c;
     color: white;
     text-decoration: none;
 }
+
 .status-available
-{
-    color: #059669; font-weight: bold;
-}
+{ color: #059669; font-weight: bold; }
 .status-maintenance
-{
-    color: #dc2626; font-weight: bold;
-}
+{ color: #dc2626; font-weight: bold; }
+
 .fiori-tile
 {
     background-color: #ffffff;
@@ -134,11 +142,13 @@ html, body, body *, button, input, select, textarea
     transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
+
 .fiori-tile:hover
 {
     border-color: #94a3b8;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
+
 .fiori-tile-header
 {
     display: flex;
@@ -146,15 +156,18 @@ html, body, body *, button, input, select, textarea
     align-items: flex-start;
     margin-bottom: 0.125rem;
 }
+
 .fiori-tile-icon
 {
  color: #64748b;
     transition: color 0.2s ease;
 }
+
 .fiori-tile:hover .fiori-tile-icon
 {
  color: #0f172a;
 }
+
 .fiori-tile-title
 {
  font-size: 14px;
@@ -163,6 +176,7 @@ html, body, body *, button, input, select, textarea
     letter-spacing: 0.05em;
     color: #334155;
 }
+
 .fiori-tile-desc
 {
     font-size: 12px;
@@ -170,6 +184,7 @@ html, body, body *, button, input, select, textarea
     line-height: 1.5;
     margin-bottom: 1rem;
 }
+
 .fiori-tile-kpi
 {
     font-size: 2.25rem;
@@ -179,6 +194,7 @@ html, body, body *, button, input, select, textarea
     margin-top: auto;
     line-height: 1;
 }
+
 .fiori-tile-footer
 {
     margin-top: 1.25rem;
@@ -193,10 +209,12 @@ html, body, body *, button, input, select, textarea
     align-items: center;
     transition: color 0.2s ease;
 }
+
 .fiori-tile:hover .fiori-tile-footer
 {
  color: #004aad;
 }
+
 :root
 {
     --fiori-bg: #ffffff;
@@ -209,6 +227,7 @@ html, body, body *, button, input, select, textarea
     --fiori-success: #059669;
     --fiori-error: #dc2626;
 }
+
 .fiori-form-container
 {
     background: var(--fiori-bg);
@@ -218,6 +237,7 @@ html, body, body *, button, input, select, textarea
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
 .fiori-section-header
 {
     background: #f8fafc;
@@ -229,6 +249,7 @@ html, body, body *, button, input, select, textarea
     border-top-left-radius: 0.375rem;
     border-top-right-radius: 0.375rem;
 }
+
 .fiori-input
 {
     border: 1px solid var(--fiori-border);
@@ -242,12 +263,14 @@ html, body, body *, button, input, select, textarea
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.02) inset;
 }
+
 .fiori-input:focus
 {
     outline: none;
     border-color: var(--fiori-input-focus);
     box-shadow: 0 0 0 1px var(--fiori-input-focus);
 }
+
 .fiori-readonly
 {
     background-color: var(--fiori-readonly-bg);
@@ -256,6 +279,7 @@ html, body, body *, button, input, select, textarea
     color: var(--fiori-label);
     box-shadow: none;
 }
+
 .validation-tag
 {
  font-size: 0.75rem;
@@ -263,11 +287,13 @@ html, body, body *, button, input, select, textarea
     color: var(--fiori-label);
     transition: color 0.2s ease;
 }
+
 .validation-tag.valid
 {
     color: var(--fiori-success);
     font-weight: 700;
 }
+
 .fiori-footer-toolbar
 {
     position: fixed;
@@ -285,6 +311,7 @@ html, body, body *, button, input, select, textarea
     z-index: 50;
     box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.02);
 }
+
 .fiori-btn-primary
 {
     background: var(--fiori-blue);
@@ -298,12 +325,14 @@ html, body, body *, button, input, select, textarea
     cursor: pointer;
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
+
 .fiori-btn-primary:hover:not(:disabled)
 {
  background: #003882;
     border-color: #003882;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
+
 .fiori-btn-primary:disabled
 {
     background: #94a3b8;
@@ -312,6 +341,7 @@ html, body, body *, button, input, select, textarea
     opacity: 0.7;
     box-shadow: none;
 }
+
 .fiori-btn-cancel
 {
     background: transparent;
@@ -323,11 +353,13 @@ html, body, body *, button, input, select, textarea
     border-radius: 0.375rem;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
 .fiori-btn-cancel:hover
 {
     background-color: #f1f5f9;
     color: #0f172a;
 }
+
 .custom-table-container
 {
     background-color: #ffffff;
@@ -336,12 +368,14 @@ html, body, body *, button, input, select, textarea
     border: 1px solid #e2e8f0;
     overflow: hidden;
 }
+
 .custom-table
 {
     width: 100%;
     text-align: left;
     border-collapse: collapse;
 }
+
 .custom-table thead
 {
     background-color: #ffffff;
@@ -352,14 +386,17 @@ html, body, body *, button, input, select, textarea
     letter-spacing: 0.05em;
     border-bottom: 1px solid #e2e8f0;
 }
+
 .custom-table th
 {
     padding: 1rem;
 }
+
 .custom-table tbody
 {
  font-size: 14px;
 }
+
 .custom-table tr
 {
     transition: background-color 150ms ease-in-out;
@@ -367,18 +404,22 @@ html, body, body *, button, input, select, textarea
     cursor: pointer;
     border-bottom: 1px solid #f1f5f9;
 }
+
 .custom-table tr:last-child
 {
     border-bottom: none;
 }
+
 .custom-table tr:hover
 {
     background-color: #f8fafc;
 }
+
 .custom-table td
 {
     padding: 1.25rem 1rem;
 }
+
 .td-text-mono
 {
     font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -388,16 +429,19 @@ html, body, body *, button, input, select, textarea
     transition: color 150ms ease-in-out;
     font-weight: 600;
 }
+
 a.td-text-mono
 {
  color: #2563eb;
     text-decoration: none;
 }
+
 a.td-text-mono:hover
 {
     text-decoration: underline;
  filter: brightness(0.8);
 }
+
 .td-action-btn
 {
     font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -407,37 +451,29 @@ a.td-text-mono:hover
     transition: color 150ms ease-in-out;
     text-decoration: none;
 }
+
 .td-action-btn:hover
 {
     color: #94a3b8;
     text-decoration: none;
 }
+
         input[type="date"]::-webkit-calendar-picker-indicator
         {
             display: none;
             -webkit-appearance: none;
         }
+
 .step-line
-{
-    content: ''; position: absolute; top: 12px; left: 50%; width: 100%; height: 2px; z-index: -1;
-}
+{ content: ''; position: absolute; top: 12px; left: 50%; width: 100%; height: 2px; z-index: -1; }
         .step-active .step-line
-        {
-            background-color: #4f46e5;
-        }
+{ background-color: #4f46e5; }
         .step-inactive .step-line
-        {
-            background-color: #e2e8f0;
-        }
+{ background-color: #e2e8f0; }
         .step-item:last-child .step-line
-        {
-            display: none;
-        }
+{ display: none; }
+
 .validation-tag
-{
-    color: #94a3b8; transition: color 0.2s;
-}
+{ color: #94a3b8; transition: color 0.2s; }
         .validation-tag.valid
-        {
-            color: #059669;
-        }
+{ color: #059669; }

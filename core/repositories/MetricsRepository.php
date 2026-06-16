@@ -1,14 +1,19 @@
 <?php
+
 // This section provides database access for MetricsRepository data.
 namespace Core\Repositories;
+
 use mysqli;
+
 class MetricsRepository
 {
     private mysqli $conn;
+
     public function __construct(mysqli $conn)
     {
         $this->conn = $conn;
     }
+
     public function getBookingKPIs(): array
     {
         return [
@@ -19,6 +24,7 @@ class MetricsRepository
             'damage_reports' => $this->queryCount("SELECT COUNT(*) FROM damage_report WHERE report_status = 'submitted'")
         ];
     }
+
     public function getInspectionKPIs(): array
     {
         return [
@@ -26,6 +32,7 @@ class MetricsRepository
             'tracked_inspections' => $this->queryCount("SELECT COUNT(*) FROM inspection WHERE ins_status IN ('passed', 'failed')")
         ];
     }
+
     public function getVenueKPIs(): array
     {
         return [
@@ -34,6 +41,7 @@ class MetricsRepository
             'total_categories' => $this->queryCount("SELECT COUNT(*) FROM vcategory")
         ];
     }
+
     public function getAcademicKPIs(): array
     {
         return [
@@ -41,6 +49,7 @@ class MetricsRepository
             'total_schedules' => $this->queryCount("SELECT COUNT(*) FROM academic_schedule")
         ];
     }
+
     public function getPersonnelKPIs(): array
     {
         return [
@@ -48,6 +57,7 @@ class MetricsRepository
             'total_students' => $this->queryCount("SELECT COUNT(*) FROM user")
         ];
     }
+
     public function getDashboardKPIs(): array
     {
         return array_merge(
@@ -58,6 +68,7 @@ class MetricsRepository
             $this->getPersonnelKPIs()
         );
     }
+
     private function queryCount(string $sql): int
     {
         $result = $this->conn->query($sql);

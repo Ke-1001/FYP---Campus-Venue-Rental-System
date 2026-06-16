@@ -1,24 +1,31 @@
 <?php
+
 // This section checks and processes vcategory requests.
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 require_once __DIR__ . '/../core/repositories/CategoryRepository.php';
+
 use Core\Repositories\CategoryRepository;
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST')
 {
     header("Location: ../admin/manage_vcategory.php");
     exit;
 }
+
 $action = strtolower($_POST['action'] ?? '');
 $categoryRepo = new CategoryRepository($conn);
+
 try
 {
     if ($action === 'create')
     {
         $cat = trim($_POST['category'] ?? '');
         $desc = trim($_POST['description'] ?? '');
+
         if (empty($cat) || empty($desc)) throw new \Exception("Parameters missing.");
+
         if ($categoryRepo->createCategory($cat, $desc))
         {
             $_SESSION['success'] = "Category Identity successfully registered.";
@@ -27,12 +34,14 @@ try
         {
             throw new \Exception("Database execution fault. Name may already exist.");
         }
+
     }
     elseif ($action === 'update')
     {
         $vcid = (int)($_POST['vcid'] ?? 0);
         $cat = trim($_POST['category'] ?? '');
         $desc = trim($_POST['description'] ?? '');
+
         if ($vcid <= 0 || empty($cat) || empty($desc)) throw new \Exception("Parameters missing or corrupted.");  if ($categoryRepo->updateCategory($vcid, $cat, $desc))
         {
             $_SESSION['success'] = "Category Node [ID: {$vcid}] synchronized.";
@@ -41,6 +50,7 @@ try
         {
             throw new \Exception("Synchronization fault.");
         }
+
     }
     elseif ($action === 'bulk_delete')
     {
@@ -63,6 +73,7 @@ catch (\Exception $e)
 {
     $_SESSION['error'] = "System Fault: " . $e->getMessage();
 }
+
 header("Location: ../admin/manage_vcategory.php");
 exit;
 ?>

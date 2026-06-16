@@ -1,14 +1,19 @@
 <?php
+
 // This section prepares the admin register venue page.
 session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
+
 require_once __DIR__ . '/../core/repositories/VenueRepository.php';
 use Core\Repositories\VenueRepository;
+
 $venueRepo = new VenueRepository($conn);
+
 $vid_param = trim($_GET['vid'] ?? '');
 $mode = !empty($vid_param) ? 'Update' : 'Create';
 $venue = null;
+
 if ($mode === 'Update')
 {
     $venue = $venueRepo->getVenueById($vid_param);
@@ -17,7 +22,9 @@ if ($mode === 'Update')
         die("Execution Fault: Venue Node not found.");
     }
 }
+
 $categories = $venueRepo->getCategoryDictionary();
+
 $page_title = "{$mode} Venue";
 $page_description = "Configure physical asset parameters and visual properties.";
 $topbar_content = '
@@ -27,24 +34,32 @@ $topbar_content = '
     </a>
     <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Venues / ' . $mode . ' Venue</h2>
 </div>';
+
 $extra_css = [];
+
 require_once __DIR__ . '/../core/components/FioriFormBuilder.php';
 use Core\Components\FioriFormBuilder as FB;
+
 ob_start();
 ?>
+
 <form action="../actions/process_venue.php" method="POST" enctype="multipart/form-data" id="registerVenueForm" class="bg-white rounded-lg shadow-sm border border-slate-200 relative">
     <input type="hidden" name="action" value="<?php echo strtolower($mode); ?>">
     <?php if ($mode === 'Update'): ?>
         <input type="hidden" name="original_vid" value="<?php echo htmlspecialchars($venue['vid']); ?>">
     <?php endif; ?>
+
     <div class="p-0">
         <div class="fiori-form-container">
             <div class="fiori-section-header">
                 <h2 class="text-base font-bold text-[#1d2d3e]">Basic Data Parameters</h2>
             </div>
+
             <div class="p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
+
                 <div class="lg:col-span-6 space-y-4">
                     <h3 class="text-sm font-bold text-[#1d2d3e] mb-4">Name and Identity</h3>
+
                     <?php
                     echo FB::input('text', 'vid', 'Venue ID', $venue['vid'] ?? '', [
                         'maxlength' => 10,
@@ -53,10 +68,12 @@ ob_start();
                         'placeholder' => 'e.g. MNBR2002',
                         'extra_css' => ($mode === 'Update') ? '' : 'font-mono uppercase'
                     ]);
+
                     echo FB::input('text', 'vname', 'Venue Name', $venue['vname'] ?? '', [
                         'required' => true,
                         'placeholder' => 'Full Name'
                     ]);
+
                     $catOptions = array_column($categories, 'category', 'vcid');
                     echo FB::select('vcid', 'Category', $catOptions, $venue['vcid'] ?? null, [
                         'required' => true,
@@ -64,16 +81,20 @@ ob_start();
                     ]);
                     ?>
                 </div>
+
                 <div class="lg:col-span-6 space-y-4">
                     <h3 class="text-sm font-bold text-[#1d2d3e] mb-4">Capacity and Configuration</h3>
+
                     <?php
                     echo FB::input('number', 'max_cap', 'Max Capacity', $venue['max_cap'] ?? '', [
                         'min' => 1, 'required' => true, 'suffix' => 'PAX'
                     ]);
+
                     echo FB::input('number', 'deposit', 'Deposit', $venue['deposit'] ?? '', [
                         'step' => '0.01', 'min' => 0, 'required' => true, 'prefix' => 'RM',
                         'extra_css' => 'text-emerald-700 font-bold'
                     ]);
+
                     $statusColor = 'text-emerald-600';
                     if ($venue)
                     {
@@ -83,6 +104,7 @@ ob_start();
                     ?>
                 </div>
             </div>
+
     <div class="fixed bottom-0 right-0 w-full lg:w-[calc(100%-16rem)] bg-slate-50 border-t border-slate-200 p-4 px-6 flex justify-end space-x-3 z-50 shadow-[0_-10px_15px_-3px_rgba(0,0,0,0.1)]">
         <button type="button" onclick="window.location.href='venue_directory.php'" class="px-5 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors">
             Discard
@@ -92,9 +114,11 @@ ob_start();
         </button>
     </div>
 </form>
+
 <script>
     const venuePics = document.getElementById('venue_pics');
     const fileList = document.getElementById('file-list');
+
     if (venuePics && fileList)
     {
         venuePics.addEventListener('change', function(e)
@@ -107,9 +131,9 @@ ob_start();
             {
                 fileList.innerHTML = '';
             }
-        }
-);
+        });
     }
+
     document.getElementById('registerVenueForm').addEventListener('submit', function()
     {
         const btn = document.getElementById('submitBtn');
@@ -117,10 +141,11 @@ ob_start();
         btn.classList.add('opacity-70', 'cursor-not-allowed');
         btn.style.pointerEvents = 'none';
         lucide.createIcons();
-    }
-);
+    });
 </script>
+
 <?php
 $page_content = ob_get_clean();
+
 require_once __DIR__ . '/../core/layout.php';
 ?>
