@@ -128,5 +128,23 @@ if (!isset($extra_js))
         <script src="<?php echo $js; ?>"></script>
     <?php endforeach; ?>
 
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // 使用 requestIdleCallback 確保 SLA 觸發不會佔用主渲染執行緒，維持系統 60fps 效能
+        const triggerSLA = () => {
+            fetch('/FYP/cron/scheduler_sla_check.php?token=a7b8c9d0-f1e2-4g5h-8i9j-klmnopqrstuv', { 
+                method: 'GET', 
+                keepalive: true,
+                cache: 'no-store' 
+            }).catch(err => console.error('SLA Pulse Error:', err));
+        };
+
+        if ('requestIdleCallback' in window) {
+            requestIdleCallback(triggerSLA, { timeout: 2000 });
+        } else {
+            setTimeout(triggerSLA, 2000);
+        }
+    });
+    </script>
 </body>
 </html>
