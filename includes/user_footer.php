@@ -1,7 +1,7 @@
-<!-- This section provides shared user footer logic or layout. -->
 </main>
 
 <footer class="relative z-50 bg-slate-950 border-t border-white/10 px-6 py-10 mt-20">
+>>>>>>> 4eb7fcfe97effc5ab9414f55101cb7135442c26e
     <div class="max-w-7xl mx-auto flex flex-col gap-6">
         <div class="flex flex-wrap justify-between items-start gap-8 border-b border-white/5 pb-6">
             <div>
@@ -34,6 +34,37 @@
             &copy; 2026 Campus Venue Booking Management System. All rights reserved. </div> </div> </footer>  <script> if (window.lucide)
 { lucide.createIcons();
     }
+
+    // =========================================================================
+    // ∴ 拓撲脈衝注入：Traffic-Driven SLA Daemon (路徑校準與觀測強化版)
+    // =========================================================================
+    document.addEventListener("DOMContentLoaded", function() {
+        const triggerSLA = () => {
+            const cronUrl = '/FYP/cron/scheduler_sla_check.php?token=a7b8c9d0-f1e2-4g5h-8i9j-klmnopqrstuv';
+            
+            fetch(cronUrl, { 
+                method: 'GET', 
+                keepalive: true, 
+                cache: 'no-store' 
+            })
+            .then(response => {
+                if(response.ok) {
+                    console.log('SLA Pulse Transmitted: HTTP ' + response.status + ' (State Machine Synchronized)');
+                } else if (response.status === 429) {
+                    console.log('SLA Pulse Transmitted: HTTP 429 (Daemon in Cooldown Matrix)');
+                } else {
+                    console.error('SLA Pulse Exception: HTTP ' + response.status);
+                }
+            })
+            .catch(err => console.error('SLA Pulse Critical Failure (Network Node Offline):', err));
+        };
+
+        if ('requestIdleCallback' in window) {
+            requestIdleCallback(triggerSLA, { timeout: 2000 });
+        } else {
+            setTimeout(triggerSLA, 2000);
+        }
+    });
 </script>
 </body>
 </html>
