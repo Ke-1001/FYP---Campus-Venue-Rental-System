@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 16, 2026 at 04:56 AM
+-- Generation Time: Jun 16, 2026 at 06:36 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -718,23 +718,23 @@ DELIMITER $$
 -- Events
 --
 CREATE DEFINER=`root`@`localhost` EVENT `ev_master_sla_daemon` ON SCHEDULE EVERY 1 MINUTE STARTS '2026-06-14 14:14:33' ON COMPLETION PRESERVE ENABLE DO BEGIN
-    -- Variable and cursor declaration section.
+    -- This section declares variables and the cursor.
     DECLARE done INT DEFAULT FALSE;
     DECLARE v_bid INT;
     DECLARE v_date_booked DATE;
     DECLARE v_time_end TIME;
     DECLARE v_optimal_sid INT;
-    
-    -- Fixed cursor: skip expired bookings after the 30-minute inspection limit.
-    DECLARE cur_pending_assignments CURSOR FOR 
-        SELECT b.bid, b.date_booked, b.time_end 
+
+    -- This cursor finds approved bookings that still need an inspection assignment.
+    DECLARE cur_pending_assignments CURSOR FOR
+        SELECT b.bid, b.date_booked, b.time_end
         FROM booking b
         LEFT JOIN inspection i ON b.bid = i.bid
-        WHERE b.status = 'approved' 
-          AND i.ins_id IS NULL 
-          -- Upper limit: only select bookings ending within 15 minutes.
+        WHERE b.status = 'approved'
+          AND i.ins_id IS NULL
+          -- Only select bookings that will end within 15 minutes.
           AND TIMESTAMPDIFF(MINUTE, NOW(), CONCAT(b.date_booked, ' ', b.time_end)) <= 15
-          -- Lower limit: skip bookings that are already 30 minutes overdue.
+          -- Skip bookings that are already 30 minutes past the end time.
           AND TIMESTAMPADD(MINUTE, 30, CAST(CONCAT(b.date_booked, ' ', b.time_end) AS DATETIME)) > NOW();
 
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
@@ -742,7 +742,7 @@ CREATE DEFINER=`root`@`localhost` EVENT `ev_master_sla_daemon` ON SCHEDULE EVERY
     START TRANSACTION;
 
     -- =========================================================================
-    -- Logic Pipeline A: Booking SLA timeout handling.
+    -- Logic Pipeline A: Booking SLA cleanup
     -- =========================================================================
     UPDATE booking
     SET status = 'cancelled',
@@ -752,54 +752,64 @@ CREATE DEFINER=`root`@`localhost` EVENT `ev_master_sla_daemon` ON SCHEDULE EVERY
     WHERE status = 'pending'
       AND payment_status = 'paid'
       AND (
-          -- Rule 1: cancel when the remaining booking time is less than 5 minutes.
+          -- Cancel when the remaining booking time is less than 5 minutes.
           TIMESTAMPADD(MINUTE, -5, CAST(CONCAT(date_booked, ' ', time_end) AS DATETIME)) <= NOW()
 
           OR
 
-          -- Rule 2: use the later time between booking start and creation time.
-          -- Early booking: timeout is based on start time plus 15 minutes.
-          -- Late booking: timeout is based on creation time plus 15 minutes.
+          -- Cancel when admin approval is overdue.
           TIMESTAMPADD(MINUTE, 15, GREATEST(CAST(CONCAT(date_booked, ' ', time_start) AS DATETIME), created_at)) <= NOW()
       );
 
     -- =========================================================================
-    -- Logic Pipeline B: Assign inspectors near the booking end time.
+    -- Logic Pipeline B: Inspector assignment
     -- =========================================================================
     OPEN cur_pending_assignments;
+
     assignment_loop: LOOP
         FETCH cur_pending_assignments INTO v_bid, v_date_booked, v_time_end;
-        IF done THEN LEAVE assignment_loop; END IF;
+
+        IF done THEN
+            LEAVE assignment_loop;
+        END IF;
 
         SET v_optimal_sid = NULL;
 
-        -- Greedy selection: choose an available inspector with the fewest tasks that day.
+        -- Select an available inspector with the lowest number of tasks for that day.
         SELECT s.sid INTO v_optimal_sid
         FROM staff s
-        WHERE s.position = 'inspector' AND s.status = 'active'
+        WHERE s.position = 'inspector'
+          AND s.status = 'active'
           AND s.sid NOT IN (
               SELECT i2.sid
-              FROM inspection i2 JOIN booking b2 ON i2.bid = b2.bid
+              FROM inspection i2
+              JOIN booking b2 ON i2.bid = b2.bid
               WHERE i2.ins_status = 'pending'
                 AND b2.date_booked = v_date_booked
                 AND ABS(TIMESTAMPDIFF(MINUTE, b2.time_end, v_time_end)) < 30
           )
         ORDER BY (
-            SELECT COUNT(*) FROM inspection i3 JOIN booking b3 ON i3.bid = b3.bid 
-            WHERE i3.sid = s.sid AND b3.date_booked = v_date_booked
-        ) ASC LIMIT 1;
+            SELECT COUNT(*)
+            FROM inspection i3
+            JOIN booking b3 ON i3.bid = b3.bid
+            WHERE i3.sid = s.sid
+              AND b3.date_booked = v_date_booked
+        ) ASC
+        LIMIT 1;
 
         IF v_optimal_sid IS NOT NULL THEN
-            INSERT INTO inspection (bid, sid, ins_status) VALUES (v_bid, v_optimal_sid, 'pending');
+            INSERT INTO inspection (bid, sid, ins_status)
+            VALUES (v_bid, v_optimal_sid, 'pending');
         END IF;
     END LOOP;
+
     CLOSE cur_pending_assignments;
 
     -- =========================================================================
-    -- Logic Pipeline C: Handle inspection timeout and deposit release.
+    -- Logic Pipeline C: Overdue inspection handling
     -- =========================================================================
-    
-    -- C.1 Create a refund report if it does not already exist.
+
+    -- This section creates a refund report for overdue pending inspections.
     INSERT INTO report (ins_id, final_deduct, refund_status, penalty_status, created_at)
     SELECT i.ins_id, 0.00, 'pending', 'none', CURDATE()
     FROM inspection i
@@ -808,19 +818,20 @@ CREATE DEFINER=`root`@`localhost` EVENT `ev_master_sla_daemon` ON SCHEDULE EVERY
       AND TIMESTAMPADD(MINUTE, 30, CAST(CONCAT(b.date_booked, ' ', b.time_end) AS DATETIME)) <= NOW()
       AND NOT EXISTS (SELECT 1 FROM report r WHERE r.ins_id = i.ins_id);
 
-    -- C.2 Mark the inspection as overdue.
+    -- This section marks overdue inspections.
     UPDATE inspection i
     JOIN booking b ON i.bid = b.bid
     SET i.ins_status = 'overdue',
         i.damage_desc = 'SLA Violation: Inspector Timeout. Auto-released.'
     WHERE i.ins_status = 'pending'
       AND TIMESTAMPADD(MINUTE, 30, CAST(CONCAT(b.date_booked, ' ', b.time_end) AS DATETIME)) <= NOW();
-      
-    -- C.3 Close the booking by marking it as completed.
+
+    -- This section completes bookings with overdue inspections.
     UPDATE booking b
     JOIN inspection i ON b.bid = i.bid
     SET b.status = 'completed'
-    WHERE i.ins_status = 'overdue' AND b.status = 'approved';
+    WHERE i.ins_status = 'overdue'
+      AND b.status = 'approved';
 
     COMMIT;
 END$$
