@@ -4,7 +4,7 @@ session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 
-// ∴ 嚴格引入倉儲依賴 (Zero-SQL Principle)
+// Load repository dependency (Zero-SQL Principle)
 require_once __DIR__ . '/../core/repositories/ScheduleRepository.php';
 use Core\Repositories\ScheduleRepository;
 
@@ -31,7 +31,7 @@ if ($mode === 'Update') {
     }
 }
 
-// ∴ 提取字典矩陣並轉換為 FormBuilder 相容的 Key-Value 結構
+// Get data list and convert it to FormBuilder key-value format
 $venuesData = $scheduleRepo->getVenuesForDropdown();
 $venueOptions = ['' => 'Select Venue'];
 foreach ($venuesData as $v) {
@@ -102,7 +102,7 @@ ob_start();
                         'placeholder' => 'e.g., Data Structures'
                     ]);
 
-                    // 預設選中邏輯：若為更新則使用資料庫值，若為新增則預設為 Active 學期
+ // Default selection: use database value for edit, active semester for add
                     $defaultSem = $exclusion ? $exclusion['sem_id'] : $activeSemId;
                     echo FB::select('sem_id', 'Semester', $semOptions, $defaultSem, [
                         'required' => true,

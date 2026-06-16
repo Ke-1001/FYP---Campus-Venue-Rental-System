@@ -163,7 +163,7 @@ ob_start();
                                 <?php echo substr($report['time_start'], 0, 5); ?> - <?php echo substr($report['time_end'], 0, 5); ?>
                             </div>
                             <?php 
-                                // 根据是否被用户退款，渲染不同颜色的 booking 状态
+ // Show different booking status colors based on user refund
                                 $b_status_color = ($report['booking_status'] === 'cancelled') ? 'text-red-600' : 'text-emerald-600';
                             ?>
                             <div class="text-[10px] uppercase font-black <?php echo $b_status_color; ?> mt-1">

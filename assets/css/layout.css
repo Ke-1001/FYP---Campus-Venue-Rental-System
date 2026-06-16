@@ -1,14 +1,14 @@
 /* * ==========================================
  * MMU Admin Interface - Core Layout Template
  * ==========================================
- * 架構說明：
- * 1. 隔離滾動條的系統預設行為，提升視覺信噪比
- * 2. 封裝側邊欄 (Sidebar) 的空間向量過渡邏輯
- * 3. 處理狀態集 S = { expanded, collapsed } 下的 DOM 節點渲染映射
+ * Structure notes: 
+ * 1. Customize scrollbar to make the UI cleaner
+ * 2. Handle sidebar (Sidebar) width transition logic
+ * 3. Handle DOM rendering for expanded and collapsed states
  */
 
 /* ------------------------------------------
- * 1. 滾動條覆寫 (Scrollbar Override)
+ * 1. Scrollbar override (Scrollbar Override)
  * ------------------------------------------ */
 ::-webkit-scrollbar { 
     width: 6px; 
@@ -26,9 +26,9 @@
 }
 
 /* ------------------------------------------
- * 2. 視覺材質組件 (Material Components)
+ * 2. Visual material components (Material Components)
  * ------------------------------------------ */
-/* 毛玻璃效應矩陣：運用於頂部導航欄等需要 Z 軸深度分離的元件 */
+/* Glass effect for top navigation and layered UI elements */
 .glass-panel { 
     background: rgba(255, 255, 255, 0.95); 
     backdrop-filter: blur(10px); 
@@ -36,22 +36,22 @@
 }
 
 /* ------------------------------------------
- * 3. 軌道式導航狀態機 (Rail Navigation State Machine)
+ * 3. Sidebar navigation state (Rail Navigation State Machine)
  * ------------------------------------------ */
-/* * 基態 (Ground State): S_expanded 
- * 預設維持 16rem (256px) 的空間佔用
+/* * Default state (Ground State): S_expanded 
+ * default width is 16rem (256px) space usage
  */
 .sidebar {
-    width: 16rem; /* 等效於 Tailwind w-64 */
+ width: 16rem; /* same as Tailwind w-64 */
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     white-space: nowrap;
     overflow-x: hidden;
-    will-change: width; /* 提示瀏覽器優化渲染管線 */
+ will-change: width; /* Hint browser to optimize rendering */
 }
 
-/* * 坍縮態 (Collapsed State): S_collapsed 
- * 觸發條件：附加 .sidebar-collapsed 類別
- * 結果：寬度向量收斂至 4rem (64px)
+/* * Collapsed state (Collapsed State): S_collapsed 
+ * Trigger: add.sidebar-collapsed class
+ * Result: width becomes 4rem (64px)
  */
 .sidebar.sidebar-collapsed {
     width: 4rem; 

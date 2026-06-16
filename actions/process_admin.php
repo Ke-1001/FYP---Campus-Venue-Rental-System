@@ -8,7 +8,7 @@ $action = $_POST['action'] ?? $_GET['action'] ?? '';
 
 if ($action === 'edit' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     // === UPDATE PROFILE ===
-    // 💡 1. 嚴格轉型：提取整數識別碼 aid
+ // 1. Strict type conversion: get integer aid
     $aid = intval($_POST['aid'] ?? 0);
     $admin_name = htmlspecialchars(trim($_POST['admin_name']));
     $email = trim($_POST['email']);
@@ -20,7 +20,7 @@ if ($action === 'edit' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // 💡 2. Double Collision Check (排除自身的 aid)
+ // 2. Double Collision Check (exclude the current aid)
     $sql_check = "SELECT aid FROM admin WHERE (email = ? OR admin_name = ?) AND aid != ?";
     $stmt_check = $conn->prepare($sql_check);
     // "ssi" -> 2 Strings, 1 Int
@@ -37,7 +37,7 @@ if ($action === 'edit' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     $stmt_check->close();
 
-    // 💡 3. 部署更新
+ // 3. Run the update
     $sql = "UPDATE admin SET admin_name = ?, email = ?, phone_num = ? WHERE aid = ? AND role IN ('admin', 'super_admin')";
     $stmt = $conn->prepare($sql);
     
@@ -64,10 +64,10 @@ if ($action === 'edit' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // 💡 提取整數識別碼
+ // Get integer ID
     $aid = intval($_GET['aid']);
 
-    // 預防刪除 Root 節點
+ // Prevent deleting the root account
     $sql_check = "SELECT role FROM admin WHERE aid = ?";
     $stmt_check = $conn->prepare($sql_check);
     // "i" -> Int
@@ -90,7 +90,7 @@ if ($action === 'edit' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     $stmt_check->close();
 
-    // 💡 執行安全刪除
+ // Run safe delete
     $sql = "DELETE FROM admin WHERE aid = ?";
     $stmt = $conn->prepare($sql);
     if ($stmt) {

@@ -8,7 +8,7 @@ $action = $_POST['action'] ?? $_GET['action'] ?? '';
 
 if ($action === 'add' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     // === ENTITY REGISTRATION (Natural Key Parsing) ===
-    $uid = htmlspecialchars(trim($_POST['uid'])); // 💡 必須接收真實學號
+ $uid = htmlspecialchars(trim($_POST['uid'])); // Must receive real student ID
     $username = htmlspecialchars(trim($_POST['username'] ?? $_POST['full_name'] ?? ''));
     $email = trim($_POST['email']);
     $phone_num = htmlspecialchars(trim($_POST['phone_num'] ?? ''));
@@ -34,7 +34,7 @@ if ($action === 'add' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     $stmt_check->close();
 
-    // 💡 寫入 user 表 (顯式指派 uid)
+ // Save to user table (set uid directly)
     $sql = "INSERT INTO user (uid, username, email, password, phone_num) VALUES (?, ?, ?, ?, ?)";
     $stmt = $conn->prepare($sql);
     
@@ -71,7 +71,7 @@ if ($action === 'add' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     $stmt_check->close();
 
-    // 💡 更新 user 表 (無需 Role Check，實體已隔離)
+ // Update user table (No role check needed because the entity is separated)
     $sql = "UPDATE user SET username = ?, email = ?, phone_num = ? WHERE uid = ?";
     $stmt = $conn->prepare($sql);
     

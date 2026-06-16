@@ -22,7 +22,7 @@ if ($bid <= 0 || $vid === '' || $damage_description === '') {
     exit;
 }
 
-// 防篡改校验：如果不是 Level 3，绝对不允许触发 cancel 逻辑
+// Anti-tamper check: only Level 3 can trigger cancel logic
 if ($severity !== 'Level 3') {
     $user_action = 'continue';
 }
@@ -51,12 +51,7 @@ $damage_window_start_ts = strtotime($booking['date_booked'] . ' ' . $booking['ti
 $damage_window_end_ts = strtotime($booking['date_booked'] . ' ' . $booking['time_start'] . ' +30 minutes');
 $now_ts = time();
 
-if (
-    $damage_window_start_ts === false ||
-    $damage_window_end_ts === false ||
-    $now_ts < $damage_window_start_ts ||
-    $now_ts > $damage_window_end_ts
-) {
+if ( $damage_window_start_ts === false || $damage_window_end_ts === false || $now_ts < $damage_window_start_ts || $now_ts > $damage_window_end_ts ) {
     $_SESSION['error'] = "Damage report can only be submitted during the booking time.";
     header("Location: booking_details.php?bid=" . urlencode($bid));
     exit;
@@ -93,15 +88,12 @@ if (isset($_FILES['damage_photo']) && $_FILES['damage_photo']['error'] !== UPLOA
     }
 
     $upload_dir = "../uploads/damage_reports/";
-    if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
-    
-    $new_filename = "damage_" . $bid . "_" . time() . "." . $extension;
-    if (move_uploaded_file($tmp_name, $upload_dir . $new_filename)) {
+    if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);  $new_filename = "damage_" . $bid . "_" . time() . "." . $extension; if (move_uploaded_file($tmp_name, $upload_dir . $new_filename)) {
         $damage_photo = $new_filename;
     }
 }
 
-// 【关键设计】字符串拼接基准线：规避 Alter Table，同时向 Admin 传递分类信息
+// [Key design]Use string append to avoid altering table and still pass category info to admin
 $final_description = "[" . $severity . "] " . $damage_description;
 
 $insert = $conn->prepare("INSERT INTO damage_report (bid, uid, vid, damage_description, damage_photo, report_status) VALUES (?, ?, ?, ?, ?, 'submitted')");
@@ -109,9 +101,9 @@ $insert->bind_param("issss", $bid, $uid, $vid, $final_description, $damage_photo
 
 if ($insert->execute()) {
     
-    // 状态分支机 (Bifurcated State Logic)
+ // Status branch logic (Bifurcated State Logic)
     if ($severity === 'Level 3' && $user_action === 'cancel') {
-        // 分支 A: 阻碍性损坏且要求退款
+ // Branch A: critical damage and refund requested
         $update_booking = $conn->prepare("
             UPDATE booking
             SET status = 'cancelled', 
@@ -125,8 +117,8 @@ if ($insert->execute()) {
         
         $_SESSION['success'] = "Critical damage reported. Your booking has been cancelled and flagged for Admin review/refund.";
     } else {
-        // 分支 B: 非阻碍性损坏，或阻碍性损坏但用户选择继续使用
-        // 核心修复：移除原代码中的 UPDATE booking SET status = 'completed'，维持 'approved' 状态不变
+ // Branch B: non-critical damage, or critical damage but user continues using venue
+ // Core fix: remove UPDATE booking SET status = 'completed' and keep status as 'approved'
         $_SESSION['success'] = "Damage report recorded as a baseline waiver. You may continue using the venue.";
     }
 

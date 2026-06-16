@@ -6,13 +6,13 @@ require_once __DIR__ . '/../config/db.php';
 $raw_data = json_decode(file_get_contents('php://input'), true);
 $email = $raw_data['email'] ?? $_GET['email'] ?? '';
 
-// 预处理: 服务器端词法校验
+// Pre-check: server-side input validation
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     echo json_encode(['exists' => false, 'error' => 'invalid_format']);
     exit();
 }
 
-// 探测执行
+// Run existence check
 $stmt = $conn->prepare("SELECT 1 FROM user WHERE email = ? LIMIT 1");
 $stmt->bind_param("s", $email);
 $stmt->execute();

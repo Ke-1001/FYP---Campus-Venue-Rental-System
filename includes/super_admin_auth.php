@@ -10,7 +10,7 @@ if ($_SESSION['role'] !== 'super_admin') {
         'msg' => 'Access Denied: Root (Super Administrator) privileges required.'
     ];
     // Redirect unauthorized personnel back to a safe zone
-    header("Location: ../admin/manage_bookings.php"); // 💡 修正路由至新的 Launchpad
+ header("Location:../admin/manage_bookings.php"); // Fix route to new Launchpad
     exit();
 }
 ?>

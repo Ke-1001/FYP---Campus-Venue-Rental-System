@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
 
-    // 💡 1. 防護檢驗
+ // 1. Security check
     if (empty($token) || empty($password) || empty($confirm_password)) {
         die("Security Fault: Missing required payload vectors.");
     }
@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $conn->begin_transaction();
 
     try {
-        // 💡 2. 驗證權杖並獲取目標 Email
+ // 2. Validate token and get target email
         $token_hash = hash('sha256', $token);
         $stmt = $conn->prepare("SELECT email FROM password_resets WHERE token_hash = ? AND expires_at > NOW()");
         $stmt->bind_param("s", $token_hash);
@@ -38,12 +38,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $email = $result->fetch_assoc()['email'];
         $stmt->close();
 
-        // 💡 3. 生成高強度密碼雜湊
+ // 3. Create secure password hash
         $password_hash = password_hash($password, PASSWORD_DEFAULT);
         $update_success = false;
 
-        // 💡 4. 多態實體解析 (Polymorphic Entity Resolution: Admin vs Staff)
-        // 先嘗試更新 Admin 表
+ // 4. Find account type (Polymorphic Entity Resolution: Admin vs Staff)
+ // Try updating admin table first
         $stmt_admin = $conn->prepare("UPDATE admin SET password = ? WHERE email = ?");
         $stmt_admin->bind_param("ss", $password_hash, $email);
         $stmt_admin->execute();
@@ -52,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $stmt_admin->close();
 
-        // 若 Admin 未更新，嘗試更新 Staff 表
+ // If admin is not updated, try staff table
         if (!$update_success) {
             $stmt_staff = $conn->prepare("UPDATE staff SET password = ? WHERE email = ?");
             $stmt_staff->bind_param("ss", $password_hash, $email);
@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception("Entity Resolution Fault: Target email not found in active operational tables.");
         }
 
-        // 💡 5. 權杖自毀協議 (Purge Consumed Token)
+ // 5. Remove used token (Purge Consumed Token)
         $stmt_del = $conn->prepare("DELETE FROM password_resets WHERE email = ?");
         $stmt_del->bind_param("s", $email);
         $stmt_del->execute();
@@ -75,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $conn->commit();
         
-        // 部署成功後，導向登入介面
+ // After success, redirect to login page
         $_SESSION['toast'] = ['type' => 'success', 'msg' => 'Credential vector configured successfully. You may now authenticate.'];
         header("Location: ../admin/login.php"); 
         exit;

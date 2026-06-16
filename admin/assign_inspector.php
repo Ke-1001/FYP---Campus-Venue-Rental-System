@@ -6,7 +6,7 @@ require_once __DIR__ . '/../includes/admin_auth.php';
 require_once __DIR__ . '/../includes/booking_functions.php';
 require_once __DIR__ . '/../core/components/datagrid.php'; 
 
-// ∴ 引入核心架構與全新倉儲
+// Load core frameworkandnew
 require_once __DIR__ . '/../core/components/FilterBuilder.php';
 require_once __DIR__ . '/../core/repositories/InspectionRepository.php';
 
@@ -23,10 +23,10 @@ syncCompletedBookings($conn);
 // Auto-expire unpaid bookings
 expireUnpaidBookings($conn);
 
-// ∴ 1. 實例化檢驗分派倉儲
+// 1. Create inspection assignment repository
 $inspectionRepo = new InspectionRepository($conn);
 
-// ∴ 2. 建構過濾器矩陣 (Filter Topology)
+// 2. Build filters (Filter Topology)
 $filterBuilder = new FilterBuilder('assign_inspector.php', true);
 $filterBuilder
     ->addField('text', 'f_bid', 'Booking ID', [], 'Search ID...', 'b.bid', 'LIKE')
@@ -39,10 +39,10 @@ $filterBuilder
 | D: Abstracted Data Execution & View Reshaping
 |--------------------------------------------------------------------------
 */
-// ∴ 3. 委託倉儲獲取結果集
+// 3. Get results from repository
 $result = $inspectionRepo->getPendingAssignments($filterBuilder);
 
-// ∴ 4. 提取資料列以供給 DataGrid 與計數器
+// 4. Get rows for DataGrid and counters
 $records = [];
 if ($result && $result->num_rows > 0) {
     while($row = $result->fetch_assoc()) {
@@ -66,7 +66,7 @@ $topbar_content = '
 </div>';
 $extra_css = [];
 
-// ∴ 核心拓撲：DataGrid Schema 配置字典
+// Core DataGrid schema config
 $datagrid_schema = [
     'enable_checkbox' => false,
     'primary_key' => 'bid',

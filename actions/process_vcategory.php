@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $action = strtolower($_POST['action'] ?? '');
 $categoryRepo = new CategoryRepository($conn);
 
-// ∴ 狀態機判定與路由分配
+// Check status and choose route
 try {
     if ($action === 'create') {
         $cat = trim($_POST['category'] ?? '');
@@ -23,7 +23,7 @@ try {
         
         if (empty($cat) || empty($desc)) throw new \Exception("Parameters missing.");
         
-        // ∴ 無需傳入 vcid
+ // No need to pass vcid
         if ($categoryRepo->createCategory($cat, $desc)) {
             $_SESSION['success'] = "Category Identity successfully registered.";
         } else {
@@ -35,24 +35,20 @@ try {
         $cat = trim($_POST['category'] ?? '');
         $desc = trim($_POST['description'] ?? '');
         
-        if ($vcid <= 0 || empty($cat) || empty($desc)) throw new \Exception("Parameters missing or corrupted.");
-        
-        if ($categoryRepo->updateCategory($vcid, $cat, $desc)) {
+        if ($vcid <= 0 || empty($cat) || empty($desc)) throw new \Exception("Parameters missing or corrupted.");  if ($categoryRepo->updateCategory($vcid, $cat, $desc)) {
             $_SESSION['success'] = "Category Node [ID: {$vcid}] synchronized.";
         } else {
             throw new \Exception("Synchronization fault.");
         }
 
-    // 替換 process_vcategory.php 中的 bulk_delete 分支
+ // Replace the bulk_delete branch in process_vcategory.php
     } elseif ($action === 'bulk_delete') {
-        // ∴ [修正] 將 selected_vids 對齊為前端標準的 ids 鍵名
+ // [Fix] Change selected_vids to the frontend standard key ids
         $vcids = $_POST['ids'] ?? [];
-        if (empty($vcids)) throw new \Exception("No entities selected for purge.");
-        
-        if ($categoryRepo->deleteCategories($vcids)) {
+        if (empty($vcids)) throw new \Exception("No entities selected for purge.");  if ($categoryRepo->deleteCategories($vcids)) {
             $_SESSION['success'] = "Selected Category Nodes successfully purged.";
         } else {
-            // 異常將由 Repository 拋出，此處的 generic error 可保留作為最後防線
+ // Repository will throw the error; this generic error is the final fallback
             throw new \Exception("Purge execution fault. Relational constraints may exist.");
         }
     } else {
@@ -62,7 +58,7 @@ try {
     $_SESSION['error'] = "System Fault: " . $e->getMessage();
 }
 
-// 完成操作後重定向回混合介面
+// Redirect back after the action
 header("Location: ../admin/manage_vcategory.php");
 exit;
 ?>

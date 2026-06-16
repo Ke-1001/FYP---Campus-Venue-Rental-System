@@ -4,7 +4,7 @@ session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 
-// ∴ 嚴格引入倉儲依賴 (Zero-SQL Principle)
+// Load repository dependency (Zero-SQL Principle)
 require_once __DIR__ . '/../core/repositories/InspectionRepository.php';
 use Core\Repositories\InspectionRepository;
 
@@ -34,7 +34,7 @@ if (!$data) {
     die("Execution Fault: No pending inspection record found for this Reference ID.");
 }
 
-// 💡 注入：提取免责基准线 (Waiver Baseline Extraction)
+// Add: Get waiver baseline (Waiver Baseline Extraction)
 $stmt_waiver = $conn->prepare("
     SELECT damage_description, admin_remark, damage_photo 
     FROM damage_report 
@@ -47,13 +47,13 @@ $res_waiver = $stmt_waiver->get_result();
 $waiver_data = $res_waiver->num_rows > 0 ? $res_waiver->fetch_assoc() : null;
 $stmt_waiver->close();
 
-// 💡 伺服器端時空防護機制... (Keep existing code below)
+// Server-side time protection... (Keep existing code below)
 
 if (!$data) {
     die("Execution Fault: No pending inspection record found for this Reference ID.");
 }
 
-// 💡 伺服器端時空防護機制 (若非 Ready，立即觸發 HTTP 302 遣返)
+// Server-side time protection (If not Ready, redirect with HTTP 302)
 $tz = new DateTimeZone('Asia/Kuala_Lumpur');
 $now = new DateTime('now', $tz);
 $start_dt = new DateTime($data['date_booked'] . ' ' . $data['time_start'], $tz);
@@ -179,7 +179,7 @@ ob_start();
                     </div>
 
                     <?php
-                    // ∴ 移除了 PHP 端的 readonly，純粹由 JS 進行狀態管理
+ // Removed PHP readonly; JS handles the state
                     echo FB::input('number', 'penalty', 'Assessed Penalty (RM)', '0.00', [
                         'step' => '0.01', 
                         'min' => '0', 
@@ -204,19 +204,15 @@ ob_start();
 </form>
 
 <script>
-    // ∴ 單一事實來源狀態機 (Single Source of Truth State Machine)
+ // Single source of truth status logic (Single Source of Truth State Machine)
     function evaluateFormState() {
         const selectBox = document.querySelector('select[name="ins_status"]');
         const desc = document.getElementById('damage_desc');
         const penalty = document.querySelector('input[name="penalty"]');
         const btn = document.getElementById('submit-btn');
 
-        if (!selectBox || !desc || !penalty || !btn) return;
-
-        const status = selectBox.value;
-
-        if (status === 'passed') {
-            // 狀態 A: Passed -> 鎖定輸入框，強制歸零，解鎖按鈕
+        if (!selectBox || !desc || !penalty || !btn) return;  const status = selectBox.value;  if (status === 'passed') {
+ // Status A: Passed -> lock input, set amount to zero, enable button
             selectBox.classList.remove('text-red-600', 'border-red-300');
             selectBox.classList.add('text-emerald-600', 'border-emerald-300');
 
@@ -235,7 +231,7 @@ ob_start();
             btn.classList.add('bg-[#004aad]', 'hover:bg-[#003882]', 'border-[#004aad]');
 
         } else {
-            // 狀態 B: Failed -> 解鎖輸入框，要求驗證邏輯
+ // Status B: Failed -> unlock input and require validation
             selectBox.classList.remove('text-emerald-600', 'border-emerald-300');
             selectBox.classList.add('text-red-600', 'border-red-300');
 
@@ -247,7 +243,7 @@ ob_start();
             penalty.classList.remove('bg-slate-50', 'text-slate-400', 'cursor-not-allowed');
             penalty.classList.add('text-red-600', 'font-bold');
 
-            // 邏輯閘：僅當有描述且金額大於0時，才解鎖按鈕
+ // Enable button only when description exists and amount is above 0
             const pVal = parseFloat(penalty.value);
             const isValid = (desc.value.trim() !== '') && (!isNaN(pVal) && pVal > 0);
 
@@ -271,7 +267,7 @@ ob_start();
         if (desc) desc.addEventListener('input', evaluateFormState);
         if (penalty) penalty.addEventListener('input', evaluateFormState);
 
-        // 初始化狀態
+ // Initialize state
         evaluateFormState();
     });
 

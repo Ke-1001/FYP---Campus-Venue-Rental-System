@@ -468,25 +468,7 @@ function formatBookingDate($date) {
                     </p>
 
                     <p class="text-sm text-slate-400 mt-1">
-                        Try changing the keyword, booking status, payment status, or date filter.
-                    </p>
-
-                    <a 
-                        href="my_bookings.php"
-                        class="inline-flex items-center justify-center mt-5 px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold rounded-lg transition"
-                    >
-                        <i data-lucide="rotate-ccw" class="w-4 h-4 mr-2"></i>
-                        Clear Filters
-                    </a>
-                </div>
-            <?php endif; ?>
-        <?php endif; ?>
-    </div>
-</div>
-
-
-<script>
-lucide.createIcons();
+                        Try changing the keyword, booking status, payment status, or date filter. </p>  <a href="my_bookings.php" class="inline-flex items-center justify-center mt-5 px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold rounded-lg transition" > <i data-lucide="rotate-ccw" class="w-4 h-4 mr-2"></i> Clear Filters </a> </div> <?php endif; ?> <?php endif; ?> </div> </div>   <script> lucide.createIcons();
 
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('bookingFilterForm');

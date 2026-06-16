@@ -17,7 +17,7 @@ if (empty($vid) || empty($date)) {
 $blocked_vectors = [];
 
 try {
-    // 💡 向量提取 1：一般學生預約集
+ // Data set 1: normal student bookings
     $stmt1 = $conn->prepare("SELECT time_start, time_end FROM booking WHERE vid = ? AND date_booked = ? AND status IN ('pending', 'approved')");
     $stmt1->bind_param("ss", $vid, $date);
     $stmt1->execute();
@@ -33,7 +33,7 @@ try {
     }
     $stmt1->close();
 
-    // 💡 向量提取 2：特定學期的學術排他矩陣
+ // Data set 2: academic blocks for the selected semester
     $sql2 = "SELECT a.start_time, a.end_time 
              FROM academic_schedule a
              JOIN semester_config s ON a.sem_id = s.sem_id

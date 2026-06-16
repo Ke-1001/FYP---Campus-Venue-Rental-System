@@ -4,7 +4,7 @@ session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 
-// ∴ 嚴格引入倉儲依賴
+// Load repository dependency
 require_once __DIR__ . '/../core/repositories/VenueRepository.php';
 use Core\Repositories\VenueRepository;
 
@@ -15,7 +15,7 @@ use Core\Repositories\VenueRepository;
 */
 $venueRepo = new VenueRepository($conn);
 
-// ∴ 狀態機判定 (State Machine Detection)
+// Check page mode (State Machine Detection)
 $vid_param = trim($_GET['vid'] ?? '');
 $mode = !empty($vid_param) ? 'Update' : 'Create';
 $venue = null;
@@ -25,7 +25,7 @@ $venue = null;
 | D: Data Extraction & Dictionary Mapping
 |--------------------------------------------------------------------------
 */
-// ∴ 提取實體與字典，維持 Zero-SQL 原則
+// Getentityand, Zero-SQL then
 if ($mode === 'Update') {
     $venue = $venueRepo->getVenueById($vid_param);
     if (!$venue) {
@@ -33,7 +33,7 @@ if ($mode === 'Update') {
     }
 }
 
-// ∴ 調用表單專用字典，確保提取的是 vcid 而非過濾字串
+// Use form options to get vcid instead of filter text
 $categories = $venueRepo->getCategoryDictionary();
 
 /*
@@ -51,10 +51,10 @@ $topbar_content = '
     <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Venues / ' . $mode . ' Venue</h2>
 </div>';
 
-// ∴ 注入特定的 Fiori 表單樣式
+// Load special Fiori form style
 $extra_css = [];
 
-// ∴ 引入新的表單建構矩陣
+// Load new form builder
 require_once __DIR__ . '/../core/components/FioriFormBuilder.php';
 use Core\Components\FioriFormBuilder as FB;
 
@@ -97,7 +97,7 @@ ob_start();
                         'placeholder' => 'Full Name'
                     ]);
 
-                    // 將字典結構轉換為 Builder 相容的 Key-Value 對
+ // Convert data list to Builder key-value pairs
                     $catOptions = array_column($categories, 'category', 'vcid');
                     echo FB::select('vcid', 'Category', $catOptions, $venue['vcid'] ?? null, [
                         'required' => true,
@@ -119,20 +119,12 @@ ob_start();
                         'extra_css' => 'text-emerald-700 font-bold'
                     ]);
 
-                    // 狀態選擇器：利用 extra_css 注入動態顏色邏輯，並掛載 onchange 事件
+ // Status selector: use extra_css for color and attach onchange event
                     $statusColor = 'text-emerald-600';
                     if ($venue) {
                         $statusColor = ($venue['status'] === 'maintenance') ? 'text-red-600' : (($venue['status'] === 'closed') ? 'text-slate-600' : 'text-emerald-600');
                     }
-                    echo "<div class=\"border-t border-slate-100 pt-4 mt-2\">" . 
-                    FB::select('status', 'Operational State', [
-                        'available' => 'Available',
-                        'maintenance' => 'Maintenance',
-                        'closed' => 'Closed'
-                    ], $venue['status'] ?? 'available', [
-                        'extra_css' => "font-bold {$statusColor}",
-                        'onchange' => "this.className = this.value === 'maintenance' ? 'fiori-input focus:border-[#004aad] appearance-none pr-8 bg-white cursor-pointer transition-colors font-bold text-red-600' : (this.value === 'closed' ? 'fiori-input focus:border-[#004aad] appearance-none pr-8 bg-white cursor-pointer transition-colors font-bold text-slate-600' : 'fiori-input focus:border-[#004aad] appearance-none pr-8 bg-white cursor-pointer transition-colors font-bold text-emerald-600')"
-                    ]) . "</div>";
+                    echo "<div class=\"border-t border-slate-100 pt-4 mt-2\">" . FB::select('status', 'Operational State', [ 'available' => 'Available', 'maintenance' => 'Maintenance', 'closed' => 'Closed' ], $venue['status'] ?? 'available', [ 'extra_css' => "font-bold {$statusColor}", 'onchange' => "this.className = this.value === 'maintenance' ? 'fiori-input focus:border-[#004aad] appearance-none pr-8 bg-white cursor-pointer transition-colors font-bold text-red-600' : (this.value === 'closed' ? 'fiori-input focus:border-[#004aad] appearance-none pr-8 bg-white cursor-pointer transition-colors font-bold text-slate-600' : 'fiori-input focus:border-[#004aad] appearance-none pr-8 bg-white cursor-pointer transition-colors font-bold text-emerald-600')" ]) . "</div>";
                     ?>
                 </div>
             </div>

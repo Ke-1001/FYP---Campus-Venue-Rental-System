@@ -5,7 +5,7 @@ require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 require_once __DIR__ . '/../core/components/datagrid.php'; 
 
-// ∴ 引入核心架構
+// Load core framework
 require_once __DIR__ . '/../core/components/FilterBuilder.php';
 require_once __DIR__ . '/../core/repositories/ScheduleRepository.php';
 
@@ -17,14 +17,14 @@ use Core\Repositories\ScheduleRepository;
 | I: Repository Initialization & Dictionary Extraction
 |--------------------------------------------------------------------------
 */
-// ∴ 1. 實例化倉儲
+// 1. Create repository instance
 $scheduleRepo = new ScheduleRepository($conn);
 
-// ∴ 2. 透過 Repository 獲取乾淨的資料字典 (Zero-SQL)
+// 2. Get clean data list through Repository (Zero-SQL)
 $sem_options = $scheduleRepo->getSemesterOptions();
 $vid_options = $scheduleRepo->getVenueOptions();
 
-// ∴ 3. 建構過濾器矩陣
+// 3. Build filters
 $filterBuilder = new FilterBuilder('academic_schedule.php', true);
 $filterBuilder
     ->addField('select', 'filter_sem', 'Semester', $sem_options, 'All Semesters', 's.sem_id', '=')
@@ -44,10 +44,10 @@ $filterBuilder
 | D: Abstracted Data Execution & View Reshaping
 |--------------------------------------------------------------------------
 */
-// ∴ 4. 委託倉儲獲取結果集
+// 4. Get results from repository
 $result = $scheduleRepo->getAllWithFilters($filterBuilder);
 
-// ∴ 5. 提取並重塑為 Calendar JSON 拓撲 (保留於控制器中)
+// 5. Convert data to Calendar JSON (keep in controller)
 $calendar_events = [];
 if ($result && $result->num_rows > 0) {
     while($row = $result->fetch_assoc()) {
@@ -61,7 +61,7 @@ if ($result && $result->num_rows > 0) {
             'subject' => $row['subject_name']
         ];
     }
-    // 游標重置，供下方的 DataGrid 使用
+ // Reset cursor for the DataGrid below
     $result->data_seek(0); 
 }
 
@@ -81,7 +81,7 @@ $topbar_content = '
 </div>';
 $extra_css = [];
 
-// ∴ 核心拓扑二：DataGrid Schema 配置字典
+// Core part 2: DataGrid schema config
 $datagrid_schema = [
     'enable_checkbox' => true,
     'primary_key' => 'sch_id',
@@ -95,7 +95,7 @@ $datagrid_schema = [
     ]
 ];
 
-// ∴ 控制器注入字典 (隔离外部 JavaScript)
+// Inject config into controller (isolate external JavaScript)
 $controller_config = [
     'edit_url_base' => 'add_exclusion.php?id=',
     'delete_entity_name' => 'schedule record'

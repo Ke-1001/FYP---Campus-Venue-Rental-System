@@ -4,7 +4,7 @@ session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 
-// ∴ 引入核心 OOP 組件與倉儲
+// Load core OOP components and repository
 require_once __DIR__ . '/../core/components/FilterBuilder.php';
 require_once __DIR__ . '/../core/components/DataGridBuilder.php';
 require_once __DIR__ . '/../core/components/FioriFormBuilder.php';
@@ -22,7 +22,7 @@ use Core\Repositories\CategoryRepository;
 */
 $categoryRepo = new CategoryRepository($conn);
 
-// 狀態機判定
+// Check page mode
 $vcid_param = isset($_GET['vcid']) ? (int)$_GET['vcid'] : 0;
 $mode = ($vcid_param > 0) ? 'Update' : 'Create';
 $category_entity = null;
@@ -49,7 +49,7 @@ $result = $categoryRepo->getAllCategories($filterBuilder);
 */
 $constraint_error = '';
 if (isset($_SESSION['error']) && strpos($_SESSION['error'], 'Failed to Delete') !== false) {
-    // 提取異常向量並清理 Session，剝奪 layout.php 渲染 Toast 的權限
+ // Get error data and clear session to stop layout.php toast
     $constraint_error = $_SESSION['error'];
     unset($_SESSION['error']); 
 }
@@ -71,11 +71,11 @@ $topbar_content = '
 
 $extra_css = [];
 
-// ∴ DataGrid 配置 (下層視覺矩陣)
+// DataGrid config (lower visual grid)
 $gridBuilder = new DataGridBuilder('vcid', '../actions/process_vcategory.php', 'category entity');
-$gridBuilder->setCreateAction('manage_vcategory.php', 'Reset Form Mode') // 指向自身以清空 Update 狀態
+$gridBuilder->setCreateAction('manage_vcategory.php', 'Reset Form Mode') // point to itself to clear update mode
     ->setRowActionUrl('manage_vcategory.php?vcid=%s')
-    ->disableAction('create') // 禁用創建按鈕以強制使用表單提交
+ ->disableAction('create') // Disable create button to force form submit
     ->addColumn('vcid', 'ID', 'text_mono', ['width' => 'w-24 text-center'])
     ->addColumn('category', 'Category Name', 'text_bold', ['width' => 'w-64'])
     ->addColumn('description', 'Parameters / Description', 'text_muted_mono', []);
@@ -106,7 +106,7 @@ ob_start();
             <div class="p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
                 <div class="lg:col-span-8 space-y-4">
                     <?php 
-                    // ∴ 若為更新模式，顯示唯讀 ID (作為視覺定錨)
+ // In update mode, show read-only ID (as visual anchor)
                     if ($mode === 'Update') {
                         echo '<input type="hidden" name="vcid" value="' . $category_entity['vcid'] . '">';
                         echo FB::input('text', 'dummy_id', 'Category ID', $category_entity['vcid'], [
@@ -174,32 +174,32 @@ ob_start();
 </div>
 
 <script>
-    // 封閉的模態框銷毀函數
+ // Close modal function
     const closeConstraintModal = () => {
         const modal = document.getElementById('constraint-modal');
         const panel = document.getElementById('constraint-panel');
         modal.classList.add('opacity-0');
         panel.classList.add('scale-95');
-        setTimeout(() => { modal.classList.add('hidden'); }, 200); // 對齊 Tailwind transition
+ setTimeout(() => { modal.classList.add('hidden'); }, 200); // match Tailwind transition
     };
 
-    // ∴ 條件觸發引擎 (Conditional Trigger Engine)
+ // Conditional trigger (Conditional Trigger Engine)
     <?php if (!empty($constraint_error)): ?>
     document.addEventListener('DOMContentLoaded', function() {
         const modal = document.getElementById('constraint-modal');
         const panel = document.getElementById('constraint-panel');
         const msgNode = document.getElementById('constraint-msg');
         
-        // 映射 PHP 變數至 DOM
+ // Map PHP variables to DOM
         msgNode.innerText = <?php echo json_encode(str_replace('System Fault: ', '', $constraint_error)); ?>;
         
-        // 解除物理隱藏
+ // Remove hidden state
         modal.classList.remove('hidden');
         
-        // 強制瀏覽器執行 Reflow 以確保動畫渲染 (Critical rendering path)
+ // Force browser reflow for animation (Critical rendering path)
         void modal.offsetWidth; 
         
-        // 觸發視覺漸變
+ // Start visual transition
         modal.classList.remove('opacity-0');
         panel.classList.remove('scale-95');
         

@@ -4,10 +4,10 @@ session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 
-// 引入基礎架構
+// Load base framework
 require_once __DIR__ . '/../core/components/FilterBuilder.php';
 require_once __DIR__ . '/../core/components/DataGridBuilder.php';
-require_once __DIR__ . '/../core/repositories/VenueRepository.php'; // ∴ 引入倉儲層
+require_once __DIR__. '/../core/repositories/VenueRepository.php'; // Load repository layer
 
 use Core\Components\FilterBuilder;
 use Core\Components\DataGridBuilder;
@@ -35,10 +35,10 @@ require_once __DIR__ . '/../core/components/datagrid_controller.php';
 | I: Repository & Builder Instantiation
 |--------------------------------------------------------------------------
 */
-// ∴ 1. 實例化倉儲 (注入資料庫連線)
+// 1. Create repository instance (inject database connection)
 $venueRepo = new VenueRepository($conn);
 
-// ∴ 2. 透過 Repository 獲取乾淨的資料字典，無需接觸 SQL
+// 2. Get clean data list through Repository, no direct SQL needed
 $cat_options = $venueRepo->getCategoryOptions();
 
 $filterBuilder = new FilterBuilder('venue_directory.php', true);
@@ -74,7 +74,7 @@ $gridBuilder
 | D: Abstracted Data Execution (Zero-SQL Zone)
 |--------------------------------------------------------------------------
 */
-// ∴ 3. 將 Filter 傳入倉儲，獲取結果。控制層不再存在任何 SQL 字串。
+// 3. Pass filters to repository and get results. Controller has no SQL strings.
 $result = $venueRepo->getAllWithFilters($filterBuilder);
 
 /*

@@ -14,7 +14,7 @@ class ScheduleRepository {
     }
 
     /**
-     * 獲取學期字典映射 (Semester Dictionary Matrix)
+ * Get semester options (Semester Dictionary Matrix)
      */
     public function getSemesterOptions(): array {
         $sql = "SELECT sem_id, sem_name FROM semester_config ORDER BY start_date DESC";
@@ -30,7 +30,7 @@ class ScheduleRepository {
     }
 
     /**
-     * 獲取場地字典映射 (Venue Dictionary Matrix)
+ * Get venue options (Venue Dictionary Matrix)
      */
     public function getVenueOptions(): array {
         $sql = "SELECT vid, vname FROM venue ORDER BY vid ASC";
@@ -46,7 +46,7 @@ class ScheduleRepository {
     }
 
     /**
-     * 核心排程獲取：動態注入 FilterBuilder 狀態
+ * Main schedule fetch: add FilterBuilder conditions
      */
     public function getAllWithFilters(FilterBuilder $filterBuilder) {
         $sql = "SELECT s.*, v.vname, sem.sem_name 
@@ -55,18 +55,18 @@ class ScheduleRepository {
                 JOIN semester_config sem ON s.sem_id = sem.sem_id
                 WHERE 1=1";
 
-        // ∴ 無縫對接 FilterBuilder 的 WHERE 拓撲
+ // Connect to FilterBuilder WHERE logic
         $sql .= $filterBuilder->buildSqlWhere($this->conn);
 
-        // 嚴格的時間軸與星期排序
+ // Strict date and weekday sorting
         $sql .= " ORDER BY sem.start_date DESC, FIELD(s.day_of_week, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'), s.start_time ASC";
         
         return $this->conn->query($sql);
     }
 
     /**
-     * [業務場景: add_exclusion.php 使用]
-     * 基於主鍵精確提取單一排程實體 (Single Entity Extraction)
+ * [Use case: add_exclusion.php use]
+ * Based on primary keyexactGetentity (Single Entity Extraction)
      *
      * @param int $sch_id
      * @return array|null
@@ -80,9 +80,9 @@ class ScheduleRepository {
     }
 
     /**
-     * [業務場景: add_exclusion.php 使用]
-     * 獲取場地字典矩陣 (返回二維關聯陣列集合以供視圖層迭代)
-     * ∴ 獨立於 getVenueOptions() 確保向後相容
+ * [Use case: add_exclusion.php use]
+ * Getvenuematrix (return a 2D array for the view layer)
+ * separate from getVenueOptions() for compatibility
      *
      * @return array
      */
@@ -99,9 +99,9 @@ class ScheduleRepository {
     }
 
     /**
-     * [業務場景: add_exclusion.php 使用]
-     * 獲取學期字典矩陣 (必須包含 is_active 狀態以供 UI 預設選取判定)
-     * ∴ 獨立於 getSemesterOptions() 確保向後相容
+ * [Use case: add_exclusion.php use]
+ * Getsemestermatrix (must include is_active for UI default selection)
+ * separate from getSemesterOptions() for compatibility
      *
      * @return array
      */

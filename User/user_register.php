@@ -120,11 +120,7 @@
     function togglePasswordVisibility() {
         const p = document.getElementById('password');
         const eye = document.getElementById('eyeIcon');
-        if (p.type === 'password') { p.type = 'text'; eye.setAttribute('data-lucide', 'eye-off'); }
-        else { p.type = 'password'; eye.setAttribute('data-lucide', 'eye'); }
-        lucide.createIcons();
-    }
-    function evaluateEntropy() {
+        if (p.type === 'password') { p.type = 'text'; eye.setAttribute('data-lucide', 'eye-off'); } else { p.type = 'password'; eye.setAttribute('data-lucide', 'eye'); } lucide.createIcons(); } function evaluateEntropy() {
         const p = document.getElementById('password').value;
         const v = { length: p.length >= 8, upper: /[A-Z]/.test(p), lower: /[a-z]/.test(p), number: /\d/.test(p), special: /[@$!%*?&]/.test(p) };
         let score = 0;

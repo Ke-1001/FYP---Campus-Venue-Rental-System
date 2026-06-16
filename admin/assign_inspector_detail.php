@@ -4,7 +4,7 @@ session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 
-// ∴ 嚴格引入倉儲依賴 (Zero-SQL Principle)
+// Load repository dependency (Zero-SQL Principle)
 require_once __DIR__ . '/../core/repositories/BookingRepository.php';
 require_once __DIR__ . '/../core/repositories/PersonnelRepository.php';
 use Core\Repositories\BookingRepository;
@@ -29,17 +29,17 @@ if ($bid === 0) {
 | D: Data Extraction & Dictionary Mapping
 |--------------------------------------------------------------------------
 */
-// ∴ 提取完整明細 (包含 user 與 venue)
+// Get full details (including user and venue)
 $booking = $bookingRepo->getDetailedBookingById($bid);
 
 if (!$booking) {
     die("Execution Fault: Booking Node not found.");
 }
 
-// ∴ 提取 Inspectors 名單
+// Get inspector list
 $inspectorsData = $personnelRepo->getInspectors();
 
-// ∴ 構建下拉選單字典 (包含預設與自動分配選項)
+// Build dropdown options (including default and auto-assign options)
 $inspectorOptions = [
     '' => '-- Choose Inspector --',
     'RA01' => 'RA01 - Random Assignment (System Auto)'
@@ -63,10 +63,10 @@ $topbar_content = '
     <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 pl-4">Bookings / Assign Inspector / Detail</h2>
 </div>';
 
-// ∴ 注入特定的 Fiori 表單樣式
+// Load special Fiori form style
 $extra_css = [];
 
-// ∴ 引入表單建構矩陣
+// Load form builder
 require_once __DIR__ . '/../core/components/FioriFormBuilder.php';
 use Core\Components\FioriFormBuilder as FB;
 
@@ -98,13 +98,13 @@ ob_start();
                     echo FB::input('text', 'disp_bid', 'Booking ID', $booking['bid'], $readOnlyProps);
                     echo FB::input('text', 'disp_vname', 'Target Venue', $booking['vname'] ?? 'N/A', $readOnlyProps);
                     
-                    // 顯示訂金，並注入特定顏色
+ // Show deposit with special color
                     echo FB::input('text', 'disp_deposit', 'Deposit Required (RM)', number_format($booking['deposit'] ?? 0, 2), [
                         'readonly' => true,
                         'extra_css' => 'bg-slate-50 text-emerald-600 font-mono font-bold cursor-not-allowed'
                     ]);
 
-                    // 如果 booking 表中有其他時間屬性 (如 start_date, end_date)，可在此展開
+ // If the booking table has other time fields ( start_date, end_date), extend here
                     if (isset($booking['start_date'])) {
                         echo FB::input('text', 'disp_start', 'Start Date/Time', $booking['start_date'], $readOnlyProps);
                     }

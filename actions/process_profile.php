@@ -5,7 +5,7 @@ require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php'; 
 
 $action = $_POST['action'] ?? '';
-// 💡 提取整數識別碼 (相容過渡期的 user_id)
+// Get integer ID (compatible with old user_id)
 $aid = intval($_SESSION['aid'] ?? $_SESSION['user_id'] ?? 0);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $stmt_check->close();
 
-        // 💡 部署至 admin 表
+ // Save to admin table
         $sql = "UPDATE admin SET admin_name = ?, email = ?, phone_num = ? WHERE aid = ?";
         $stmt = $conn->prepare($sql);
         

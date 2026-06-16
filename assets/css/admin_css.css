@@ -23,14 +23,14 @@ html, body, body *, button, input, select, textarea {
 /* * ==========================================
  * MMU Admin Interface - Core Layout Template
  * ==========================================
- * 架構說明：
- * 1. 隔離滾動條的系統預設行為，提升視覺信噪比
- * 2. 封裝側邊欄 (Sidebar) 的空間向量過渡邏輯
- * 3. 處理狀態集 S = { expanded, collapsed } 下的 DOM 節點渲染映射
+ * Structure notes: 
+ * 1. Customize scrollbar to make the UI cleaner
+ * 2. Handle sidebar (Sidebar) width transition logic
+ * 3. Handle DOM rendering for expanded and collapsed states
  */
 
 /* ------------------------------------------
- * 1. 滾動條覆寫 (Scrollbar Override)
+ * 1. Scrollbar override (Scrollbar Override)
  * ------------------------------------------ */
 ::-webkit-scrollbar { 
     width: 6px; 
@@ -48,9 +48,9 @@ html, body, body *, button, input, select, textarea {
 }
 
 /* ------------------------------------------
- * 2. 視覺材質組件 (Material Components)
+ * 2. Visual material components (Material Components)
  * ------------------------------------------ */
-/* 毛玻璃效應矩陣：運用於頂部導航欄等需要 Z 軸深度分離的元件 */
+/* Glass effect for top navigation and layered UI elements */
 .glass-panel { 
     background: rgba(255, 255, 255, 0.95); 
     backdrop-filter: blur(10px); 
@@ -58,22 +58,22 @@ html, body, body *, button, input, select, textarea {
 }
 
 /* ------------------------------------------
- * 3. 軌道式導航狀態機 (Rail Navigation State Machine)
+ * 3. Sidebar navigation state (Rail Navigation State Machine)
  * ------------------------------------------ */
-/* * 基態 (Ground State): S_expanded 
- * 預設維持 16rem (256px) 的空間佔用
+/* * Default state (Ground State): S_expanded 
+ * default width is 16rem (256px) space usage
  */
 .sidebar {
-    width: 16rem; /* 等效於 Tailwind w-64 */
+ width: 16rem; /* same as Tailwind w-64 */
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     white-space: nowrap;
     overflow-x: hidden;
-    will-change: width; /* 提示瀏覽器優化渲染管線 */
+ will-change: width; /* Hint browser to optimize rendering */
 }
 
-/* * 坍縮態 (Collapsed State): S_collapsed 
- * 觸發條件：附加 .sidebar-collapsed 類別
- * 結果：寬度向量收斂至 4rem (64px)
+/* * Collapsed state (Collapsed State): S_collapsed 
+ * Trigger: add.sidebar-collapsed class
+ * Result: width becomes 4rem (64px)
  */
 .sidebar.sidebar-collapsed {
     width: 4rem; 
@@ -159,11 +159,11 @@ html, body, body *, button, input, select, textarea {
 /* ===== Source: assets/css/fiori-tile.css ===== */
 /* File: assets/css/fiori-tile.css */
 
-/* 核心矩陣容器 */
+/* Main card container */
 .fiori-tile {
     background-color: #ffffff;
-    border: 1px solid #e2e8f0; /* 弱化邊界：slate-200 */
-    border-radius: 0.375rem; /* 銳化邊角以符合嚴謹的企業語義 */
+ border: 1px solid #e2e8f0; /* Soft border: slate-200 */
+ border-radius: 0.375rem; /* Use smaller radius for a clean business style */
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
@@ -173,13 +173,13 @@ html, body, body *, button, input, select, textarea {
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
-/* 互動態：僅加深邊框與極輕微的陰影，拒絕 Y 軸浮動 */
+/* Hover state: darker border and light shadow, no vertical movement */
 .fiori-tile:hover {
     border-color: #94a3b8; /* slate-400 */
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
 
-/* 標頭與圖示對齊 */
+/* Header and icon alignment */
 .fiori-tile-header {
     display: flex;
     justify-content: space-between;
@@ -188,24 +188,24 @@ html, body, body *, button, input, select, textarea {
 }
 
 .fiori-tile-icon {
-    color: #64748b; /* 統一為 slate-500，消除 Rainbow 色彩 */
+ color: #64748b; /* Use slate-500 to keep color consistent */
     transition: color 0.2s ease;
 }
 
 .fiori-tile:hover .fiori-tile-icon {
-    color: #0f172a; /* hover 時轉為深灰 */
+ color: #0f172a; /* turn dark gray on hover */
 }
 
-/* 語義標題：字重適中，緊湊字距 */
+/* Title style: medium weight and tight spacing */
 .fiori-tile-title {
-    font-size: 14px; /* 縮小標題尺寸 */
+ font-size: 14px; /* Reduce title size */
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: #334155; /* slate-700 */
 }
 
-/* 次要描述：提高文字資訊密度 */
+/* Description style: compact text */
 .fiori-tile-desc {
     font-size: 12px;
     color: #64748b;
@@ -213,7 +213,7 @@ html, body, body *, button, input, select, textarea {
     margin-bottom: 1rem;
 }
 
-/* KPI 數值：採用等寬字體 (Monospace)，強調數據精確性 */
+/* KPI value: use monospace font (Monospace), highlight data accuracy */
 .fiori-tile-kpi {
     font-size: 2.25rem;
     font-weight: 300;
@@ -223,7 +223,7 @@ html, body, body *, button, input, select, textarea {
     line-height: 1;
 }
 
-/* 底部操作指引：分隔線與極簡箭頭 */
+/* Bottom action hint: divider and simple arrow */
 .fiori-tile-footer {
     margin-top: 1.25rem;
     padding-top: 0.75rem;
@@ -239,7 +239,7 @@ html, body, body *, button, input, select, textarea {
 }
 
 .fiori-tile:hover .fiori-tile-footer {
-    color: #004aad; /* 僅在交互點給予主品牌色提示 */
+ color: #004aad; /* Use brand color only for interactive point */
 }
 
 /* ===== Source: assets/css/fiori_forms.css ===== */
@@ -250,29 +250,29 @@ html, body, body *, button, input, select, textarea {
 
 :root {
     --fiori-bg: #ffffff;
-    --fiori-blue: #004aad; /* 匹配 Tile 的主品牌色 */
+ --fiori-blue: #004aad; /* Match tile brand color */
     --fiori-text: #334155; /* slate-700 */
     --fiori-label: #64748b; /* slate-500 */
-    --fiori-border: #e2e8f0; /* slate-200，弱化边界 */
+ --fiori-border: #e2e8f0; /* slate-200, soft border */
     --fiori-readonly-bg: #f8fafc; /* slate-50 */
     --fiori-input-focus: #004aad;
     --fiori-success: #059669; /* emerald-600 */
     --fiori-error: #dc2626; /* red-600 */
 }
 
-/* 佈局容器：移除写死的外边距干扰，对齐 Tile 的圆角与阴影 */
+/* Layout container: remove fixed margin and align with tile radius and shadow */
 .fiori-form-container {
     background: var(--fiori-bg);
     border: 1px solid var(--fiori-border);
-    border-radius: 0.375rem; /* 锐化边角以符合严谨的企业语义 */
-    margin-bottom: 100px; /* 仅保留底部临界补偿 */
+ border-radius: 0.375rem; /* Simple UI style note. */
+ margin-bottom: 100px; /* Keep only bottom spacing */
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 
 
-/* 块标头：对齐 Tile Header 的高密度文本规范 */
+/* Block header: align with tile header text style */
 .fiori-section-header {
     background: #f8fafc; /* slate-50 */
     border-bottom: 1px solid var(--fiori-border);
@@ -284,7 +284,7 @@ html, body, body *, button, input, select, textarea {
     border-top-right-radius: 0.375rem;
 }
 
-/* 输入控制项：增高点击区域，提升对比度 */
+/* Input controls: taller click area and better contrast */
 .fiori-input {
     border: 1px solid var(--fiori-border);
     border-radius: 0.375rem;
@@ -312,9 +312,9 @@ html, body, body *, button, input, select, textarea {
     box-shadow: none;
 }
 
-/* 验证标签系统 */
+/* Validation tag system */
 .validation-tag {
-    font-size: 0.75rem; /* 12px，比原来稍微清晰 */
+ font-size: 0.75rem; /* 12px, slightly clearer than before */
     font-weight: 600;
     color: var(--fiori-label);
     transition: color 0.2s ease;
@@ -325,7 +325,7 @@ html, body, body *, button, input, select, textarea {
     font-weight: 700;
 }
 
-/* 固定底部工具栏：应用毛玻璃效果并弱化阴影 */
+/* Fixed bottom toolbar: use glass effect and soft shadow */
 .fiori-footer-toolbar {
     position: fixed;
     bottom: 0;
@@ -343,7 +343,7 @@ html, body, body *, button, input, select, textarea {
     box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.02);
 }
 
-/* 按钮规范：摒弃 2px 圆角，使用标准的 0.375rem (rounded-md) */
+/* Button rule: use standard 0.375rem radius instead of 2px (rounded-md) */
 .fiori-btn-primary {
     background: var(--fiori-blue);
     color: white;
@@ -358,7 +358,7 @@ html, body, body *, button, input, select, textarea {
 }
 
 .fiori-btn-primary:hover:not(:disabled) {
-    background: #003882; /* 交互态加深 */
+ background: #003882; /* darker on interaction */
     border-color: #003882;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
@@ -410,9 +410,9 @@ html, body, body *, button, input, select, textarea {
 ========================================= */
 .custom-table thead {
     background-color: #ffffff;
-    font-size: 14px; /* Chrome 标准表格表头大小 */
+ font-size: 14px; /* Chrome standard table header size */
     color: #64748b; /* text-slate-500 */
-    font-weight: 600; /* Chrome 原生风格一般不用纯黑体 (900)，改用 600 或 bold 视觉更舒适 */
+ font-weight: 600; /* Chrome native style usually avoids very heavy font (900), use 600 or bold for better readability */
     text-transform: uppercase;
     letter-spacing: 0.05em; 
     border-bottom: 1px solid #e2e8f0; /* border-slate-200 */
@@ -426,7 +426,7 @@ html, body, body *, button, input, select, textarea {
    Table Body (Tbody, Tr, Td)
 ========================================= */
 .custom-table tbody {
-    font-size: 14px; /* Chrome 标准正文大小 */
+ font-size: 14px; /* Chrome standard body text size */
 }
 
 .custom-table tr {
@@ -451,7 +451,7 @@ html, body, body *, button, input, select, textarea {
 /* =========================================
    Table Content Design (Fonts, Colors)
 ========================================= */
-/* 替换为 Chrome 常见的无衬线系统字体栈，大小设为标准 14px */
+/* Use common Chrome sans-serif system font stack with 14px size */
 .td-text-mono {
     font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     font-size: 14px; 
@@ -462,20 +462,20 @@ html, body, body *, button, input, select, textarea {
 }
 
 a.td-text-mono {
-    color: #2563eb; /* 覆盖默认色为蓝色 */
+ color: #2563eb; /* Override default color to blue */
     text-decoration: none;
 }
 
-/* 链接的悬浮样式 */
+/* Link hover style */
 a.td-text-mono:hover {
     text-decoration: underline;
-    filter: brightness(0.8); /* 自动计算悬浮深色 */
+ filter: brightness(0.8); /* Automatically darken on hover */
 }
 
-/* Action 按钮样式 (仅 > 符号) */
+/* Action button style (only the > symbol) */
 .td-action-btn {
     font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    font-size: 18px; /* 略大一点，保持点击区域和视觉平衡 */
+ font-size: 18px; /* slightly larger for click area and visual balance */
     color: #1e293b;
     display: block;
     transition: color 150ms ease-in-out;
@@ -491,7 +491,7 @@ a.td-text-mono:hover {
 /* ===== Extracted inline styles ===== */
 
 /* Source: admin/form_sample.php */
-/* 隱藏 WebKit 原生日曆圖示，以維持 Fiori UI 視覺純粹度 */
+/* Hide WebKit native calendar icon to keep Fiori UI clean */
         input[type="date"]::-webkit-calendar-picker-indicator {
             display: none;
             -webkit-appearance: none;

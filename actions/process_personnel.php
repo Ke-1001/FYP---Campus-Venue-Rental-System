@@ -7,8 +7,8 @@ require_once __DIR__ . '/../includes/admin_auth.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
     
-    // 💡 1. 嚴格擷取 Payload
-    $table = $_POST['target_table'] ?? ''; // 'admin' 或 'staff'
+ // 1. Get and validate payload
+ $table = $_POST['target_table'] ?? ''; // 'admin' or 'staff'
     $id = intval($_POST['entity_id'] ?? 0);
     $name = htmlspecialchars(trim($_POST['full_name'] ?? ''));
     $email = filter_var(trim($_POST['email'] ?? ''), FILTER_SANITIZE_EMAIL);
@@ -25,8 +25,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $conn->begin_transaction();
 
     try {
-        // 💡 2. 跨表 Email 碰撞檢測 (Cross-table Collision Detection)
-        // 必須檢查 admin 與 staff 兩張表，但如果是修改自身，必須排除自己當前的 ID
+ // 2. Check duplicate email across tables (Cross-table Collision Detection)
+ // Check both admin and staff tables, but exclude the current record when editing
         $aid_exclude = ($table === 'admin') ? $id : 0;
         $sid_exclude = ($table === 'staff') ? $id : 0;
 
@@ -42,14 +42,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($chk_s->get_result()->num_rows > 0) throw new Exception("Conflict: Email is already assigned to another Staff member.");
         $chk_s->close();
 
-        // 💡 3. 動態欄位映射 (Dynamic Column Mapping)
+ // 3. Dynamic field mapping (Dynamic Column Mapping)
         $role_col = ($table === 'admin') ? 'role' : 'position';
         $id_col = ($table === 'admin') ? 'aid' : 'sid';
         $name_col = ($table === 'admin') ? 'admin_name' : 'staff_name';
 
-        // 💡 4. 條件式寫入 (Conditional Vector Update)
+ // 4. Save only changed data (Conditional Vector Update)
         if (!empty($raw_password)) {
-            // 密碼複雜度檢測
+ // Check password strength
             if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $raw_password)) {
                 throw new Exception("Security Fault: New password does not meet complexity standards.");
             }
@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $conn->prepare($sql);
             $stmt->bind_param("sssssi", $name, $email, $phone, $access_level, $new_hash, $id);
         } else {
-            // 不更新密碼
+ // Do not update password
             $sql = "UPDATE $table SET $name_col = ?, email = ?, phone_num = ?, $role_col = ? WHERE $id_col = ?";
             $stmt = $conn->prepare($sql);
             $stmt->bind_param("ssssi", $name, $email, $phone, $access_level, $id);
@@ -78,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['toast'] = ['type' => 'error', 'msg' => "Update Aborted: " . $e->getMessage()];
     }
 
-    // 無縫跳轉回目錄
+ // Redirect back to the directory
     header("Location: ../admin/staff_directory.php");
     exit;
 } else {

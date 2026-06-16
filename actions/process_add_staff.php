@@ -19,8 +19,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // ∴ [新增] 後端嚴格網域斷言 (Backend Domain Assertion)
-    // 確保輸入向量 E ∈ MMU Domain Space
+ // Strict backend domain check
+ // Make sure the input email is within the MMU domain
     if (!preg_match('/^[a-zA-Z0-9._%+-]+@([a-zA-Z0-9.-]+\.)?mmu\.edu\.my$/', $email)) {
         $_SESSION['toast'] = ['type' => 'error', 'msg' => 'Security Exception: Invalid identity vector. Only MMU institutional domains are permitted.'];
         header("Location: ../admin/add_staff.php");
@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $conn->begin_transaction();
 
     try {
-        // 💡 1. 跨表全域碰撞檢測 (Global Collision Detection)
+ // 1. Check duplicate data across tables (Global Collision Detection)
         $stmt_chk_a = $conn->prepare("SELECT aid FROM admin WHERE email = ?");
         $stmt_chk_a->bind_param("s", $email);
         $stmt_chk_a->execute();
@@ -43,12 +43,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($stmt_chk_s->get_result()->num_rows > 0) throw new Exception("Conflict: Email is already assigned to a Staff member.");
         $stmt_chk_s->close();
 
-        // 💡 2. 生成極高強度虛擬憑證 (Dummy Hash: 防止未初始化帳戶遭暴力破解)
+ // 2. Create a strong temporary password hash (Dummy Hash: prevent unused accounts from brute-force attacks)
         $dummy_password = bin2hex(random_bytes(32));
         $password_hash = password_hash($dummy_password, PASSWORD_DEFAULT);
         $new_id = 0;
 
-        // 💡 3. 身分資料配置 (Identity Provisioning)
+ // 3. Create account data (Identity Provisioning)
         if (in_array($access_level, ['super_admin', 'admin'])) {
             $stmt = $conn->prepare("INSERT INTO admin (admin_name, email, password, phone_num, role) VALUES (?, ?, ?, ?, ?)");
             $stmt->bind_param("sssss", $full_name, $email, $password_hash, $phone_num, $access_level);
@@ -65,12 +65,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception("Security Exception: Unknown authorization level parameter.");
         }
 
-        // 💡 4. 發行非對稱時效性權杖 (CSPRNG Token Issuance)
-        $token = bin2hex(random_bytes(32)); // 原始 Token (傳給 Email)
-        $token_hash = hash('sha256', $token); // 雜湊 Token (存入 DB)
-        $expires_at = date("Y-m-d H:i:s", time() + 3600); // 1 小時後過期
+ // 4. Create a secure time-limited token (CSPRNG Token Issuance)
+ $token = bin2hex(random_bytes(32)); // Raw token (sent to email)
+ $token_hash = hash('sha256', $token); // Hashed token (stored in DB)
+ $expires_at = date("Y-m-d H:i:s", time() + 3600); // expires after 1 hour
 
-        // 寫入密碼重置矩陣
+ // Save password reset data
         $stmt_token = $conn->prepare("INSERT INTO password_resets (email, token_hash, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 1 HOUR))");
         $stmt_token->bind_param("ss", $email, $token_hash);
         $stmt_token->execute();
@@ -79,27 +79,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $reset_link = getAppBaseUrl() . "/admin/setup_password.php?token=" . $token;
 
         $subject = "Action Required: Complete Your CVBMS password Configuration";
-        $message = "Hello {$full_name},\n\n" .
-                   "An administrator account has been provisioned for you. " .
-                   "To activate your account and configure your secure credential vector, please access the following cryptographic link:\n\n" .
-                   $reset_link . "\n\n" .
-                   "Note: This link will strictly expire in 1 hour. Do not share this URL with anyone.\n\n" .
-                   "CVBMS Automated System";
+        $message = "Hello {$full_name},\n\n" . "An administrator account has been provisioned for you. " . "To activate your account and configure your secure credential vector, please access the following cryptographic link:\n\n" . $reset_link . "\n\n" . "Note: This link will strictly expire in 1 hour. Do not share this URL with anyone.\n\n" . "CVBMS Automated System";
 
-        // 💡 [依賴替換與精確執行節點] 
-        // 變數皆已賦值，廢除 mail() 函數，改以 PHPMailer 引擎執行 SMTP 交握
+ // [Dependency replacement and exact execution point] 
+ // All variables are ready. Use PHPMailer SMTP instead of mail()
         $mail_sent = dispatchSystemEmail($email, $full_name, $subject, $message); 
 
-        // 交易狀態評估矩陣 (Transaction State Evaluation Matrix)
+ // Transaction status check (Transaction State Evaluation Matrix)
         if ($mail_sent) {
             $smtp_status = "Activation token dispatched to [{$email}].";
             $toast_type = 'success';
         } else {
             $smtp_status = "Personnel created, but SMTP dispatch failed. Check system logs.";
-            $toast_type = 'warning'; // 降級為警告
+ $toast_type = 'warning'; // Use warning status
         }
 
-        // 即使 SMTP 失敗，我們仍提交資料庫，確保核心架構正確運作
+ // Even if SMTP fails, save the database record so the main process still works
         $conn->commit();
         
         $msg = "Success: Personnel initialized as {$access_level}. " . $smtp_status;

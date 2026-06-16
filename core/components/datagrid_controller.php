@@ -1,6 +1,6 @@
 <?php
 // File: core/components/datagrid_controller.php
-// 必须前置输入: $controller_config 数组
+// Required input: $controller_config
 
 $edit_url_base = $controller_config['edit_url_base'] ?? '';
 $delete_entity_name = $controller_config['delete_entity_name'] ?? 'record';
@@ -18,7 +18,7 @@ $delete_entity_name = $controller_config['delete_entity_name'] ?? 'record';
 </div>
 
 <script>
-    // 闭包配置注入
+ // Inject config into closure
     const DATAGRID_CONFIG = {
         editUrlBase: "<?php echo addslashes($edit_url_base); ?>",
         entityName: "<?php echo addslashes($delete_entity_name); ?>"
@@ -35,12 +35,7 @@ $delete_entity_name = $controller_config['delete_entity_name'] ?? 'record';
         const btnDelete = document.getElementById('btn-delete');
         const cbCounter = document.getElementById('cb-counter');
         
-        if (cbCounter) cbCounter.innerText = selectedCount;
-
-        const isSingle = selectedCount === 1;
-        const isMultiple = selectedCount > 0;
-
-        if (btnEdit) {
+        if (cbCounter) cbCounter.innerText = selectedCount;  const isSingle = selectedCount === 1; const isMultiple = selectedCount > 0;  if (btnEdit) {
             btnEdit.disabled = !isSingle;
             btnEdit.className = isSingle 
                 ? "px-4 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-md shadow-sm transition cursor-pointer"
@@ -57,9 +52,7 @@ $delete_entity_name = $controller_config['delete_entity_name'] ?? 'record';
 
     const executeAction = (type) => {
         const selected = document.querySelectorAll('.row-cb:checked');
-        if (selected.length === 0) return;
-
-        if (type === 'edit' && selected.length === 1) {
+        if (selected.length === 0) return;  if (type === 'edit' && selected.length === 1) {
             window.location.href = DATAGRID_CONFIG.editUrlBase + encodeURIComponent(selected[0].value);
         } else if (type === 'delete') {
             document.getElementById('custom-modal-msg').innerText = `Are you sure you want to permanently delete ${selected.length} ${DATAGRID_CONFIG.entityName}(s)? This action cannot be undone.`;
@@ -84,7 +77,7 @@ $delete_entity_name = $controller_config['delete_entity_name'] ?? 'record';
         setTimeout(() => { modal.classList.add('hidden'); }, 200);
     };
 
-    // 绑定模态框确认提交
+ // Bind modal confirm submit
     const confirmBtn = document.getElementById('custom-modal-confirm-btn');
     if (confirmBtn) {
         confirmBtn.addEventListener('click', function() {

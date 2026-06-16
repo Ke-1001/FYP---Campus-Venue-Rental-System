@@ -5,29 +5,29 @@
 
 :root {
     --fiori-bg: #ffffff;
-    --fiori-blue: #004aad; /* 匹配 Tile 的主品牌色 */
+ --fiori-blue: #004aad; /* Match tile brand color */
     --fiori-text: #334155; /* slate-700 */
     --fiori-label: #64748b; /* slate-500 */
-    --fiori-border: #e2e8f0; /* slate-200，弱化边界 */
+ --fiori-border: #e2e8f0; /* slate-200, soft border */
     --fiori-readonly-bg: #f8fafc; /* slate-50 */
     --fiori-input-focus: #004aad;
     --fiori-success: #059669; /* emerald-600 */
     --fiori-error: #dc2626; /* red-600 */
 }
 
-/* 佈局容器：移除写死的外边距干扰，对齐 Tile 的圆角与阴影 */
+/* Layout container: remove fixed margin and align with tile radius and shadow */
 .fiori-form-container {
     background: var(--fiori-bg);
     border: 1px solid var(--fiori-border);
-    border-radius: 0.375rem; /* 锐化边角以符合严谨的企业语义 */
-    margin-bottom: 100px; /* 仅保留底部临界补偿 */
+ border-radius: 0.375rem; /* Simple UI style note. */
+ margin-bottom: 100px; /* Keep only bottom spacing */
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 
 
-/* 块标头：对齐 Tile Header 的高密度文本规范 */
+/* Block header: align with tile header text style */
 .fiori-section-header {
     background: #f8fafc; /* slate-50 */
     border-bottom: 1px solid var(--fiori-border);
@@ -39,7 +39,7 @@
     border-top-right-radius: 0.375rem;
 }
 
-/* 输入控制项：增高点击区域，提升对比度 */
+/* Input controls: taller click area and better contrast */
 .fiori-input {
     border: 1px solid var(--fiori-border);
     border-radius: 0.375rem;
@@ -67,9 +67,9 @@
     box-shadow: none;
 }
 
-/* 验证标签系统 */
+/* Validation tag system */
 .validation-tag {
-    font-size: 0.75rem; /* 12px，比原来稍微清晰 */
+ font-size: 0.75rem; /* 12px, slightly clearer than before */
     font-weight: 600;
     color: var(--fiori-label);
     transition: color 0.2s ease;
@@ -80,7 +80,7 @@
     font-weight: 700;
 }
 
-/* 固定底部工具栏：应用毛玻璃效果并弱化阴影 */
+/* Fixed bottom toolbar: use glass effect and soft shadow */
 .fiori-footer-toolbar {
     position: fixed;
     bottom: 0;
@@ -98,7 +98,7 @@
     box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.02);
 }
 
-/* 按钮规范：摒弃 2px 圆角，使用标准的 0.375rem (rounded-md) */
+/* Button rule: use standard 0.375rem radius instead of 2px (rounded-md) */
 .fiori-btn-primary {
     background: var(--fiori-blue);
     color: white;
@@ -113,7 +113,7 @@
 }
 
 .fiori-btn-primary:hover:not(:disabled) {
-    background: #003882; /* 交互态加深 */
+ background: #003882; /* darker on interaction */
     border-color: #003882;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }

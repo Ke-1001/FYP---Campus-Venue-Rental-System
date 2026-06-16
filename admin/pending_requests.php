@@ -5,7 +5,7 @@ require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 require_once __DIR__ . '/../core/components/datagrid.php'; 
 
-// ∴ 引入核心組件與倉儲依賴
+// Load core components and repository
 require_once __DIR__ . '/../core/components/FilterBuilder.php';
 require_once __DIR__ . '/../core/repositories/BookingRepository.php';
 
@@ -49,8 +49,8 @@ $topbar_content = '
 </div>';
 $extra_css = [];
 
-// ∴ 核心拓撲：DataGrid Schema 配置字典
-// 啟用 enable_checkbox 達成 O(1) 批次決策架構
+// Core DataGrid schema config
+// Enable checkbox for bulk action
 $datagrid_schema = [
     'enable_checkbox' => true,
     'primary_key' => 'bid',
@@ -112,7 +112,7 @@ ob_start();
 </div>
 
 <script>
-    // ∴ 嚴格對接 datagrid.php 的 checkbox 觸發機制
+ // Match datagrid.php checkbox trigger
     const toggleAll = (source) => {
         document.querySelectorAll('.row-cb').forEach(cb => { cb.checked = source.checked; });
         updateButtonStates();
@@ -128,7 +128,7 @@ ob_start();
 
         const hasSelection = selectedCount > 0;
 
-        // 動態切換按鈕狀態與視覺矩陣
+ // Toggle button status and style
         if (btnApprove) {
             btnApprove.disabled = !hasSelection;
             btnApprove.className = hasSelection 
@@ -144,7 +144,7 @@ ob_start();
         }
     };
 
-    // 绑定 Checkbox 的单点点击事件以触发状态更新
+ // Bind checkbox click event to update status
     document.addEventListener('change', function(e) {
         if(e.target && e.target.classList.contains('row-cb')) {
             updateButtonStates();
@@ -153,15 +153,7 @@ ob_start();
 
     const triggerBulkDecision = (actionType) => {
         const selected = document.querySelectorAll('.row-cb:checked');
-        if (selected.length === 0) return;
-
-        const titleEl = document.getElementById('modal-title');
-        const msgEl = document.getElementById('modal-msg');
-        const btnEl = document.getElementById('modal-confirm-btn');
-
-        document.getElementById('bulk_action_type').value = actionType;
-
-        if (actionType === 'approve') {
+        if (selected.length === 0) return;  const titleEl = document.getElementById('modal-title'); const msgEl = document.getElementById('modal-msg'); const btnEl = document.getElementById('modal-confirm-btn');  document.getElementById('bulk_action_type').value = actionType;  if (actionType === 'approve') {
             titleEl.innerText = 'Batch Approve Bookings';
             msgEl.innerText = `Are you sure you want to approve ${selected.length} request(s)? The venue slots will be locked.`;
             btnEl.className = 'px-4 py-2 text-xs font-semibold text-white rounded-md shadow-sm transition-colors bg-[#059669] hover:bg-[#047857] border border-[#059669]';
@@ -187,7 +179,7 @@ ob_start();
         setTimeout(() => { modal.classList.add('hidden'); }, 200);
     };
 
-    // 掛載實體表單傳遞動作
+ // Set form submit action
     document.getElementById('modal-confirm-btn').addEventListener('click', function() {
         this.innerHTML = 'Processing...';
         this.classList.add('opacity-70', 'cursor-not-allowed');

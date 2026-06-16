@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $conn->begin_transaction();
 
     try {
-        // 💡 1. 狀態機與 SLA 臨界防護 (State Machine & SLA Validation)
+ // 1. Status and SLA validation (State Machine & SLA Validation)
         $stmt_check_booking = $conn->prepare("SELECT status, date_booked, time_end FROM booking WHERE bid = ? FOR UPDATE");
         $stmt_check_booking->bind_param("i", $bid);
         $stmt_check_booking->execute();
@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception("SLA Violation: Manual assignment threshold expired. System autopilot will engage.");
         }
 
-        // 💡 2. 冪等性約束 (Idempotency Constraint: 1:1 Mapping)
+ // 2. Prevent duplicate records (Idempotency Constraint: 1:1 Mapping)
         $stmt_check_ins = $conn->prepare("SELECT ins_id FROM inspection WHERE bid = ? LIMIT 1");
         $stmt_check_ins->bind_param("i", $bid);
         $stmt_check_ins->execute();
@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $stmt_check_ins->close();
 
-        // 💡 3. 執行貪婪式最小負載演算法 (Greedy Minimum-Load Algorithm)
+ // 3. Run the minimum-load assignment rule (Greedy Minimum-Load Algorithm)
         if ($sid_raw === 'RA01') {
             $sql_ra01 = "
                 SELECT s.sid, COALESCE(clash.clash_count, 0) AS load_weight
@@ -80,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $sid = intval($sid_raw);
         }
 
-        // 💡 4. 注入檢驗節點
+ // 4. Create inspection record
         $sql = "INSERT INTO inspection (bid, sid, ins_status) VALUES (?, ?, 'pending')";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("ii", $bid, $sid);

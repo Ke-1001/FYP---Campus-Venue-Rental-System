@@ -1,6 +1,6 @@
 <?php
 // File: includes/ui_components.php
-// 此檔案應被 include 在每個頁面的 </body> 標籤正上方
+// Include this file right before </body> on each page
 ?>
 
 <?php if (isset($_SESSION['toast'])): ?>
@@ -18,18 +18,18 @@
     </div>
     
     <script>
-        // 3.5秒後自動衰減隱藏 (Information Entropy Decay)
+ // Auto hide after 3.5 seconds (Information Entropy Decay)
         setTimeout(() => { closeToast(); }, 3500);
         function closeToast() {
             const toast = document.getElementById('system-toast');
             if(toast) {
                 toast.classList.replace('translate-x-0', 'translate-x-full');
                 toast.classList.replace('opacity-100', 'opacity-0');
-                setTimeout(() => toast.remove(), 500); // 等待動畫結束後移除 DOM
+ setTimeout(() => toast.remove(), 500); // Remove DOM after animation ends
             }
         }
     </script>
-    <?php unset($_SESSION['toast']); // 顯示後立刻銷毀 Session 變數 ?>
+ <?php unset($_SESSION['toast']); // Clear session variable after display ?>
 <?php endif; ?>
 
 
@@ -57,9 +57,9 @@
 </div>
 
 <script>
-    // 攔截原本的跳轉，喚起客製化 Modal
+ // Stop normal navigation and open custom modal
     function triggerCustomConfirm(event, message, targetUrl) {
-        event.preventDefault(); // 阻擋 <a> 標籤的預設跳轉
+ event.preventDefault(); // Block default <a> navigation
         document.getElementById('confirm-modal-msg').innerText = message;
         document.getElementById('confirm-modal-btn').href = targetUrl;
         document.getElementById('custom-confirm-modal').classList.remove('hidden');

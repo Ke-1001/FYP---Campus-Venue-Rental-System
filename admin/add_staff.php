@@ -9,7 +9,7 @@ require_once __DIR__ . '/../includes/admin_auth.php';
 | I: Repository Initialization & Mode Detection
 |--------------------------------------------------------------------------
 */
-// ∴ 純粹註冊節點，無需初始化資料提取倉儲 (Zero-Data Dependency)
+// Registration page only, no data repository needed (Zero-Data Dependency)
 
 /*
 |--------------------------------------------------------------------------
@@ -28,7 +28,7 @@ $topbar_content = '
 
 $extra_css = [];
 
-// ∴ 引入表單建構矩陣
+// Load form builder
 require_once __DIR__ . '/../core/components/FioriFormBuilder.php';
 use Core\Components\FioriFormBuilder as FB;
 
@@ -87,7 +87,7 @@ ob_start();
                     <div class="space-y-1">
                         <?php
                         echo FB::input('text', 'phone_num', 'Contact Number', '', [
-                            'id' => 'phone_num',               // ∴ 強制綁定 DOM ID
+ 'id' => 'phone_num', // Force DOM ID binding
                             'required' => true, 
                             'placeholder' => '0123456789',
                             'maxlength' => '11',               
@@ -121,14 +121,14 @@ ob_start();
 </form>
 
 <script>
-    // 建立狀態字典 (State Dictionary) 追蹤各欄位有效性
+ // Create status map (State Dictionary) track each field validity
     const formValidity = {
         email: false,
         phone: false
     };
 
     /**
-     * 主控樞紐：評估表單總體狀態 (Evaluate Aggregate State)
+ * Main control: check overall form status (Evaluate Aggregate State)
      * ∀ state ∈ formValidity, state ≡ true ⇒ enable Submit
      */
     function validateFormState() {
@@ -136,30 +136,30 @@ ob_start();
         validatePhoneField();
 
         const btn = document.getElementById('submitBtn');
-        // 邏輯乘積運算 (Logical AND)
+ // Logical AND check (Logical AND)
         const isFormValid = formValidity.email && formValidity.phone;
         btn.disabled = !isFormValid;
     }
 
     /**
-     * V_{email}: Email 驗證函數 (特化多媒體大學網域限制)
-     * 邊界條件：僅允許 @mmu.edu.my 或其子網域 (如 @student.mmu.edu.my)
+ * V_{email}: Email validation function (MMU domain restriction)
+ * Rule: only allow @mmu.edu.my or its subdomain ( @student.mmu.edu.my)
      */
     function validateEmailField() {
         const emailInput = document.getElementById('email');
         const emailFeedback = document.getElementById('email-feedback');
         
-        // 嚴格網域邊界正規表達式
+ // Strict domain regex
         const emailRegex = /^[a-zA-Z0-9._%+-]+@([a-zA-Z0-9.-]+\.)?mmu\.edu\.my$/;
         
         if (emailInput.value.length > 0) {
             if (emailRegex.test(emailInput.value)) {
-                // 驗證通過：恢復 Fiori 預設樣式
+ // If valid, restore default Fiori style
                 emailInput.style.borderColor = '#d9d9d9';
                 emailFeedback.classList.add('hidden');
                 formValidity.email = true;
             } else {
-                // 驗證失敗：觸發高亮提示
+ // If invalid, show highlight warning
                 emailInput.style.borderColor = '#ee0000';
                 emailFeedback.textContent = "Invalid identity vector. Only MMU institutional domains are permitted.";
                 emailFeedback.classList.remove('hidden');
@@ -173,22 +173,22 @@ ob_start();
     }
 
     /**
-     * V_{phone}: 電話號碼驗證函數
-     * 執行路徑：Sanitize -> Measure -> Evaluate
+ * V_{phone}: Phone number validation function
+ * Process: Sanitize -> Measure -> Evaluate
      */
     function validatePhoneField() {
         const phoneInput = document.getElementById('phone_num');
         const phoneFeedback = document.getElementById('phone-feedback');
         
-        // 限制2：即時過濾（Sanitization）
-        // 利用 Regex \D 捕捉所有非數字字元並剔除，確保輸入域 I ∈ Z^+
+ // Rule 2: live filtering(Sanitization)
+ // Use regex \D to remove non-numeric characters
         phoneInput.value = phoneInput.value.replace(/\D/g, '');
         
         const len = phoneInput.value.length;
 
         if (len > 0) {
-            // 限制3 & 4：邊界條件檢測 (10 <= L <= 11)
-            // L > 11 已由 HTML maxlength="11" 於前端物理阻擋
+ // Rule 3 and 4: length check (10 <= L <= 11)
+ // L > 11 already limited by HTML maxlength="11"
             if (len >= 10 && len <= 11) {
                 phoneInput.style.borderColor = '#d9d9d9';
                 phoneFeedback.classList.add('hidden');
@@ -205,13 +205,13 @@ ob_start();
         }
     }
 
-    // 處理表單提交時的 UI 狀態防抖 (Debounce / State lock)
+ // Prevent repeated submit in UI (Debounce / State lock)
     document.getElementById('addStaffForm').addEventListener('submit', function() {
         const btn = document.getElementById('submitBtn');
         btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin mr-2 inline"></i> Provisioning...';
         btn.classList.add('opacity-70', 'cursor-not-allowed');
         btn.style.pointerEvents = 'none';
-        // 若使用了 lucide.js，需重新渲染新加入的圖標
+ // If lucide.js is used, render newly added icons again
         if (typeof lucide !== 'undefined') lucide.createIcons();
     });
 </script>

@@ -45,12 +45,7 @@ $damage_window_start_ts = strtotime($booking['date_booked'] . ' ' . $booking['ti
 $damage_window_end_ts = strtotime($booking['date_booked'] . ' ' . $booking['time_end']);
 $now_ts = time();
 
-if (
-    $damage_window_start_ts === false ||
-    $damage_window_end_ts === false ||
-    $now_ts < $damage_window_start_ts ||
-    $now_ts > $damage_window_end_ts
-) {
+if ( $damage_window_start_ts === false || $damage_window_end_ts === false || $now_ts < $damage_window_start_ts || $now_ts > $damage_window_end_ts ) {
     $_SESSION['error'] = "Damage report can only be submitted during the booking time.";
     header("Location: booking_details.php?bid=" . urlencode($bid));
     exit;
@@ -100,21 +95,21 @@ include("../includes/user_navbar.php");
                     <label class="flex items-start p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition" onclick="updateUI('Level 1')">
                         <input type="radio" name="severity" value="Level 1" class="mt-1 mr-3" required>
                         <div>
-                            <p class="text-sm font-bold text-slate-800">Level 1: Cosmetic Issue (外观瑕疵)</p>
+ <p class="text-sm font-bold text-slate-800">Level 1: Cosmetic Issue</p>
                             <p class="text-xs text-slate-500">Does not affect usage (e.g., wall stains, minor scratches).</p>
                         </div>
                     </label>
                     <label class="flex items-start p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition" onclick="updateUI('Level 2')">
                         <input type="radio" name="severity" value="Level 2" class="mt-1 mr-3" required>
                         <div>
-                            <p class="text-sm font-bold text-slate-800">Level 2: Partial Impairment (部分功能受损)</p>
+ <p class="text-sm font-bold text-slate-800">Level 2: Partial Impairment</p>
                             <p class="text-xs text-slate-500">Some features broken but venue is still usable (e.g., 1 broken chair out of 30).</p>
                         </div>
                     </label>
                     <label class="flex items-start p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-red-50 transition" onclick="updateUI('Level 3')">
                         <input type="radio" name="severity" value="Level 3" class="mt-1 mr-3" required>
                         <div>
-                            <p class="text-sm font-bold text-red-600">Level 3: Critical/Blocking (阻碍性损坏)</p>
+ <p class="text-sm font-bold text-red-600">Level 3: Critical/Blocking Damage</p>
                             <p class="text-xs text-slate-500">Venue is unusable or physically unsafe (e.g., door lock broken, power outage).</p>
                         </div>
                     </label>
@@ -165,7 +160,7 @@ function updateUI(severity) {
     
     if (severity === 'Level 3') {
         warningBox.classList.remove('hidden');
-        // 读取当前单选框的状态
+ // Read current radio button status
         const choice = document.querySelector('input[name="level3_choice"]:checked');
         actionInput.value = choice ? choice.value : 'continue';
     } else {

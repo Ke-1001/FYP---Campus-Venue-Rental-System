@@ -10,8 +10,8 @@ class FilterBuilder {
     private string $form_id;
     private bool $show_submit_btn;
     
-    // 全局設計語義矩陣 (Global Design Token Matrix)
-    // ∴ 嚴格控制全局視覺，修改此處即可改變所有頁面的過濾器外觀
+ // Global design tokens (Global Design Token Matrix)
+ // Control global filter style here
     private array $layout_config = [
         'container_class' => 'mb-6 bg-white border border-slate-200 rounded-lg p-4 shadow-sm shrink-0',
         'form_class'      => 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end',
@@ -30,7 +30,7 @@ class FilterBuilder {
     }
 
     /**
-     * 動態註冊過濾物件 (已補回 auto_submit 參數支持)
+ * Register filter item dynamically (auto_submit support restored)
      */
     public function addField(string $type, string $name, string $label, array $options = [], string $placeholder = '', string $db_column = '', string $operator = '=', bool $auto_submit = false): self {
         $value = isset($_GET[$name]) ? trim($_GET[$name]) : '';
@@ -73,13 +73,13 @@ class FilterBuilder {
 
             switch ($field['type']) {
                 case 'text':
-                case 'date':    // ∴ 新增支援 date
-                case 'number':  // ∴ 新增支援 number
+ case 'date': // Add date support
+ case 'number': // Add number support
                     $html .= '<input type="'.$field['type'].'" name="'.$name.'" value="'.$value.'" placeholder="'.$placeholder.'" class="'.$this->layout_config['input_class'].'">';
                     break;
 
                 case 'select':
-                    // ∴ 嚴格執行狀態判定，注入 auto_submit 行為
+ // Check state and add auto_submit behavior
                     $auto_attr = $field['auto_submit'] ? 'onchange="this.form.submit()"' : '';
                     $html .= '<select name="'.$name.'" '.$auto_attr.' class="'.$this->layout_config['select_class'].'">';
                     if (!empty($field['placeholder'])) {

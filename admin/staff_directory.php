@@ -4,7 +4,7 @@ session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 
-// ∴ 嚴格引入 OOP 組件矩陣與倉儲
+// Load OOP components and repository
 require_once __DIR__ . '/../core/components/FilterBuilder.php';
 require_once __DIR__ . '/../core/components/DataGridBuilder.php';
 require_once __DIR__ . '/../core/repositories/PersonnelRepository.php';
@@ -61,7 +61,7 @@ $topbar_content = '
 </div>';
 $extra_css = [];
 
-// ∴ 啟動 DataGridBuilder：徹底接管 HTML 節點的生成
+// Start DataGridBuilder to generate HTML nodes
 $gridBuilder = new DataGridBuilder('compound_id', '../actions/process_personnel_deletion.php', 'personnel entity');
 $gridBuilder->setCreateAction('add_staff.php', 'Register Staff')
     ->setRowActionUrl('route_personnel.php?ref=%s')
@@ -80,7 +80,7 @@ $gridBuilder->setCreateAction('add_staff.php', 'Register Staff')
     ]])
     ->addColumn('joined_fmt', 'Record', 'text_muted_mono', ['width' => 'w-32']);
 
-// ∴ 注入全域控制器字典：徹底接管 JavaScript 與 Modal 邏輯
+// Inject global controller config for JavaScript and modal logic
 $controller_config = [
     'edit_url_base' => 'route_personnel.php?ref=',
     'delete_entity_name' => 'personnel entity'

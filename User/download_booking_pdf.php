@@ -511,14 +511,7 @@ $html = '
     </div>
 
     <div class="footer">
-        This is a computer-generated booking report. No signature is required.
-        <br>
-        Generated on: ' . date("d M Y, h:i A") . '
-    </div>
-
-</body>
-</html>
-';
+        This is a computer-generated booking report. No signature is required. <br> Generated on: ' . date("d M Y, h:i A") . ' </div>  </body> </html> ';
 
 $options = new Options();
 $options->set('isHtml5ParserEnabled', true);

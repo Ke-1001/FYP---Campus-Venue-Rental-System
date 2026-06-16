@@ -6,7 +6,7 @@ require_once __DIR__ . '/../includes/admin_auth.php';
 require_once __DIR__ . '/../includes/booking_functions.php';
 require_once __DIR__ . '/../core/components/datagrid.php'; 
 
-// ∴ 引入核心組件與倉儲依賴
+// Load core components and repository
 require_once __DIR__ . '/../core/components/FilterBuilder.php';
 require_once __DIR__ . '/../core/repositories/InspectionRepository.php';
 
@@ -20,10 +20,10 @@ syncCompletedBookings($conn);
 | I: Repository Initialization & System Protocol
 |--------------------------------------------------------------------------
 */
-// ∴ 1. 實例化檢驗倉儲
+// 1. Create inspection repository
 $inspectionRepo = new InspectionRepository($conn);
 
-// ∴ 2. 建構過濾器矩陣 (Filter Topology)
+// 2. Build filters (Filter Topology)
 $filterBuilder = new FilterBuilder('pending_inspections.php', true);
 $filterBuilder
     ->addField('text', 'f_bid', 'Ref ID', [], 'Search BID...', 'b.bid', 'LIKE')
@@ -37,10 +37,10 @@ $filterBuilder
 | D: Abstracted Data Execution & View Reshaping
 |--------------------------------------------------------------------------
 */
-// ∴ 3. 委託倉儲獲取結果集
+// 3. Get results from repository
 $result = $inspectionRepo->getPendingInspections($filterBuilder);
 
-// ∴ 4. 提取資料列並執行 Spatiotemporal Validation (時空推演)
+// 4. Get rows and run time validation (time validation)
 $tz = new DateTimeZone('Asia/Kuala_Lumpur');
 $now = new DateTime('now', $tz);
 $records = [];
@@ -50,7 +50,7 @@ if ($result && $result->num_rows > 0) {
         $start_dt = new DateTime($row['date_booked'] . ' ' . $row['time_start'], $tz);
         $end_dt = new DateTime($row['date_booked'] . ' ' . $row['time_end'], $tz);
         
-        // ∴ 計算 $\mathcal{T}(t)$ 狀態向量並注入虛擬欄位 execution_state
+ // Calculate time status and add execution_state field
         if ($now >= $end_dt || $row['booking_status'] === 'completed') {
             $row['execution_state'] = 'ready';
         } else {
@@ -80,8 +80,8 @@ $topbar_content = '
 </div>';
 $extra_css = [];
 
-// ∴ 核心拓撲：DataGrid Schema 配置字典
-// 藉由 map_badge 將複雜的 IF/ELSE 渲染邏輯抽象為聲明式配置
+// Core DataGrid schema config
+// Use map_badge to replace complex IF/ELSE display logic
 $datagrid_schema = [
     'enable_checkbox' => false,
     'primary_key' => 'bid',
@@ -143,7 +143,7 @@ ob_start();
 </div>
 
 <script>
-    // ∴ Modal 控制邏輯
+ // Modal control logic
     function showTemporalModal(message) {
         const modal = document.getElementById('temporal-fault-modal');
         const panel = document.getElementById('temporal-fault-panel');
@@ -169,24 +169,24 @@ ob_start();
         setTimeout(() => { modal.classList.add('hidden'); }, 300);
     }
 
-    // ∴ 核心防禦: 事件委派攔截器 (Event Delegation Interceptor)
+ // Core safety: event delegation handler (Event Delegation Interceptor)
     document.addEventListener('DOMContentLoaded', () => {
         const wrapper = document.getElementById('datagrid-wrapper');
         
         wrapper.addEventListener('click', function(e) {
-            // 尋找被點擊的目標是否為進入評估的連結
+ // Check whether the clicked target is an evaluation link
             const targetLink = e.target.closest('a[href*="execute_inspection.php"]');
             if (!targetLink) return;
 
-            // 回溯尋找該行 (Table Row)
+ // Find the related row (Table Row)
             const row = targetLink.closest('tr');
             if (!row) return;
 
-            // 提取該行的狀態徽章 (偵測 In Use 或 Awaiting 樣式)
+ // Get the status badge in the row (detect In Use or Awaiting style)
             const invalidBadge = row.querySelector('.bg-amber-50, .bg-slate-50'); 
             
             if (invalidBadge) {
-                // 阻斷預設跳轉行為
+ // Block default navigation
                 e.preventDefault(); 
                 const stateText = invalidBadge.textContent.trim().toLowerCase();
                 const errMsg = `Warning: Booking is currently [${stateText}]. Assessment cannot commence until the reserved slot has concluded.`;
@@ -194,12 +194,12 @@ ob_start();
             }
         });
 
-        // 偵測是否由伺服器端強制重定向退回 (處理惡意修改 URL 的邊界情況)
+ // Check if server forced a redirect back (handle edited URL edge case)
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('err') && urlParams.get('err') === 'temporal') {
             const state = urlParams.get('state') || 'unauthorized';
             showTemporalModal(`Warning: Assessment cannot commence. Booking state: [${state}].`);
-            // 清理 URL 參數以維持純淨狀態
+ // Clear URL parameters
             window.history.replaceState({}, document.title, "pending_inspections.php");
         }
     });

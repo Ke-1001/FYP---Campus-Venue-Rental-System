@@ -14,7 +14,7 @@ class CategoryRepository {
     }
 
     /**
-     * 讀取：獲取單一類別實體狀態
+ * Read: get one category status
      */
     public function getCategoryById(int $vcid): ?array {
         $stmt = $this->conn->prepare("SELECT * FROM vcategory WHERE vcid = ?");
@@ -27,7 +27,7 @@ class CategoryRepository {
     }
 
     /**
-     * 讀取：獲取所有類別實體 (供 DataGrid 使用)
+ * Read: get all categories (for DataGrid)
      */
     public function getAllCategories(FilterBuilder $filterBuilder) {
         $sql = "SELECT vcid, category, description FROM vcategory WHERE 1=1";
@@ -37,7 +37,7 @@ class CategoryRepository {
     }
 
     /**
-     * 寫入：新建類別節點 (∴ 不傳入 vcid，由資料庫 AUTO_INCREMENT 接管)
+ * Write: create new category (do not pass vcid; database AUTO_INCREMENT handles it)
      */
     public function createCategory(string $category, string $description): bool {
         $stmt = $this->conn->prepare("INSERT INTO vcategory (category, description) VALUES (?, ?)");
@@ -49,7 +49,7 @@ class CategoryRepository {
     }
 
     /**
-     * 寫入：更新類別節點
+ * Write: update category
      */
     public function updateCategory(int $vcid, string $category, string $description): bool {
         $stmt = $this->conn->prepare("UPDATE vcategory SET category = ?, description = ? WHERE vcid = ?");
@@ -61,29 +61,29 @@ class CategoryRepository {
     }
 
     /**
-     * 寫入：刪除類別節點 (支援批次刪除陣列)
+ * Write: delete category (supports batch delete array)
      */
     /**
-     * 寫入：刪除類別節點 (包含 Venue 關聯性防禦約束)
+ * Write: delete category ( Venue relatedProtectionRule)
      * @throws \Exception
      */
     public function deleteCategories(array $vcids): bool {
         if (empty($vcids)) return false;
         $ids = implode(',', array_map('intval', $vcids));
         
-        // ∴ 核心防禦：在執行物理刪除前，驗證集合交集 (Intersection Validation)
-        // 檢查是否存在任何 Venue (v) 其 vcid 屬於待刪除集合 (C)
-        // 若 v ∩ C ≠ ∅，則觸發防禦機制
+ // CoreProtection: inRunHard delete, (Intersection Validation)
+ // Check whether any venue exists (v) with vcid in the delete list (C)
+ // If related venues exist, trigger protection
         $check_sql = "SELECT COUNT(*) as dependency_count FROM venue WHERE vcid IN ($ids)";
         $result = $this->conn->query($check_sql);
         $row = $result->fetch_assoc();
         
         if ($row && $row['dependency_count'] > 0) {
-            // 拋出明確的異常，阻斷刪除程序
+ // Throw a clear error and stop delete
             throw new \Exception("Failed to Delete: One or more selected caegories are currently tied to existing venues. Please reassign those venues before deleting.");
         }
 
-        // 若無關聯，則安全執行物理刪除
+ // ifnorelated, thensafeRunHard delete
         $sql = "DELETE FROM vcategory WHERE vcid IN ($ids)";
         return $this->conn->query($sql);
     }

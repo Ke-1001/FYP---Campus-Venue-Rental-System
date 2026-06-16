@@ -17,9 +17,7 @@ $vid = $_GET['vid'] ?? '';
 if (!preg_match('/^[A-Za-z0-9_-]+$/', $vid)) {
     die(
         "<div class='min-h-screen flex items-center justify-center bg-slate-50 text-xl font-bold text-red-600'>
-            Invalid Venue ID: Cannot proceed with the booking.
-        </div>"
-    );
+            Invalid Venue ID: Cannot proceed with the booking. </div>" );
 }
 
 $sql = "SELECT v.vid, v.vname, vc.category, v.max_cap, v.deposit, v.status
@@ -292,7 +290,7 @@ if (!$venue) {
     let selectionState = { start: null, end: null };
     let blockedVectors = []; 
 
-    // 💡 時間數學運算元 (確保 $t_2$ 能正確 +30 mins 閉環)
+ // Time calculation helper (make sure $t_2 can add 30 minutes correctly)
     function addMinutes(timeStr, mins) {
         let [h, m] = timeStr.split(':').map(Number);
         let d = new Date();
@@ -329,17 +327,9 @@ if (!$venue) {
 
     document.getElementById('btn-prev-month').addEventListener('click', () => {
         currentMonth--;
-        if (currentMonth < 0) { currentMonth = 11; currentYear--; }
-        renderCalendar();
-    });
-
-    document.getElementById('btn-next-month').addEventListener('click', () => {
+        if (currentMonth < 0) { currentMonth = 11; currentYear--; } renderCalendar(); });  document.getElementById('btn-next-month').addEventListener('click', () => {
         currentMonth++;
-        if (currentMonth > 11) { currentMonth = 0; currentYear++; }
-        renderCalendar();
-    });
-
-    function initiateDaySelect(dateStr) {
+        if (currentMonth > 11) { currentMonth = 0; currentYear++; } renderCalendar(); });  function initiateDaySelect(dateStr) {
         selectedDateStr = dateStr;
         document.getElementById('selected-date-display').innerText = dateStr;
         document.getElementById('payload_date').value = dateStr;
@@ -379,7 +369,7 @@ if (!$venue) {
         document.getElementById('timeslot-container').classList.add('hidden');
     }
 
-    // 💡 替換：套用 Model α 延遲鎖定演算法
+ // Replace with delayed lock rule
     function renderTimeGrid() {
         const timeGrid = document.getElementById('time-grid');
         timeGrid.innerHTML = '';
@@ -393,20 +383,20 @@ if (!$venue) {
         const isToday = (selectedDateStr === dynamicTodayStr);
         const currentTimeStr = `${String(dynamicNow.getHours()).padStart(2, '0')}:${String(dynamicNow.getMinutes()).padStart(2, '0')}`;
 
-        // 💡 定義容差常數 k = 25 分鐘
+ // Set tolerance k = 25 minutes
         const k = 25;
 
         for (let h = 0; h < 24; h++) {
             for (let m = 0; m < 60; m += 30) {
                 const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
                 
-                // 💡 計算鎖定閥值：t_lock = t_slot_start + k
+ // Calculate lock time: t_lock = t_slot_start + k
                 const lockTimeStr = addMinutes(timeStr, k);
                 
-                // 狀態評估：只有當前時間超越鎖定閥值時，才判定為 isBlocked = true
+ // Set isBlocked = true only when current time passes lock time
                 let isBlocked = (isToday && currentTimeStr >= lockTimeStr);
 
-                // 疊加伺服器端傳回的已佔用時間向量
+ // Also apply booked slots from server
                 if (!isBlocked) {
                     for (let block of blockedVectors) {
                         if (timeStr >= block.start && timeStr < block.end) {
@@ -416,7 +406,7 @@ if (!$venue) {
                     }
                 }
 
-                // 矩陣節點渲染
+ // Render slot nodes
                 if (isBlocked) {
                     timeGrid.innerHTML += `<div class="p-2 text-center text-xs font-mono font-bold bg-slate-200 text-slate-400 rounded cursor-not-allowed">${timeStr}</div>`;
                 } else {
@@ -426,7 +416,7 @@ if (!$venue) {
         }
     }
 
-    // 💡 矩陣選擇邏輯重構
+ // matrixLogic
     function handleSlotClick(timeStr, btnElement) {
         if (!selectionState.start) {
             setStartSlot(timeStr, btnElement);

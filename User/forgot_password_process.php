@@ -47,13 +47,7 @@ try {
         $reset_link = getAppBaseUrl() . "/User/reset_password.php?token=" . urlencode($token);
 
         $subject = "Reset Your CVBMS Password";
-        $message = "Hello {$user['username']},\n\n" .
-                   "We received a request to reset your CVBMS account password.\n\n" .
-                   "Please click the link below to set a new password:\n\n" .
-                   $reset_link . "\n\n" .
-                   "This link will expire in 1 hour.\n\n" .
-                   "If you did not request this, you can ignore this email.\n\n" .
-                   "CVBMS System";
+        $message = "Hello {$user['username']},\n\n" . "We received a request to reset your CVBMS account password.\n\n" . "Please click the link below to set a new password:\n\n" . $reset_link . "\n\n" . "This link will expire in 1 hour.\n\n" . "If you did not request this, you can ignore this email.\n\n" . "CVBMS System";
 
         dispatchSystemEmail($email, $user['username'], $subject, $message);
     }

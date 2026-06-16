@@ -7,13 +7,13 @@ require_once __DIR__ . '/../includes/admin_auth.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
-    // 啟動資料庫原子交易
+ // Start database transaction
     $conn->begin_transaction();
 
     try {
         if ($action === 'create' || $action === 'update') {
             
-            // 💡 1. 嚴格擷取 6 維度特徵向量 (包含 is_booking_open)
+ // 1. Get and validate six fields (including is_booking_open)
             $sem_id = intval($_POST['sem_id'] ?? 0);
             $sem_name = htmlspecialchars(trim($_POST['sem_name'] ?? ''));
             $start_date = $_POST['start_date'] ?? '';
@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $is_active = isset($_POST['is_active']) ? 1 : 0;
             $is_booking_open = isset($_POST['is_booking_open']) ? 1 : 0; 
 
-            // 邊界防呆
+ // Basic boundary validation
             if ($sem_id < 1000 || $sem_id > 9999) {
                 throw new Exception("Validation Fault: Semester ID must be a strictly 4-digit integer.");
             }
@@ -32,8 +32,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception("Logical Fault: End date must strictly succeed start date.");
             }
 
-            // 💡 2. 時間軸重疊防護 (Temporal Overlap Detection)
-            // 數學條件: S_ex <= E_new ∧ E_ex >= S_new
+ // 2. Prevent date overlap (Temporal Overlap Detection)
+ // Rule: S_ex <= E_new ∧ E_ex >= S_new
             $sql_overlap = "SELECT sem_name FROM semester_config WHERE start_date <= ? AND end_date >= ?";
             
             if ($action === 'update') {
@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception("Temporal Collision: The specified dates overlap with an existing academic term [{$overlap_res['sem_name']}].");
             }
 
-            // 💡 3. 系統狀態防護：強制約束 Σ is_active ≥ 1
+ // 3. System rule: at least one semester must be active
             if ($action === 'update' && $is_active === 0) {
                 $stmt_check_active = $conn->prepare("SELECT COUNT(*) as active_count FROM semester_config WHERE is_active = 1 AND sem_id != ?");
                 $stmt_check_active->bind_param("i", $sem_id);
@@ -66,12 +66,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
 
-            // 互斥鎖：若設為 Active，將其他所有學期降階為 Inactive
+ // If one semester is active, set all other semesters to inactive
             if ($is_active === 1) {
                 $conn->query("UPDATE semester_config SET is_active = 0");
             }
 
-            // 💡 4. 資料庫映射與執行
+ // 4. Map data and save
             if ($action === 'create') {
                 $check = $conn->prepare("SELECT sem_id FROM semester_config WHERE sem_id = ?");
                 $check->bind_param("i", $sem_id);
@@ -89,16 +89,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             
             $stmt->execute();
-            if ($stmt->error) throw new Exception("Database Fault: " . $stmt->error);
-            $stmt->close();
-
-            $_SESSION['toast'] = ['type' => 'success', 'msg' => "Semester configuration [ID: $sem_id] successfully " . ($action === 'create' ? "deployed." : "updated.")];
-
-        } elseif ($action === 'delete') {
+            if ($stmt->error) throw new Exception("Database Fault: " . $stmt->error); $stmt->close();  $_SESSION['toast'] = ['type' => 'success', 'msg' => "Semester configuration [ID: $sem_id] successfully " . ($action === 'create' ? "deployed." : "updated.")];  } elseif ($action === 'delete') {
             $ids = $_POST['selected_ids'] ?? [];
             if (!is_array($ids) || empty($ids)) throw new Exception("Execution Fault: Null vector array provided for deletion.");
             
-            // 💡 5. 刪除防護：禁止刪除當前 Active 的學期
+ // 5. Delete protection: cannot delete the active semester
             $placeholders = implode(',', array_fill(0, count($ids), '?'));
             $types = str_repeat('i', count($ids));
             $stmt_check_del = $conn->prepare("SELECT COUNT(*) as active_in_del FROM semester_config WHERE is_active = 1 AND sem_id IN ($placeholders)");
@@ -117,12 +112,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $clean_id = intval($id);
                 if ($clean_id > 0) {
                     $stmt->bind_param("i", $clean_id);
-                    if ($stmt->execute()) $success++;
-                }
-            }
-            $stmt->close();
-            $_SESSION['toast'] = ['type' => 'success', 'msg' => "Eradication Protocol Complete: $success semester(s) purged."];
-        } else {
+                    if ($stmt->execute()) $success++; } } $stmt->close(); $_SESSION['toast'] = ['type' => 'success', 'msg' => "Eradication Protocol Complete: $success semester(s) purged."]; } else {
             throw new Exception("Unknown Execution Protocol.");
         }
 

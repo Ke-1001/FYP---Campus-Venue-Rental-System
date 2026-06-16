@@ -32,19 +32,7 @@
                 <p class="text-sm text-slate-500 mt-1">Description</p>
             </div>
 
-            content...
-
-        </div>
-            
-
-
-
-    </main>
-
-    <?php include('../includes/ui_components.php'); ?>
-
-    <script>
-        lucide.createIcons();
+            content...  </div>     </main>  <?php include('../includes/ui_components.php'); ?>  <script> lucide.createIcons();
         function toggleSidebar() { document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed'); }
     </script>
 </body>

@@ -4,7 +4,7 @@ session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 
-// ∴ 嚴格引入架構依賴
+// Load framework dependency
 require_once __DIR__ . '/../core/repositories/MetricsRepository.php';
 require_once __DIR__ . '/../core/components/FioriTileBuilder.php';
 
@@ -16,7 +16,7 @@ use Core\Components\FioriTileBuilder as TileBuilder;
 | I & D: Initialization & Data Extraction Protocol
 |--------------------------------------------------------------------------
 */
-// ∴ 實例化分析倉儲並提取檢驗領域的局部切片
+// Create metrics repository and get inspection metrics
 $metricsRepo = new MetricsRepository($conn);
 $kpi = $metricsRepo->getInspectionKPIs();
 
@@ -37,8 +37,8 @@ $extra_css = [];
 */
 ob_start();
 
-// ∴ 透過宣告式陣列建構磁磚拓撲 (Declarative Tile Topology)
-// 未來若需新增或關閉特定 Tile，僅需在此陣列中進行 O(1) 增刪即可
+// Build tiles using a config array (Declarative Tile Topology)
+// To add or hide a tile later, edit this array only
 echo TileBuilder::renderSection('Venue Inspections', 'Execute physical assessments for recently utilized venues and review historical logs.', [
     [
         'url' => 'pending_inspections.php', 

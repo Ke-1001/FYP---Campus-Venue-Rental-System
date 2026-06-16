@@ -14,9 +14,9 @@ class InspectionRepository {
     }
 
     /**
-     * [業務場景 A: assign_inspector.php 使用]
-     * 獲取尚未指派檢驗員的預約清單 (Pending Inspection Assignments)
-     * ∴ 透過 LEFT JOIN 排查 ins_id IS NULL 確保邏輯互斥性
+ * [Use case A: assign_inspector.php use]
+ * Get bookings without assigned inspector (Pending Inspection Assignments)
+ * LEFT JOIN ins_id IS NULL Logic
      */
     public function getPendingAssignments(FilterBuilder $filterBuilder) {
         $sql = "SELECT 
@@ -40,9 +40,9 @@ class InspectionRepository {
     }
 
     /**
-     * [業務場景 B: pending_inspections.php 使用]
-     * 獲取尚待執行的檢驗任務矩陣 (Pending Inspections Queue)
-     * ∴ 嚴格綁定 ins_status = 'pending' 並提取 booking_status 供控制器計算時空狀態
+ * [Use case B: pending_inspections.php use]
+ * Get pending inspection tasks (Pending Inspections Queue)
+ * Filter ins_status = 'pending' and get booking_status for controller checks
      */
     public function getPendingInspections(FilterBuilder $filterBuilder) {
         $sql = "SELECT 
@@ -59,19 +59,19 @@ class InspectionRepository {
                 JOIN staff s ON i.sid = s.sid
                 WHERE i.ins_status = 'pending'";
 
-        // ∴ 動態注入過濾器拓撲
+ // Add filters dynamically
         $sql .= $filterBuilder->buildSqlWhere($this->conn);
 
-        // 依照排程時間遞增排序 (即將發生的優先)
+ // Sort by schedule time ascending (nearest first)
         $sql .= " ORDER BY b.date_booked ASC, b.time_start ASC";
         
         return $this->conn->query($sql);
     }
 
     /**
-     * [業務場景 C: inspection_history.php 使用]
-     * 獲取檢驗歷史紀錄矩陣 (Inspection History Log)
-     * ∴ 嚴格過濾狀態為 passed, failed 或 SLA 強制逾期的 overdue 已完成紀錄
+ * [Use case C: inspection_history.php use]
+ * Get inspection history records (Inspection History Log)
+ * Filter completed records with passed, failed, or overdue status
      */
     public function getInspectionHistory(FilterBuilder $filterBuilder) {
         $sql = "SELECT 
@@ -86,13 +86,13 @@ class InspectionRepository {
                 JOIN venue v ON b.vid = v.vid
                 JOIN vcategory vc ON v.vcid = vc.vcid
                 JOIN staff s ON i.sid = s.sid
-                -- 💡 拓撲修正：將 'overdue' 納入歷史紀錄的可觀測集合中
+ -- Fix: include 'overdue' in inspection history
                 WHERE i.ins_status IN ('passed', 'failed', 'overdue')"; 
 
-        // ∴ 動態注入過濾器拓撲
+ // Add filters dynamically
         $sql .= $filterBuilder->buildSqlWhere($this->conn);
 
-        // 依照檢驗時間或預約時間遞減排序
+ // Sort by inspection time or booking time descending
         $sql .= " ORDER BY COALESCE(i.inspected_at, CONCAT(b.date_booked, ' ', b.time_end)) DESC, i.ins_id DESC";
         
         return $this->conn->query($sql);

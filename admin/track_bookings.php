@@ -6,7 +6,7 @@ require_once __DIR__ . '/../includes/admin_auth.php';
 require_once __DIR__ . '/../includes/booking_functions.php';
 require_once __DIR__ . '/../core/components/datagrid.php'; 
 
-// ∴ 引入核心架構
+// Load core framework
 require_once __DIR__ . '/../core/components/FilterBuilder.php';
 require_once __DIR__ . '/../core/repositories/BookingRepository.php';
 
@@ -23,10 +23,10 @@ syncCompletedBookings($conn);
 // Auto-expire unpaid bookings
 expireUnpaidBookings($conn);
 
-// ∴ 1. 實例化倉儲
+// 1. Create repository instance
 $bookingRepo = new BookingRepository($conn);
 
-// ∴ 2. 建構過濾器矩陣
+// 2. Build filters
 $filterBuilder = new FilterBuilder('track_bookings.php', true);
 $filterBuilder
     ->addField('text', 'f_bid', 'Booking ID', [], 'Search ID...', 'b.bid', 'LIKE')
@@ -46,10 +46,10 @@ $filterBuilder
 | D: Abstracted Data Execution & View Reshaping
 |--------------------------------------------------------------------------
 */
-// ∴ 3. 委託倉儲獲取結果集
+// 3. Get results from repository
 $result = $bookingRepo->getAllWithFilters($filterBuilder);
 
-// ∴ 4. 提取並重塑資料列 (預處理特定邏輯以對接標準 DataGrid)
+// 4. Get and format rows (prepare special data for standard DataGrid)
 $records = [];
 if ($result && $result->num_rows > 0) {
     while($row = $result->fetch_assoc()) {
@@ -60,7 +60,7 @@ if ($result && $result->num_rows > 0) {
             $remarks = 'Due: ' . ($timestamp ? date('y/m/d H:i', $timestamp) : 'N/A');
         } elseif ($row['status'] === 'cancelled') {
             
-            // 1. 攔截系統代碼並翻譯為人類可讀字串
+ // 1. Convert system code to readable text
             $raw_reason = $row['cancel_reason'];
             if ($raw_reason === 'SYS_TIMEOUT_ADMIN') {
                 $friendly_reason = 'Auto-Timeout';
@@ -68,11 +68,11 @@ if ($result && $result->num_rows > 0) {
                 $friendly_reason = $raw_reason ?: 'Time Expired';
             }
 
-            // 2. 擷取取消時間並格式化
+ // 2. Get and format cancel time
             $cancel_time = strtotime($row['cancelled_at']);
             $time_str = $cancel_time ? date('m/d H:i', $cancel_time) : '';
 
-            // 3. 組裝為緊湊且專業的字串 (例如: "06/08 09:30 (Auto-Timeout)")
+ // 3. Build a short readable text (: "06/08 09:30 (Auto-Timeout)")
             if (!empty($time_str)) {
                 $remarks = $time_str . ' (' . $friendly_reason . ')';
             } else {
@@ -101,7 +101,7 @@ $topbar_content = '
 </div>';
 $extra_css = [];
 
-// ∴ 核心拓扑二：DataGrid Schema 配置字典
+// Core part 2: DataGrid schema config
 $datagrid_schema = [
     'enable_checkbox' => false,
     'primary_key' => 'bid',

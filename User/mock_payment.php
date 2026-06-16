@@ -263,43 +263,16 @@ $hash = hash('sha256', $qr_seed);
                                 </button>
 
                                 <p class="text-xs text-slate-400 mt-4 text-center">
-                                    This is a simulation. Card details are validated for testing only and will not be stored.
-                                </p>
-                            </form>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3 mt-6">
-                            <a href="my_bookings.php" class="py-3 text-center bg-white border border-slate-300 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-50 transition">Pay Later</a>
-                            <a href="booking_details.php?bid=<?php echo urlencode($bid); ?>" class="py-3 text-center bg-white border border-slate-300 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-50 transition">View Booking</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        lucide.createIcons();
+                                    This is a simulation. Card details are validated for testing only and will not be stored. </p> </form> </div>  <div class="grid grid-cols-2 gap-3 mt-6"> <a href="my_bookings.php" class="py-3 text-center bg-white border border-slate-300 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-50 transition">Pay Later</a> <a href="booking_details.php?bid=<?php echo urlencode($bid); ?>" class="py-3 text-center bg-white border border-slate-300 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-50 transition">View Booking</a> </div> </div> </div> </div> </div> </div>  <script> lucide.createIcons();
 
         let remainingSeconds = <?php echo (int)$remaining_seconds; ?>;
         let countdownTimer = null;
 
         function updateCountdown() {
             const countdown = document.getElementById('countdown');
-            if (!countdown) return;
-
-            if (remainingSeconds <= 0) {
+            if (!countdown) return;  if (remainingSeconds <= 0) {
                 countdown.innerText = "Expired";
-                if (countdownTimer) clearInterval(countdownTimer);
-                setTimeout(function () { window.location.href = "my_bookings.php"; }, 1000);
-                return;
-            }
-
-            const hours = Math.floor(remainingSeconds / 3600);
-            const minutes = Math.floor((remainingSeconds % 3600) / 60);
-            const seconds = remainingSeconds % 60;
-
-            if (hours > 0) {
+                if (countdownTimer) clearInterval(countdownTimer); setTimeout(function () { window.location.href = "my_bookings.php"; }, 1000); return; }  const hours = Math.floor(remainingSeconds / 3600); const minutes = Math.floor((remainingSeconds % 3600) / 60); const seconds = remainingSeconds % 60;  if (hours > 0) {
                 countdown.innerText = String(hours).padStart(2, '0') + "h " + String(minutes).padStart(2, '0') + "m " + String(seconds).padStart(2, '0') + "s";
             } else {
                 countdown.innerText = String(minutes).padStart(2, '0') + ":" + String(seconds).padStart(2, '0');
@@ -347,12 +320,7 @@ $hash = hash('sha256', $qr_seed);
         if (cardExpiryInput) {
             cardExpiryInput.addEventListener('input', function () {
                 let value = this.value.replace(/\D/g, '').slice(0, 4);
-                if (value.length >= 3) value = value.slice(0, 2) + '/' + value.slice(2);
-                this.value = value;
-            });
-        }
-
-        document.querySelectorAll('.payment-submit-form').forEach(form => {
+                if (value.length >= 3) value = value.slice(0, 2) + '/' + value.slice(2); this.value = value; }); }  document.querySelectorAll('.payment-submit-form').forEach(form => {
             form.addEventListener('submit', function () {
                 const btn = this.querySelector('.payment-btn');
                 if (!btn) return;

@@ -10,7 +10,7 @@ if ($bid === 0) {
     die("Execution Fault: Invalid or Null Booking ID Reference.");
 }
 
-// 💡 1. 關聯查詢升級：精準適配 rental_venue (4).sql 的 vcategory 正規化
+// 1. Query upgrade: match vcategory normalization in rental_venue (4).sql
 $sql = "SELECT 
             b.*, u.username, u.uid as student_id, u.phone_num as student_phone, u.email as student_email,
             v.vname, v.deposit, vc.category AS venue_category,
@@ -42,7 +42,7 @@ $is_rejected = ($status === 'rejected');
 $is_cancelled = ($status === 'cancelled');
 $is_completed = ($status === 'completed');
 
-// 💡 2. 狀態機引擎
+// 2. Status engine
 $flow_states = [
     'Request'  => true,
     'Payment'  => ($payment_status === 'paid' || $payment_status === 'refunded'),
@@ -52,19 +52,10 @@ $flow_states = [
     'Settle'   => (!$is_cancelled && !$is_rejected && $status === 'completed' && ($data['ins_status'] === 'passed' || $data['ins_status'] === 'failed'))
 ];
 
-// 💡 [NEW] 系統代碼字典映射矩陣 (具備防碰撞宣告機制)
+// [NEW] System code mapping list (with conflict-safe mapping)
 if (!function_exists('translateSystemText')) {
     function translateSystemText($text) {
-        if (empty($text)) return '';
-        
-        $dictionary = [
-            'SYS_TIMEOUT_ADMIN' => 'Admin failed to approve the request within the functional timeframe.',
-            'SYS_TIMEOUT_24H_RELEASE' => 'SLA Absolute Timeout: Auto-released after 24 hours of inactivity without consecutive bookings.',
-            'SYS_TIMEOUT_30M_LOCK' => 'SLA Violation: Inspection delayed. Deposit temporarily frozen for maximum 24h.',
-            '[SYSTEM ABSORBED]' => 'Chain of Custody Fault: Damage was detected, but a preceding SLA violation exists for this venue.'
-        ];
-
-        foreach ($dictionary as $code => $translation) {
+        if (empty($text)) return '';  $dictionary = [ 'SYS_TIMEOUT_ADMIN' => 'Admin failed to approve the request within the functional timeframe.', 'SYS_TIMEOUT_24H_RELEASE' => 'SLA Absolute Timeout: Auto-released after 24 hours of inactivity without consecutive bookings.', 'SYS_TIMEOUT_30M_LOCK' => 'SLA Violation: Inspection delayed. Deposit temporarily frozen for maximum 24h.', '[SYSTEM ABSORBED]' => 'Chain of Custody Fault: Damage was detected, but a preceding SLA violation exists for this venue.' ];  foreach ($dictionary as $code => $translation) {
             if (stripos($text, $code) !== false) {
                 return str_ireplace($code, $translation, $text);
             }
@@ -139,7 +130,7 @@ if (!function_exists('translateSystemText')) {
                     <div class="flex justify-between relative z-10 w-full min-w-[600px]">
                         <?php 
                         $steps = ['Request', 'Payment', 'Approval', 'Assign', 'Inspect', 'Settle'];
-                        $interrupt_found = false; // 邏輯閂鎖：用於鎖定第一個失敗的節點
+ $interrupt_found = false; // Logic lock: keep the first failed step
                         
                         foreach($steps as $index => $label): 
                             
@@ -147,14 +138,14 @@ if (!function_exists('translateSystemText')) {
                             $nextLabel = $steps[$index + 1] ?? null;
                             $isNextActive = $nextLabel ? $flow_states[$nextLabel] : false;
                             
-                            // 異常中斷點偵測邏輯 (Interrupt Detection)
+ // Error stop-point detection (Interrupt Detection)
                             $isFailedNode = false;
                             if (!$isActive && !$interrupt_found && ($is_cancelled || $is_rejected)) {
                                 $isFailedNode = true;
-                                $interrupt_found = true; // 鎖定，確保只有一個節點顯示為錯誤
+ $interrupt_found = true; // Lock so only one step shows as error
                             }
                             
-                            // 視覺狀態映射矩陣
+ // Visual status mapping
                             if ($isFailedNode) {
                                 $nodeClass = 'bg-red-50 text-red-600 border-red-600';
                                 $lineClass = 'step-inactive';

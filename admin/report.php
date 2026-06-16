@@ -80,9 +80,9 @@ if ($res_util) {
     }
 }
 
-// 💡 2. 財務交易流水矩陣 (Financial Ledger using UNION ALL)
+// 2. Financial transaction listmatrix (Financial Ledger using UNION ALL)
 $transactions = [];
-// 💡 適配新架構：整合 booking (押金) 與 report/inspection (罰款)
+// New structure: combine booking (deposit) and report/inspection (fine)
 $sql_ledger = "
     SELECT 
         COALESCE(b.transaction_ref, 'TXN-PENDING') AS id, 
@@ -237,7 +237,7 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
                             <td class="px-6 py-4 font-mono font-bold"><?php echo number_format((float)$tx['amount'], 2); ?></td>
                             <td class="px-6 py-4 text-right">
                                 <?php 
-                                    // 💡 動態色彩標籤解析器 (適配新架構小寫 Enum)
+ // Dynamic color badge parser (match new lowercase enum)
                                     $status_class = "bg-slate-50 text-slate-600 border-slate-200";
                                     $status_label = strtoupper(str_replace('_', ' ', $tx['status']));
                                     

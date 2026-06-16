@@ -4,7 +4,7 @@
 namespace Core\Repositories;
 
 use mysqli;
-use Core\Components\FilterBuilder; // ∴ 引入過濾器核心
+use Core\Components\FilterBuilder; // Load filter core
 
 class SemesterRepository {
     private mysqli $conn;
@@ -14,8 +14,8 @@ class SemesterRepository {
     }
 
     /**
-     * [業務場景 A: add_semester.php 使用]
-     * 基於主鍵精確提取單一學期節點矩陣 (Single Node Extraction)
+ * [Use case A: add_semester.php use]
+ * Based on primary keyexactGetsemesternodematrix (Single Node Extraction)
      */
     public function getSemesterById(int $sem_id): ?array {
         $stmt = $this->conn->prepare("SELECT * FROM semester_config WHERE sem_id = ?");
@@ -26,16 +26,16 @@ class SemesterRepository {
     }
 
     /**
-     * [業務場景 B: semester_management.php 使用]
-     * 獲取全量學期配置，並完美對接 FilterBuilder 的動態拓撲
+ * [Use case B: semester_management.php use]
+ * Get all semesters and connect to FilterBuilder
      */
     public function getAllWithFilters(FilterBuilder $filterBuilder) {
         $sql = "SELECT * FROM semester_config WHERE 1=1";
         
-        // ∴ 將手動拼接改為依賴注入，自動編譯 WHERE 條件
+ // Use dependency injection to build WHERE automatically
         $sql .= $filterBuilder->buildSqlWhere($this->conn);
         
-        // 時間軸遞減排序
+ // Sort by date descending
         $sql .= " ORDER BY start_date DESC";
         
         return $this->conn->query($sql);

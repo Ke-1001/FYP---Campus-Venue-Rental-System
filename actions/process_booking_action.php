@@ -59,13 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     LIMIT 1
                 ";
                 $stmt_conflict = $conn->prepare($sql_conflict);
-                $stmt_conflict->bind_param(
-                    "ssss", 
-                    $target_booking['vid'], 
-                    $target_booking['date_booked'], 
-                    $target_booking['time_end'], 
-                    $target_booking['time_start']
-                );
+                $stmt_conflict->bind_param( "ssss", $target_booking['vid'], $target_booking['date_booked'], $target_booking['time_end'], $target_booking['time_start'] );
                 $stmt_conflict->execute();
                 $conflict_exists = $stmt_conflict->get_result()->num_rows > 0;
                 $stmt_conflict->close();
@@ -91,14 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ";
 
                 $stmt_schedule = $conn->prepare($sql_schedule_conflict);
-                $stmt_schedule->bind_param(
-                    "sssss",
-                    $target_booking['vid'],
-                    $day_name,
-                    $target_booking['date_booked'],
-                    $target_booking['time_end'],
-                    $target_booking['time_start']
-                );
+                $stmt_schedule->bind_param( "sssss", $target_booking['vid'], $day_name, $target_booking['date_booked'], $target_booking['time_end'], $target_booking['time_start'] );
                 $stmt_schedule->execute();
                 $schedule_conflict_exists = $stmt_schedule->get_result()->num_rows > 0;
                 $stmt_schedule->close();

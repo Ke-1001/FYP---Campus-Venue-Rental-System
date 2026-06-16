@@ -4,7 +4,7 @@ session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 
-// ∴ 嚴格引入倉儲依賴 (Zero-SQL Principle)
+// Load repository dependency (Zero-SQL Principle)
 require_once __DIR__ . '/../core/repositories/SemesterRepository.php';
 use Core\Repositories\SemesterRepository;
 
@@ -72,7 +72,7 @@ ob_start();
                 
                 <div class="lg:col-span-12 space-y-4">
                     <?php 
-                    // ∴ 主鍵約束邏輯：基於模式切換輸入框屬性矩陣
+ // Primary key rule: change input properties based on mode
                     $semIdOptions = [
                         'required' => true,
                         'placeholder' => 'e.g., 2610'

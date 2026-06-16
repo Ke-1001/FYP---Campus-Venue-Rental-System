@@ -5,7 +5,7 @@ require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 require_once __DIR__ . '/../core/components/datagrid.php'; 
 
-// ∴ 引入核心組件與倉儲依賴
+// Load core components and repository
 require_once __DIR__ . '/../core/components/FilterBuilder.php';
 require_once __DIR__ . '/../core/repositories/InspectionRepository.php';
 
@@ -17,10 +17,10 @@ use Core\Repositories\InspectionRepository;
 | I: Repository Initialization & System Protocol
 |--------------------------------------------------------------------------
 */
-// ∴ 1. 實例化檢驗倉儲
+// 1. Create inspection repository
 $inspectionRepo = new InspectionRepository($conn);
 
-// ∴ 2. 建構過濾器矩陣 (Filter Topology)
+// 2. Build filters (Filter Topology)
 $filterBuilder = new FilterBuilder('track_inspections.php', true);
 $filterBuilder
     ->addField('text', 'f_bid', 'Ref ID', [], 'Search BID...', 'i.bid', 'LIKE')
@@ -39,18 +39,18 @@ $filterBuilder
 | D: Abstracted Data Execution & View Reshaping
 |--------------------------------------------------------------------------
 */
-// ∴ 3. 委託倉儲獲取結果集
+// 3. Get results from repository
 $result = $inspectionRepo->getInspectionHistory($filterBuilder);
 
-// ∴ 4. 提取資料列並執行 Data Flattening (資料展平)
+// 4. GetdataandRun Data Flattening (data)
 $records = [];
 if ($result && $result->num_rows > 0) {
     while($row = $result->fetch_assoc()) {
-        // 時序格式化
+ // time
         $row['inspected_at_fmt'] = $row['inspected_at'] ? date('y/m/d H:i', strtotime($row['inspected_at'])) : '--';
         $row['date_booked_fmt'] = date('y/m/d', strtotime($row['date_booked']));
         
-        // 邏輯展平：將條件化的文字與罰金狀態統一化以適配 DataGrid
+ // Logic: conditiontextandstatusto DataGrid
         if ($row['ins_status'] === 'passed') {
             $row['penalty_val'] = 0.00;
             $row['observations'] = 'Clearance granted. Refund authorized.';
@@ -79,7 +79,7 @@ $topbar_content = '
 </div>';
 $extra_css = [];
 
-// ∴ 核心拓撲：DataGrid Schema 配置字典
+// Core DataGrid schema config
 $datagrid_schema = [
     'enable_checkbox' => false,
     'primary_key' => 'bid',

@@ -4,13 +4,13 @@
 namespace Core\Components;
 
 class FioriFormBuilder {
-    // ∴ 嚴格定義全域 Fiori 設計語義 (Design Tokens)
+ // Define global Fiori design tokens (Design Tokens)
     private const LABEL_CSS = 'col-span-1 text-sm text-slate-500 font-bold';
     private const INPUT_CSS = 'fiori-input focus:border-[#004aad] w-full';
     private const READONLY_CSS = 'fiori-input fiori-readonly font-mono uppercase text-[#004aad] font-bold cursor-not-allowed bg-slate-50';
 
     /**
-     * 渲染標準表單列 (包含 Label 與 Input 容器)
+ * Render standard form row (including label and input container)
      */
     private static function renderRow(string $label, string $controlHtml): string {
         return "
@@ -23,7 +23,7 @@ class FioriFormBuilder {
     }
 
     /**
-     * 標準文字輸入框 (Text/Number Input)
+ * Standard text input (Text/Number Input)
      */
     public static function input(string $type, string $name, string $label, ?string $value, array $attrs = []): string {
         $attrStr = self::buildAttributes($attrs);
@@ -32,7 +32,7 @@ class FioriFormBuilder {
         
         $control = "<input type=\"{$type}\" name=\"{$name}\" value=\"{$val}\" class=\"{$css}\" {$attrStr}>";
         
-        // 處理前綴/後綴映射 (例如 RM, PAX)
+ // Handle prefix and suffix mapping (for example RM and PAX)
         if (isset($attrs['prefix'])) {
             $control = "<span class=\"absolute left-3 top-2.5 text-xs text-slate-400 font-bold\">{$attrs['prefix']}</span>" . str_replace('fiori-input', 'fiori-input pl-10', $control);
         }
@@ -45,7 +45,7 @@ class FioriFormBuilder {
     }
 
     /**
-     * 標準下拉選單 (Select)
+ * Standard select input (Select)
      */
     public static function select(string $name, string $label, array $options, ?string $selectedValue, array $attrs = []): string {
         $attrStr = self::buildAttributes($attrs);
@@ -67,16 +67,14 @@ class FioriFormBuilder {
     }
 
     /**
-     * 屬性編譯器 (Attribute Compiler)
+ * Attribute compiler (Attribute Compiler)
      */
     private static function buildAttributes(array $attrs): string {
         $compiled = [];
         $booleanAttrs = ['required', 'readonly', 'disabled'];
         foreach ($attrs as $key => $val) {
-            if (in_array($key, ['prefix', 'suffix', 'extra_css', 'placeholder'])) continue;
-            if (in_array($key, $booleanAttrs)) {
-                if ($val) $compiled[] = $key;
-            } else {
+            if (in_array($key, ['prefix', 'suffix', 'extra_css', 'placeholder'])) continue; if (in_array($key, $booleanAttrs)) {
+                if ($val) $compiled[] = $key; } else {
                 $compiled[] = "{$key}=\"" . htmlspecialchars((string)$val) . "\"";
             }
         }
@@ -84,7 +82,7 @@ class FioriFormBuilder {
     }
 
     /**
-     * 標準多行文字輸入框 (Textarea)
+ * Standard textarea (Textarea)
      */
     public static function textarea(string $name, string $label, ?string $value, array $attrs = []): string {
         $attrStr = self::buildAttributes($attrs);

@@ -4,7 +4,7 @@ session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 
-// 處理新增或刪除請求
+// Handle add or delete request
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action']) && $_POST['action'] === 'add') {
         $new_cat = trim($_POST['new_category']);
@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     } elseif (isset($_POST['action']) && $_POST['action'] === 'delete') {
         $del_cat = $_POST['category_name'];
-        // 防護邏輯：若該類別下仍有場地，則拒絕刪除
+ // Safety rule: reject delete if venues still use this category
         $check = $conn->query("SELECT COUNT(*) FROM venue WHERE category = '" . $conn->real_escape_string($del_cat) . "'")->fetch_row()[0];
         if ($check > 0) {
             $_SESSION['toast'] = ['type' => 'error', 'msg' => "Failed to Delete: Category is currently in use by $check venue(s)."];

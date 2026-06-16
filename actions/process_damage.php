@@ -26,11 +26,11 @@ if ($report_id <= 0) {
     exit;
 }
 
-// 开启事务 (Transaction) 以保证状态与财务数据的原子性
+// Start transaction (Transaction) to keep status and payment data consistent
 $conn->begin_transaction();
 
 try {
-    // 1. 获取报告与关联订单的状态快照
+ // 1. Get the status snapshot of the report and related booking
     $stmt = $conn->prepare("
         SELECT dr.bid, dr.report_status, b.status AS booking_status, b.payment_status, b.cancel_reason 
         FROM damage_report dr
@@ -52,7 +52,7 @@ try {
         throw new Exception("This report has already been reviewed.");
     }
 
-    // 2. 状态机跃迁：更新报告状态与管理员批注
+ // 2. Update report status and admin notes
     $update_report = $conn->prepare("
         UPDATE damage_report 
         SET report_status = 'reviewed', admin_remark = ? 
@@ -61,11 +61,9 @@ try {
     $update_report->bind_param("si", $admin_remark, $report_id);
     $update_report->execute();
 
-    // 3. 财务状态阻断与修复 (Financial State Reconciliation)
-    // 如果该报告是 Level 3 导致用户自动 Cancel，此时系统必须自动处理退款状态
-    if ($row['booking_status'] === 'cancelled' && 
-        $row['payment_status'] === 'paid' && 
-        $row['cancel_reason'] === 'USER_REPORTED_CRITICAL_DAMAGE') {
+ // 3. Payment status check and fix (Financial State Reconciliation)
+ // If Level 3 damage auto-cancelled the booking, update the refund status automatically
+    if ($row['booking_status'] === 'cancelled' && $row['payment_status'] === 'paid' && $row['cancel_reason'] === 'USER_REPORTED_CRITICAL_DAMAGE') {
         
         $update_payment = $conn->prepare("
             UPDATE booking 

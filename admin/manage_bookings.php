@@ -5,7 +5,7 @@ require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 require_once __DIR__ . '/../includes/booking_functions.php';
 
-// ∴ 嚴格引入架構依賴
+// Load framework dependency
 require_once __DIR__ . '/../core/repositories/MetricsRepository.php';
 require_once __DIR__ . '/../core/components/FioriTileBuilder.php';
 
@@ -19,10 +19,10 @@ syncCompletedBookings($conn);
 | I & D: Initialization & Data Extraction Protocol
 |--------------------------------------------------------------------------
 */
-// ∴ 觸發領域邏輯：自動過期未付款之預約
+// Run logic: auto-expire unpaid bookings
 expireUnpaidBookings($conn);
 
-// ∴ 實例化分析倉儲並提取局部切片
+// Create metrics repository and get metrics
 $metricsRepo = new MetricsRepository($conn);
 $kpi = $metricsRepo->getBookingKPIs();
 
@@ -43,8 +43,8 @@ $extra_css = [];
 */
 ob_start();
 
-// ∴ 透過宣告式陣列建構磁磚拓撲 (Declarative Tile Topology)
-// 若未來需隱藏特定模組，僅需將該陣列元素註解即可
+// Build tiles using a config array (Declarative Tile Topology)
+// iffuturehideModule,
 echo TileBuilder::renderSection('Operational Modules', 'Execute booking approvals, assign staff, and monitor active usage.', [
     [
         'url' => 'pending_requests.php', 

@@ -720,7 +720,7 @@ DELIMITER $$
 -- Events
 --
 CREATE DEFINER=`root`@`localhost` EVENT `ev_master_sla_daemon` ON SCHEDULE EVERY 1 MINUTE STARTS '2026-06-14 14:14:33' ON COMPLETION PRESERVE ENABLE DO BEGIN
-    -- [變數與游標宣告區] (供 Pipeline B 使用)
+ -- [Variable and cursor declaration area] (used by Pipeline B)
     DECLARE done INT DEFAULT FALSE;
     DECLARE v_bid INT;
     DECLARE v_date_booked DATE;
@@ -740,8 +740,8 @@ CREATE DEFINER=`root`@`localhost` EVENT `ev_master_sla_daemon` ON SCHEDULE EVERY
     START TRANSACTION;
 
   -- =========================================================================
-  -- Logic Pipeline A: Booking SLA 收斂 (雙重動態錨點矩陣重構)
-  -- 演算法等價: C_cancel ≡ (t_now ≥ t_end - 5) ∨ (t_now ≥ max(t_start, t_create) + 15)
+ -- Logic Pipeline A: Booking SLA handling (dual dynamic time anchor rebuild)
+ -- Algorithm rule: C_cancel ≡ (t_now ≥ t_end - 5) ∨ (t_now ≥ max(t_start, t_create) + 15)
   -- =========================================================================
   UPDATE booking
   SET status = 'cancelled',
@@ -751,21 +751,21 @@ CREATE DEFINER=`root`@`localhost` EVENT `ev_master_sla_daemon` ON SCHEDULE EVERY
   WHERE status = 'pending'
     AND payment_status = 'paid'
     AND (
-        -- 邊界 1: 系統絕對可用價值極限 (Minimum Viability Threshold)
-        -- 確保剩餘場地時間少於 5 分鐘時強制釋放，完美涵蓋並懲罰「極限遲延預約」
+ -- Rule 1: minimum usable time limit (Minimum Viability Threshold)
+ -- Force release when less than 5 minutes remain and handle"very late booking"
         TIMESTAMPADD(MINUTE, -5, CAST(CONCAT(date_booked, ' ', time_end) AS DATETIME)) <= NOW()
 
         OR
 
-        -- 邊界 2: UX 防呆保護網 (Dynamic Anchor Matrix)
-        -- 利用 GREATEST 函數動態切換時間錨點。
-        -- 提前預約 ⇒ 錨點為 t_start，確保開場後 15 分鐘未批即取消。
-        -- 遲延預約 ⇒ 錨點為 t_create，確保下單後 15 分鐘未批即取消。
+ -- Rule 2: UX safety rule (Dynamic Anchor Matrix)
+ -- Use GREATEST to switch the time anchor dynamically. 
+ -- Early booking => anchor is t_start, cancel if not approved 15 minutes after start time. 
+ -- Late booking => anchor is t_create, cancel if not approved 15 minutes after request time. 
         TIMESTAMPADD(MINUTE, 15, GREATEST(CAST(CONCAT(date_booked, ' ', time_start) AS DATETIME), created_at)) <= NOW()
     );
 
     -- =========================================================================
-    -- Logic Pipeline B: 時序感知 JIT 分配引擎 (檢驗員自動防撞指派)
+ -- Logic Pipeline B: time-aware JIT assignment engine (auto inspector conflict check and assignment)
     -- =========================================================================
     OPEN cur_pending_assignments;
     assignment_loop: LOOP
@@ -796,11 +796,11 @@ CREATE DEFINER=`root`@`localhost` EVENT `ev_master_sla_daemon` ON SCHEDULE EVERY
     CLOSE cur_pending_assignments;
 
     -- =========================================================================
-    -- Logic Pipeline C: Inspection SLA 收斂 (檢驗逾期自動標記與金融押金退還)
-    -- 觸發閾值：預約結束後 30 分鐘檢驗員仍未執行 (ins_status = 'pending')
+ -- Logic Pipeline C: Inspection SLA handling (auto mark overdue inspection and refund deposit)
+ -- Trigger condition: inspector has not checked 30 minutes after booking ends (ins_status = 'pending')
     -- =========================================================================
     
-    -- C.1 產生退款報告 (利用 NOT EXISTS 確保金融操作冪等性 Idempotency)
+ -- C.1 Create refund report (Use NOT EXISTS to avoid duplicate financial records)
     INSERT INTO report (ins_id, final_deduct, refund_status, penalty_status, created_at)
     SELECT i.ins_id, 0.00, 'pending', 'none', CURDATE()
     FROM inspection i
@@ -809,7 +809,7 @@ CREATE DEFINER=`root`@`localhost` EVENT `ev_master_sla_daemon` ON SCHEDULE EVERY
       AND TIMESTAMPADD(MINUTE, 30, CAST(CONCAT(b.date_booked, ' ', b.time_end) AS DATETIME)) <= NOW()
       AND NOT EXISTS (SELECT 1 FROM report r WHERE r.ins_id = i.ins_id);
 
-    -- C.2 標記檢驗狀態為逾期失效
+ -- C.2 Mark inspection as overdue
     UPDATE inspection i
     JOIN booking b ON i.bid = b.bid
     SET i.ins_status = 'overdue',
@@ -817,7 +817,7 @@ CREATE DEFINER=`root`@`localhost` EVENT `ev_master_sla_daemon` ON SCHEDULE EVERY
     WHERE i.ins_status = 'pending'
       AND TIMESTAMPADD(MINUTE, 30, CAST(CONCAT(b.date_booked, ' ', b.time_end) AS DATETIME)) <= NOW();
       
-    -- C.3 封閉預約生命週期 (推進至 completed)
+ -- C.3 Close booking life cycle (move to completed)
     UPDATE booking b
     JOIN inspection i ON b.bid = i.bid
     SET b.status = 'completed'

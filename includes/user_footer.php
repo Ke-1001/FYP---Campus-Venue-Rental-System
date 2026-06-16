@@ -30,14 +30,7 @@
         </div>
 
         <div class="text-center text-slate-500 text-xs">
-            &copy; 2026 Campus Venue Booking Management System. All rights reserved.
-        </div>
-    </div>
-</footer>
-
-<script>
-    if (window.lucide) {
-        lucide.createIcons();
+            &copy; 2026 Campus Venue Booking Management System. All rights reserved. </div> </div> </footer>  <script> if (window.lucide) { lucide.createIcons();
     }
 </script>
 </body>

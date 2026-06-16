@@ -2,7 +2,7 @@
 // File: check_email.php
 session_start();
 
-// 提取並銷毀 Session 變數，確保頁面重整不會重複顯示特定信箱 (Security Practice)
+// Get and clear the session variable so the email message is not shown again after refresh (Security Practice)
 $target_email = $_SESSION['recovery_email'] ?? 'your configured address';
 unset($_SESSION['recovery_email']);
 ?>
@@ -35,24 +35,7 @@ unset($_SESSION['recovery_email']);
             <h2 class="text-2xl font-black text-slate-800 mb-3">Check Your Inbox</h2>
             
             <p class="text-sm text-slate-500 font-medium leading-relaxed mb-6">
-                If <strong class="text-slate-700"><?php echo htmlspecialchars($target_email); ?></strong> aligns with an active entity in our registry, a password reset link has been successfully dispatched.
-            </p>
-
-            <div class="space-y-3 mb-8">
-                <a href="https://mail.google.com/" target="_blank" class="w-full py-3 bg-white border border-slate-200 text-slate-700 text-sm font-bold rounded-lg hover:bg-slate-50 transition shadow-sm flex items-center justify-center group">
-                    <img src="https://www.gstatic.com/images/branding/product/1x/gmail_32dp.png" alt="Gmail" class="w-5 h-5 mr-3 grayscale group-hover:grayscale-0 transition-all">
-                    Open Gmail Workspace
-                </a>
-                
-                <a href="https://outlook.office.com/mail/" target="_blank" class="w-full py-3 bg-white border border-slate-200 text-slate-700 text-sm font-bold rounded-lg hover:bg-slate-50 transition shadow-sm flex items-center justify-center group">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Microsoft_Office_Outlook_%282018%E2%80%93present%29.svg/512px-Microsoft_Office_Outlook_%282018%E2%80%93present%29.svg.png" alt="Outlook" class="w-5 h-5 mr-3 grayscale group-hover:grayscale-0 transition-all">
-                    Open Microsoft Outlook
-                </a>
-            </div>
-    </div>
-
-    <script>
-        lucide.createIcons();
+                If <strong class="text-slate-700"><?php echo htmlspecialchars($target_email); ?></strong> aligns with an active entity in our registry, a password reset link has been successfully dispatched. </p>  <div class="space-y-3 mb-8"> <a href="https://mail.google.com/" target="_blank" class="w-full py-3 bg-white border border-slate-200 text-slate-700 text-sm font-bold rounded-lg hover:bg-slate-50 transition shadow-sm flex items-center justify-center group"> <img src="https://www.gstatic.com/images/branding/product/1x/gmail_32dp.png" alt="Gmail" class="w-5 h-5 mr-3 grayscale group-hover:grayscale-0 transition-all"> Open Gmail Workspace </a>  <a href="https://outlook.office.com/mail/" target="_blank" class="w-full py-3 bg-white border border-slate-200 text-slate-700 text-sm font-bold rounded-lg hover:bg-slate-50 transition shadow-sm flex items-center justify-center group"> <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Microsoft_Office_Outlook_%282018%E2%80%93present%29.svg/512px-Microsoft_Office_Outlook_%282018%E2%80%93present%29.svg.png" alt="Outlook" class="w-5 h-5 mr-3 grayscale group-hover:grayscale-0 transition-all"> Open Microsoft Outlook </a> </div> </div>  <script> lucide.createIcons();
     </script>
 </body>
 </html>

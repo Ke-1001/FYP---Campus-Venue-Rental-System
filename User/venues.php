@@ -262,26 +262,7 @@ $result = $stmt->get_result();
 
                             <?php if ($is_maintenance): ?>
                                 <p class="text-xs text-amber-600 font-semibold text-center mt-2">
-                                    This venue is under maintenance and cannot be booked.
-                                </p>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                <?php endwhile; ?>
-
-            <?php else: ?>
-                <div class="col-span-full py-12 text-center text-slate-500 bg-white rounded-2xl border border-slate-200">
-                    <i data-lucide="inbox" class="w-12 h-12 mx-auto text-slate-300 mb-3"></i>
-                    <p class="font-medium">No venues matched your search, filter or sorting option.</p>
-                    <p class="text-sm text-slate-400 mt-1">Try changing the keyword or category filter.</p>
-                </div>
-            <?php endif; ?>
-        </div>
-    </div>
-</div>
-
-<script>
-    lucide.createIcons();
+                                    This venue is under maintenance and cannot be booked. </p> <?php endif; ?> </div> </div> <?php endwhile; ?>  <?php else: ?> <div class="col-span-full py-12 text-center text-slate-500 bg-white rounded-2xl border border-slate-200"> <i data-lucide="inbox" class="w-12 h-12 mx-auto text-slate-300 mb-3"></i> <p class="font-medium">No venues matched your search, filter or sorting option.</p> <p class="text-sm text-slate-400 mt-1">Try changing the keyword or category filter.</p> </div> <?php endif; ?> </div> </div> </div>  <script> lucide.createIcons();
 
     document.addEventListener('DOMContentLoaded', function () {
         const form = document.getElementById('venueFilterForm');

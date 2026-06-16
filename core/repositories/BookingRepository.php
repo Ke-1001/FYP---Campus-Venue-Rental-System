@@ -15,10 +15,10 @@ class BookingRepository {
 
     /**
      * ==========================================
-     * [業務場景 A: track_bookings.php 使用]
-     * 函數: getAllWithFilters
-     * 邏輯: 獲取全量預約歷史紀錄。
-     * 約束: 絕對不可加入 SLA 或狀態過濾，全權交由 FilterBuilder 處理。
+ * [Use case A: track_bookings.php use]
+ * Function: getAllWithFilters
+ * Logic: Get all booking history records. 
+ * Rule: Do not add SLA or status filtering; FilterBuilder handles it. 
      * ==========================================
      */
     public function getAllWithFilters(FilterBuilder $filterBuilder) {
@@ -34,13 +34,13 @@ class BookingRepository {
                 JOIN vcategory vc ON v.vcid = vc.vcid
                 WHERE 1=1";
 
-        // 拼接過濾器拓撲與排序規則
+ // Build filters and sort rules
         $sql .= $filterBuilder->buildSqlWhere($this->conn);
         $sql .= " ORDER BY b.created_at DESC";
         
         $result = $this->conn->query($sql);
 
-        // ∴ [探針 A：攔截執行期崩潰] 檢測 H_1 是否成立
+ // [Check A: stop runtime crash] check whether H_1 is true
         if (!$result) {
             die("<div style='background:#fee2e2; padding:20px; border:1px solid #ef4444; color:#991b1b; margin:20px; border-radius:8px; font-family:monospace;'>
                 <b>[Diagnostic Probe A] SQL Execution Fault!</b><br><br>
@@ -49,7 +49,7 @@ class BookingRepository {
                 </div>");
         }
 
-        // ∴ [探針 B：攔截邏輯死鎖] 檢測 H_2 是否成立
+ // [ B: Logic] check whether H_2 is true
         if ($result->num_rows === 0) {
             echo "<div style='background:#fef3c7; padding:20px; border:1px solid #f59e0b; color:#92400e; margin:20px; border-radius:8px; font-family:monospace;'>
                 <b>[Diagnostic Probe B] Zero Records Returned (Query Successful)</b><br><br>
@@ -62,10 +62,10 @@ class BookingRepository {
 
     /**
      * ==========================================
-     * [業務場景 B: pending_requests.php 使用]
-     * 函數: getPendingRequests
-     * 邏輯: 獲取尚待審批的預約請求矩陣。
-     * 約束: 嚴格過濾 pending, paid, 並錨定 time_end 確保 SLA。
+ * [Use case B: pending_requests.php use]
+ * Function: getPendingRequests
+ * Logic: Get pending booking requests. 
+ * Rule: Filter pending and paid records and use time_end for SLA. 
      * ==========================================
      */
     public function getPendingRequests(FilterBuilder $filterBuilder) {
@@ -80,17 +80,17 @@ class BookingRepository {
                 JOIN vcategory vc ON v.vcid = vc.vcid 
                 WHERE b.status = 'pending' 
                   AND b.payment_status = 'paid'
-                  -- ∴ 核心防禦：錨定 terminal boundary (time_end)
+ -- Core safety: use terminal boundary (time_end)
                   AND (
                       b.date_booked > CURDATE() 
                       OR 
                       (b.date_booked = CURDATE() AND b.time_end > CURTIME())
                   )";
 
-        // ∴ 動態注入過濾器拓撲
+ // Add filters dynamically
         $sql .= $filterBuilder->buildSqlWhere($this->conn);
 
-        // 依照請求建立時間遞增排序 (FIFO 排程邏輯)
+ // Sort by request creation time ascending (FIFO Logic)
         $sql .= " ORDER BY b.created_at ASC";
         
         return $this->conn->query($sql);
@@ -98,9 +98,9 @@ class BookingRepository {
 
     /**
      * ==========================================
-     * [業務場景 C: assign_inspector_detail.php 使用]
-     * 函數: getDetailedBookingById
-     * 邏輯: 基於主鍵 (Booking ID) 精確提取預約明細矩陣。
+ * [Use case C: assign_inspector_detail.php use]
+ * Function: getDetailedBookingById
+ * Logic: Based on primary key (Booking ID) Get exact booking details. 
      * ==========================================
      * @param int $bid
      * @return array|null

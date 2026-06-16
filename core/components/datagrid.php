@@ -3,14 +3,14 @@
 
 /**
  * DataGrid Rendering Engine
- * @param array $schema 列配置拓扑图
- * @param mysqli_result|array $dataset 数据集
- * @return string 生成的 HTML DOM
+ * @param array $schema column configuration map
+ * @param mysqli_result|array $dataset dataset
+ * @return string generated HTML DOM
  */
 function render_datagrid(array $schema, $dataset) {
     $html = '<table class="custom-table w-full">';
     
-    // 1. 生成表头 (Thead)
+ // 1. Build table header (Thead)
     $html .= '<thead class="sticky top-0 z-10 bg-white"><tr>';
     if (!empty($schema['enable_checkbox'])) {
         $html .= '<th class="w-12 text-center"><input type="checkbox" id="selectAll" onclick="toggleAll(this)" class="w-4 h-4 rounded border-slate-300 text-[#004aad] focus:ring-[#004aad]"></th>';
@@ -21,7 +21,7 @@ function render_datagrid(array $schema, $dataset) {
     }
     $html .= '</tr></thead><tbody>';
 
-    // 2. 注入数据源 (Tbody)
+ // 2. Insert data source (Tbody)
     $has_data = false;
     if ($dataset instanceof mysqli_result) {
         $has_data = $dataset->num_rows > 0;
@@ -41,18 +41,18 @@ function render_datagrid(array $schema, $dataset) {
     }
     $html .= '<tr '.$row_attr.'>';
 
-            // Checkbox 渲染
+ // Checkbox rendering
             if (!empty($schema['enable_checkbox'])) {
                 $primary_key = $schema['primary_key'] ?? 'id';
                 $html .= '<td class="text-center"><input type="checkbox" name="'.$schema['checkbox_name'].'[]" value="'.$row[$primary_key].'" onclick="updateButtonStates()" class="row-cb w-4 h-4 rounded border-slate-300 text-[#004aad] focus:ring-[#004aad]"></td>';
             }
 
-            // 列映射计算 (Column Mapping Computation)
+ // Column mapping calculation (Column Mapping Computation)
             foreach ($schema['columns'] as $col) {
                 $html .= '<td>';
                 
-                // ∴ 引入安全解析层 (Safe Resolution Layer)
-                // 仅当 $col 存在 'key' 属性时，才尝试从数据集 $row 中提取对应标量值
+ // Add safe parsing layer (Safe Resolution Layer)
+ // $col in 'key' , fromdataset $row inGetfor
                 $col_key = $col['key'] ?? null;
                 $val = ($col_key !== null && isset($row[$col_key])) ? $row[$col_key] : '';
 
@@ -71,12 +71,12 @@ function render_datagrid(array $schema, $dataset) {
                         $html .= '<span class="px-2 py-0.5 bg-[#f1f5f9] text-slate-600 text-[10px] font-bold uppercase tracking-wider rounded-sm border border-[#e2e8f0] inline-block">' . htmlspecialchars($val) . '</span>';
                         break;
                     case 'time_range':
-                        // ∴ 引入统一栅格宽度与等宽字体矩阵，彻底修复 X 轴对齐偏置
+ // Use fixed grid width and monospace font to fix X-axis alignment
                         $start = isset($row[$col['start_key']]) ? date('H:i', strtotime($row[$col['start_key']])) : 'N/A';
                         $end = isset($row[$col['end_key']]) ? date('H:i', strtotime($row[$col['end_key']])) : 'N/A';
                         
                         $html .= '<div class="td-text-mono flex flex-col space-y-1 text-xs text-slate-700 font-semibold">';
-                        // 每一个条目采用 flex 布局，迫使前缀标签占据绝对对齐空间（w-12 ≡ 3rem）
+ // Use flex layout so each prefix label has aligned space(w-12 ≡ 3rem)
                         $html .= '  <div class="flex items-center">';
                         $html .= '    <span class="text-slate-400 font-normal uppercase tracking-wider text-[10px] w-12 block shrink-0">Start</span>';
                         $html .= '    <span class="font-mono text-slate-800">' . $start . '</span>';

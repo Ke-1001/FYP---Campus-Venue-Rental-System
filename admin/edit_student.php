@@ -4,7 +4,7 @@ session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 
-// ∴ 嚴格引入核心 OOP 組件與數據倉儲
+// Load core OOP components and repository
 require_once __DIR__ . '/../core/components/FilterBuilder.php';
 require_once __DIR__ . '/../core/components/DataGridBuilder.php';
 require_once __DIR__ . '/../core/components/FioriFormBuilder.php';
@@ -22,14 +22,14 @@ use Core\Repositories\StudentRepository;
 */
 $studentRepo = new StudentRepository($conn);
 
-// 提取 UID 標量拓撲 (支援字母與數字組合，例如: 242DT24123)
+// Get UID value (supports letters and numbers, : 242DT24123)
 $uid_param = isset($_GET['uid']) ? trim($_GET['uid']) : '';
 
 if (empty($uid_param)) {
     die("Execution Fault: Missing Identity Parameter (UID).");
 }
 
-// 獲取當前用戶實體
+// Get current user record
 $student_entity = $studentRepo->getStudentById($uid_param); 
 if (!$student_entity) {
     die("Execution Fault: Student Identity Node not found in database.");
@@ -40,7 +40,7 @@ if (!$student_entity) {
 | D: Data Extraction (Relational Booking Records Map)
 |--------------------------------------------------------------------------
 */
-// ∴ 嚴格映射物理數據庫拓撲至邏輯網格拓撲 (Physical to Logical Mapping via SQL Aliasing & JOIN)
+// Map database fields to grid fields (Physical to Logical Mapping via SQL Aliasing & JOIN)
 $records = [];
 $sql_booking = "
     SELECT 
@@ -64,7 +64,7 @@ if ($booking_stmt) {
     }
     $booking_stmt->close();
 } else {
-    // ∴ 系統日誌攔截，防止靜默失敗 (Silent Failure)
+ // Log system errors to avoid silent failure (Silent Failure)
     die("Relational Matrix Extraction Fault: " . $conn->error);
 }
 
@@ -85,9 +85,9 @@ $topbar_content = '
 
 $extra_css = [];
 
-// ∴ 下層預約記錄視覺矩陣 (DataGrid) 配置
+// Booking record grid (DataGrid)
 $bookingGrid = new DataGridBuilder('booking_id', '#', 'booking record');
-$bookingGrid->disableAction('create')->disableAction('edit')->disableAction('delete') // 唯讀歷史面板
+$bookingGrid->disableAction('create')->disableAction('edit')->disableAction('delete') // read-only history panel
     ->addColumn('booking_id', 'Booking Reference', 'text_mono', ['width' => 'w-32 text-center'])
     ->addColumn('venue_name', 'Allocated Resource / Venue', 'text_bold', ['width' => 'w-64'])
     ->addColumn('booking_date', 'Timestamp Matrix', 'text_muted_mono', ['width' => 'w-48'])
@@ -136,7 +136,7 @@ ob_start();
                         'extra_css' => 'font-mono text-slate-400 bg-slate-50 cursor-not-allowed'
                     ]);
 
-                    // ∴ 狀態機選擇矩陣 (Active / Restricted)
+ // Status selection options (Active / Restricted)
                     echo FB::select('status', 'Account State Constraint', [
                         'active' => 'Active (Granted Access)',
                         'restricted' => 'Restricted (Suspended Access)'

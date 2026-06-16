@@ -21,7 +21,7 @@ function render_filter_engine(array $schema) {
         $placeholder = htmlspecialchars($field['placeholder'] ?? '');
         $width = $field['width'] ?? 'w-40';
 
-        // 依据拓扑类型进行 DOM 渲染分发
+ // Render DOM based on filter type
         switch ($field['type']) {
             case 'text':
                 $html .= '<input type="text" name="'.$name.'" value="'.$value.'" placeholder="'.$placeholder.'" class="border border-slate-200 rounded px-3 py-1.5 text-xs font-semibold focus:outline-none focus:border-[#004aad] '.$width.' bg-white">';
@@ -53,7 +53,7 @@ function render_filter_engine(array $schema) {
         $html .= '</div>';
     }
 
-    // 渲染动作按钮组 (Action Button Matrix)
+ // Render action buttons (Action Button Matrix)
     $html .= '<div class="flex space-x-2 ml-auto">';
     if (!empty($schema['show_submit_btn'])) {
         $html .= '<button type="submit" class="px-4 py-1.5 rounded transition shadow-sm ' . htmlspecialchars($btn_primary) . '">Filter</button>';

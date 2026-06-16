@@ -4,11 +4,11 @@ session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
 
-// 💡 提取多維度過濾參數
+// Get filter parameters
 $filter_query = trim($_GET['f_query'] ?? '');
 $filter_role = trim($_GET['f_role'] ?? '');
 
-// 💡 建構查詢引擎
+// Build query engine
 $sql = "SELECT aid, admin_name, email, phone_num, role, created_at FROM admin WHERE 1=1";
 
 if (!empty($filter_query)) {
@@ -61,7 +61,7 @@ $result = $conn->query($sql);
                 </div>
             </div>
 
-            <!-- 💡 多維度過濾矩陣 -->
+ <!-- Filter area -->
             <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 mb-6">
                 <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                     
@@ -93,7 +93,7 @@ $result = $conn->query($sql);
                 </form>
             </div>
 
-            <!-- 💡 資料名錄 -->
+ <!-- Data directory -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="px-6 py-4 border-b border-slate-100 bg-slate-50">
                     <h3 class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Administrator Index (<?php echo $result->num_rows; ?>)</h3>

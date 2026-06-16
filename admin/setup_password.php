@@ -2,7 +2,7 @@
 // File: admin/setup_password.php
 require_once __DIR__ . '/../config/db.php';
 
-// 💡 1. 提取並驗證權杖向量
+// 1. Get and validate token
 $token = $_GET['token'] ?? '';
 $is_valid = false;
 $email = '';
@@ -10,7 +10,7 @@ $email = '';
 if (!empty($token)) {
     $token_hash = hash('sha256', $token);
     
-    // 驗證權杖是否存在且尚未過期
+ // Check if token exists and is not expired
     $stmt = $conn->prepare("SELECT email FROM password_resets WHERE token_hash = ? AND expires_at > NOW()");
     $stmt->bind_param("s", $token_hash);
     $stmt->execute();
@@ -135,11 +135,7 @@ if (!empty($token)) {
             const isMatch = pwd === confirmPwd && pwd !== '';
 
             if (confirmPwd.length > 0) {
-                if (isMatch) matchFeedback.classList.add('hidden');
-                else matchFeedback.classList.remove('hidden');
-            }
-
-            if (isPwdSecure && isMatch) {
+                if (isMatch) matchFeedback.classList.add('hidden'); else matchFeedback.classList.remove('hidden'); }  if (isPwdSecure && isMatch) {
                 btn.disabled = false;
                 btn.classList.remove('opacity-50', 'cursor-not-allowed');
             } else {

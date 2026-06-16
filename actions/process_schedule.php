@@ -7,12 +7,12 @@ require_once __DIR__ . '/../includes/admin_auth.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
     
-    // 啟動資料庫原子交易
+ // Start database transaction
     $conn->begin_transaction();
 
     try {
         if ($action === 'create' || $action === 'update') {
-            // 💡 1. 嚴格提取包含 sem_id 的時空向量
+ // 1. Get and validate time data including sem_id
             $sem_id = intval($_POST['sem_id'] ?? 0);
             $vid = trim($_POST['vid'] ?? '');
             $day = $_POST['day_of_week'] ?? '';
@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception("Logical Fault: End time must strictly succeed start time.");
             }
 
-            // 💡 2. 3D 空間碰撞檢查 (包含 sem_id 約束)
+ // 2. Check schedule conflict (including sem_id rule)
             $sql_check = "SELECT subject_name FROM academic_schedule 
                           WHERE vid = ? AND sem_id = ? AND day_of_week = ? 
                           AND start_time < ? AND end_time > ?";
@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception("Schedule Conflict: This vector overlaps with [{$overlap['subject_name']}] in the designated semester.");
             }
 
-            // 💡 3. 執行資料寫入
+ // 3. Save data
             if ($action === 'create') {
                 $stmt = $conn->prepare("INSERT INTO academic_schedule (vid, sem_id, day_of_week, start_time, end_time, subject_name) VALUES (?, ?, ?, ?, ?, ?)");
                 $stmt->bind_param("sissss", $vid, $sem_id, $day, $start, $end, $subject);
@@ -60,12 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt->bind_param("sissssi", $vid, $sem_id, $day, $start, $end, $subject, $sch_id);
             }
             $stmt->execute();
-            if ($stmt->error) throw new Exception("Database Execution Fault: " . $stmt->error);
-            $stmt->close();
-            
-            $_SESSION['toast'] = ['type' => 'success', 'msg' => "Academic slot successfully " . ($action === 'create' ? "locked." : "modified.")];
-
-        } elseif ($action === 'batch_import') {
+            if ($stmt->error) throw new Exception("Database Execution Fault: " . $stmt->error); $stmt->close();  $_SESSION['toast'] = ['type' => 'success', 'msg' => "Academic slot successfully " . ($action === 'create' ? "locked." : "modified.")];  } elseif ($action === 'batch_import') {
             
             $sem_id = intval($_POST['sem_id'] ?? 0);
             if ($sem_id === 0) {
@@ -78,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $file = $_FILES['csv_file']['tmp_name'];
             $handle = fopen($file, "r");
             $csv_data = [];
-            fgetcsv($handle); // 跳過標題列
+ fgetcsv($handle); // Skip header row
 
             while (($row = fgetcsv($handle)) !== FALSE) {
                 if (count($row) < 5) continue; 
@@ -95,8 +90,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $valid_pool = [];
             $conflict_log = [];
 
-            // 💡 [NEW] 預驗證映射層 (Pre-validation Mapping Layer)
-            // 提取 V_whitelist 以供 O(1) 空間查詢
+ // [NEW] Pre-validation mapping layer (Pre-validation Mapping Layer)
+ // Get V_whitelist for fast lookup
             $v_whitelist = [];
             $stmt_v = $conn->prepare("SELECT vid FROM venue");
             $stmt_v->execute();
@@ -106,17 +101,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $stmt_v->close();
 
-            // 💡 動態白名單碰撞演算法
+ // Dynamic whitelist conflict check
             foreach ($csv_data as $current) {
-                // [NEW] A0. 空間拓撲連續性驗證: ∀ v_i ∈ CSV, v_i ∈ V_{whitelist}
+ // [NEW] A0. Check if venue exists in whitelist: ∀ v_i ∈ CSV, v_i ∈ V_{whitelist}
                 if (!in_array($current['vid'], $v_whitelist)) {
                     $conflict_log[] = array_merge($current, ['reason' => "Topology Constraint Fault: Venue ID [{$current['vid']}] ∉ V_{valid}."]);
-                    continue; // 丟棄畸形向量，推進至下一個迭代
+ continue; // Skip invalid row and continue
                 }
 
-                // [NEW] A1. 時序標量語法與邏輯校驗
-                if (!preg_match('/^(?:2[0-3]|[01][0-9]):[0-5][0-9](?::[0-5][0-9])?$/', $current['start']) ||
-                    !preg_match('/^(?:2[0-3]|[01][0-9]):[0-5][0-9](?::[0-5][0-9])?$/', $current['end'])) {
+ // [NEW] A1. Check time format and logic
+                if (!preg_match('/^(?:2[0-3]|[01][0-9]):[0-5][0-9](?::[0-5][0-9])?$/', $current['start']) || !preg_match('/^(?:2[0-3]|[01][0-9]):[0-5][0-9](?::[0-5][0-9])?$/', $current['end'])) {
                     $conflict_log[] = array_merge($current, ['reason' => "Temporal Syntax Fault: Malformed HH:MM(:SS) format."]);
                     continue;
                 }
@@ -128,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $has_conflict = false;
                 $reason = "";
 
-                // A2. 外部檢查 (Database 碰撞，嚴格綁定 sem_id)
+ // A2. External check (Database , strictly bind sem_id)
                 $stmt_check = $conn->prepare("SELECT subject_name FROM academic_schedule WHERE vid = ? AND sem_id = ? AND day_of_week = ? AND start_time < ? AND end_time > ? LIMIT 1");
                 $stmt_check->bind_param("sisss", $current['vid'], $sem_id, $current['day'], $current['end'], $current['start']);
                 $stmt_check->execute();
@@ -140,7 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $reason = "Database Collision: Overlaps with [{$db_conflict['subject_name']}]";
                 }
 
-                // B. 內部檢查 (CSV 自衝突，白名單池)
+ // B. Internal check (CSV self conflict and whitelist pool)
                 if (!$has_conflict) {
                     foreach ($valid_pool as $accepted) {
                         if ($current['vid'] === $accepted['vid'] && $current['day'] === $accepted['day']) {
@@ -160,37 +154,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
 
-            // 💡 執行原子化批次寫入
+ // Save all rows in one transaction
             $success_count = 0;
             foreach ($valid_pool as $entry) {
                 $ins = $conn->prepare("INSERT INTO academic_schedule (vid, sem_id, day_of_week, start_time, end_time, subject_name) VALUES (?, ?, ?, ?, ?, ?)");
                 $ins->bind_param("sissss", $entry['vid'], $sem_id, $entry['day'], $entry['start'], $entry['end'], $entry['subject']);
-                if ($ins->execute()) $success_count++;
-                $ins->close();
-            }
-
-            $_SESSION['batch_results'] = ['success' => $success_count, 'conflicts' => $conflict_log];
-            $_SESSION['toast'] = ['type' => 'success', 'msg' => "Batch sync completed. $success_count vectors injected into Semester ID $sem_id."];
-
-        } elseif ($action === 'bulk_delete') {
+                if ($ins->execute()) $success_count++; $ins->close(); }  $_SESSION['batch_results'] = ['success' => $success_count, 'conflicts' => $conflict_log]; $_SESSION['toast'] = ['type' => 'success', 'msg' => "Batch sync completed. $success_count vectors injected into Semester ID $sem_id."];  } elseif ($action === 'bulk_delete') {
             $ids = $_POST['sch_ids'] ?? [];
-            if (!is_array($ids) || empty($ids)) throw new Exception("Execution Fault: Null vector array provided for deletion.");
-            
-            $success = 0;
-            $stmt = $conn->prepare("DELETE FROM academic_schedule WHERE sch_id = ?");
-            foreach ($ids as $id) {
+            if (!is_array($ids) || empty($ids)) throw new Exception("Execution Fault: Null vector array provided for deletion.");  $success = 0; $stmt = $conn->prepare("DELETE FROM academic_schedule WHERE sch_id = ?"); foreach ($ids as $id) {
                 $clean_id = intval($id);
                 if ($clean_id > 0) {
                     $stmt->bind_param("i", $clean_id);
-                    if ($stmt->execute()) $success++;
-                }
-            }
-            $stmt->close();
-            $_SESSION['toast'] = ['type' => 'success', 'msg' => "Remove Process Complete: $success exclusions purged."];
-        }
-
-        $conn->commit();
-    } catch (Exception $e) {
+                    if ($stmt->execute()) $success++; } } $stmt->close(); $_SESSION['toast'] = ['type' => 'success', 'msg' => "Remove Process Complete: $success exclusions purged."]; }  $conn->commit(); } catch (Exception $e) {
         $conn->rollback();
         $_SESSION['toast'] = ['type' => 'error', 'msg' => $e->getMessage()];
     }

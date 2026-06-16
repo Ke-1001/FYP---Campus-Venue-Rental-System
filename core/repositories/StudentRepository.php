@@ -14,10 +14,10 @@ class StudentRepository {
     }
 
     /**
-     * 獲取學生目錄矩陣 (Student Directory Matrix)
+ * Get student directory (Student Directory Matrix)
      */
     public function getAllStudents(FilterBuilder $filterBuilder, string $sortOption) {
-        // ∴ 引入 SQL 投影別名 (account_status AS status)，無縫對接 DataGrid 渲染引擎
+ // Add SQL alias (account_status AS status), connect to DataGrid renderer
         $sql = "SELECT uid, username, email, phone_num, account_status AS status, created_at FROM user WHERE 1=1";
 
         $sql .= $filterBuilder->buildSqlWhere($this->conn);
@@ -39,11 +39,11 @@ class StudentRepository {
     }
 
     /**
-     * 提取單一學生實體拓撲 (Single Entity Extraction)
-     * @return array|null 關聯矩陣
+ * Get one student record (Single Entity Extraction)
+ * @return array|null associative array
      */
     public function getStudentById(string $uid): ?array {
-        // ∴ 同步別名映射，確保 edit_student.php 狀態機 (FioriFormBuilder) 正常讀取
+ // Sync alias mapping so edit_student.php status logic (FioriFormBuilder) reads correctly
         $sql = "SELECT uid, username, email, phone_num, account_status AS status, created_at FROM user WHERE uid = ? LIMIT 1";
         
         $stmt = $this->conn->prepare($sql);

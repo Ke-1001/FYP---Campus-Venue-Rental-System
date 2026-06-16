@@ -6,10 +6,10 @@ namespace Core\Components;
 class FioriTileBuilder {
     
     /**
-     * 渲染單一 Launchpad 區塊 (Render Launchpad Section)
-     * @param string $title 區塊標題
-     * @param string $description 區塊描述
-     * @param array $tiles 磁磚陣列配置
+ * Render one Launchpad section (Render Launchpad Section)
+ * @param string $title section title
+ * @param string $description section description
+ * @param array $tiles tile config array
      */
     public static function renderSection(string $title, string $description, array $tiles): string {
         $html = '
@@ -28,14 +28,14 @@ class FioriTileBuilder {
     }
 
     /**
-     * 渲染獨立磁磚 (Render Discrete Tile)
+ * Render one tile (Render Discrete Tile)
      */
     private static function renderTile(array $t): string {
         $url = htmlspecialchars($t['url'] ?? '#');
         $title = htmlspecialchars($t['title']);
         $icon = htmlspecialchars($t['icon']);
         $desc = htmlspecialchars($t['desc']);
-        $kpi = $t['kpi'] ?? ''; // KPI 可能是數字或 Icon (HTML)
+ $kpi = $t['kpi'] ?? ''; // KPI can be a number or icon (HTML)
         $action = htmlspecialchars($t['action'] ?? 'View Records');
 
         return "

@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // 基礎狀態機約束
+ // Basic status validation
     if ($ins_status === 'passed') {
         $damage_desc = 'No damage. Venue is in standard condition.';
         $penalty = 0.00;
@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $conn->begin_transaction();
 
     try {
-        // 💡 1. 提取 $I_{curr}$ 的時空向量並執行自身 SLA 阻斷 (30-Min Lock)
+ // 1. Get the current inspection time data and apply SLA lock (30-Min Lock)
         $sql_curr_info = "SELECT b.vid, b.uid, v.deposit, CONCAT(b.date_booked, ' ', b.time_start) AS start_datetime, CONCAT(b.date_booked, ' ', b.time_end) AS end_datetime 
                           FROM booking b 
                           JOIN venue v ON b.vid = v.vid 
@@ -44,12 +44,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $vid = $curr_meta['vid'];
         $curr_end_timestamp = strtotime($curr_meta['end_datetime']);
 
-        // 自身 SLA 校驗 (t > T_end + 30m)
+ // Check this inspection SLA (t > T_end + 30m)
         if (time() > $curr_end_timestamp + 1800) {
             throw new Exception("SLA Violation: The 30-minute inspection window for this booking has expired. Action denied.");
         }
 
-        // 💡 2. 動態溯源：提取前置的 Overdue 節點，並施加排他鎖 (FOR UPDATE)
+ // 2. Find previous overdue records and lock them (FOR UPDATE)
         $sql_overdue = "SELECT i.ins_id, b.bid 
                         FROM inspection i
                         JOIN booking b ON i.bid = b.bid
@@ -67,17 +67,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $stmt_overdue->close();
 
-        // 💡 3. 狀態坍縮邏輯矩陣 (State Collapse Matrix)
+ // 3. Status handling rules (State Collapse Matrix)
         if (!empty($overdue_nodes)) {
             
-            // 監管鏈斷裂防護：若當前發現損壞，但存在前置超時未檢，必須強制將當前狀態轉移為 Passed (系統吸收)
+ // If previous inspections are overdue, mark current damage check as Passed (system absorbs it)
             if ($ins_status === 'failed') {
                 $ins_status = 'passed';
                 $penalty = 0.00;
                 $damage_desc = "[SYSTEM ABSORBED] Chain of Custody Fault: Damage was detected, but a preceding SLA violation exists for this venue. Original findings: " . $damage_desc;
             }
 
-            // 釋放所有前置 Overdue 節點的押金 (提早打破 24h 凍結)
+ // Release deposits for all previous overdue records (end the 24-hour hold early)
             $sql_release_ins = "UPDATE inspection SET ins_status = 'passed', damage_desc = 'State Collapse: Cleared by subsequent legitimate inspection log.', inspected_at = NOW() WHERE ins_id = ?";
             $stmt_release_ins = $conn->prepare($sql_release_ins);
             
@@ -95,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt_release_rpt->close();
         }
 
-        // 💡 4. 結算當前節點 $I_{curr}$
+ // 4. Finalize current record $I_{curr}$
         $sql_ins = "UPDATE inspection 
                     SET ins_status = ?, damage_desc = ?, penalty = ?, inspected_at = NOW() 
                     WHERE bid = ? AND ins_status = 'pending'";
@@ -109,27 +109,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $stmt_ins->close();
 
-        // 提取 $I_{curr}$ 的 ins_id 進行報告與財務轉移
+ // Get current ins_id for report and payment updates
         $res = $conn->query("SELECT ins_id FROM inspection WHERE bid = $bid");
         if ($res && $res->num_rows > 0) {
             $ins_id = $res->fetch_assoc()['ins_id'];
             $deposit = floatval($curr_meta['deposit']);
             $uid = $curr_meta['uid'];
             
-            // 計算債務增量與動態財務狀態
+ // Calculate new debt and payment status
             $excess = $penalty - $deposit;
             $delta_debt = ($excess > 0) ? $excess : 0.00;
             $refund_status = ($penalty >= $deposit) ? 'none' : 'pending'; 
             $penalty_status = ($penalty > 0) ? 'pending' : 'none';
             
-            // 寫入 Report
+ // Save report
             $sql_rpt = "INSERT IGNORE INTO report (ins_id, final_deduct, refund_status, penalty_status, created_at) VALUES (?, ?, ?, ?, CURDATE())";
             $stmt_rpt = $conn->prepare($sql_rpt);
             $stmt_rpt->bind_param("idss", $ins_id, $penalty, $refund_status, $penalty_status);
             $stmt_rpt->execute();
             $stmt_rpt->close();
 
-            // 若 $\Delta_{debt} > 0$，執行原子化債務累加
+ // if $\Delta_{debt} > 0$, Add debt safely in one transaction
             if ($delta_debt > 0) {
                 $sql_user = "UPDATE user SET outstanding_debt = outstanding_debt + ? WHERE uid = ?";
                 $stmt_user = $conn->prepare($sql_user);

@@ -105,13 +105,7 @@ $is_damage_window_open = (
 );
 
 $can_report_damage = (
-    strtolower($booking['status']) === 'approved' &&
-    !$damage_report &&
-    $is_damage_window_open
-);
-
-$damage_window_message = 'Damage report is only available from booking start time until booking end time.';
-if ($damage_report) {
+    strtolower($booking['status']) === 'approved' && !$damage_report && $is_damage_window_open );  $damage_window_message = 'Damage report is only available from booking start time until booking end time.'; if ($damage_report) {
     $damage_window_message = 'Damage report has already been submitted.';
 } elseif (strtolower($booking['status']) !== 'approved') {
     $damage_window_message = 'Damage report is only available for approved bookings.';
@@ -220,7 +214,7 @@ function translateSystemText($text) {
         '[SYSTEM ABSORBED]' => 'Chain of Custody Fault: Damage was detected, but a preceding SLA violation exists for this venue.'
     ];
 
-    // 💡 升級：使用 stripos 達成 O(1) 的大小寫免疫，無懼髒數據
+ // Upgrade: Use stripos for case-insensitive check
     foreach ($dictionary as $code => $translation) {
         if (stripos($text, $code) !== false) {
             return str_ireplace($code, $translation, $text);
@@ -638,7 +632,7 @@ $flowSteps[] = [
                                     Reason: 
                                     <?php 
                                         $reason = $booking['cancel_reason'] ?? 'Payment deadline expired';
-                                        // 💡 只進行一次輸出，避免雙重印出
+ // Output only once to avoid duplicate display
                                         echo htmlspecialchars(translateSystemText($reason)); 
                                     ?>
                                 </p>
@@ -712,20 +706,7 @@ $flowSteps[] = [
                         <i data-lucide="info" class="w-5 h-5 text-indigo-600 shrink-0 mt-0.5"></i>
 
                         <p class="text-sm text-indigo-800 leading-relaxed">
-                            If the progress is not updated yet, it means the related admin or inspection action has not been completed in the system.
-                        </p>
-                    </div>
-                </div>
-
-            </div>
-
-        </div>
-    </div>
-</div>
-
-
-<script>
-lucide.createIcons();
+                            If the progress is not updated yet, it means the related admin or inspection action has not been completed in the system. </p> </div> </div>  </div>  </div> </div> </div>   <script> lucide.createIcons();
 </script>
 
 <?php include("../includes/user_footer.php"); ?>

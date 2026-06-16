@@ -136,7 +136,7 @@ require_once '../config/db.php';
             document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed');
         }
 
-        // 修正: 函數名稱已統一為 validateERPForm，解決事件綁定斷裂問題
+ // Fix: function name is validateERPForm to solve event binding issue
         function validateERPForm() {
             const emailInput = document.getElementById('email');
             const emailFeedback = document.getElementById('email-feedback');
@@ -166,7 +166,7 @@ require_once '../config/db.php';
                 special: /[@$!%*?&]/.test(pwd)
             };
 
-            // 修正: 將映射邏輯對齊至 fiori_forms.css 的 .validation-tag，解決 Null Reference 問題
+ // Fix: align mapping with.validation-tag in fiori_forms.css to avoid null reference
             const toggleRule = (id, isValid) => {
                 const el = document.getElementById(id);
                 if (isValid) {
@@ -185,7 +185,7 @@ require_once '../config/db.php';
             const isPwdSecure = Object.values(reqs).every(val => val === true);
             const btn = document.getElementById('submitBtn');
 
-            // 執行按鈕狀態控制
+ // Control button status
             if (isPwdSecure && isEmailValid) {
                 btn.disabled = false;
                 btn.style.opacity = "1";

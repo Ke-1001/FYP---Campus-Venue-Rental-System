@@ -13,7 +13,7 @@ $stmt->execute();
 $venue = $stmt->get_result()->fetch_assoc();
 if (!$venue) die("Anomaly: Venue object not found in persistent storage.");
 
-// 💡 唯一性投影：提取不重複且正規化的現有類別
+// Get unique normalized existing categories
 $cat_sql = "SELECT DISTINCT UPPER(TRIM(category)) AS category_name 
             FROM venue WHERE category IS NOT NULL AND category != '' 
             ORDER BY category_name ASC";
@@ -68,7 +68,7 @@ $categories_result = $conn->query($cat_sql);
                                 <input type="text" name="vname" value="<?php echo htmlspecialchars($venue['vname']); ?>" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm transition-all">
                             </div>
                             
-                            <!-- 💡 混合輸入器：預載現有值，並確保輸出大寫 -->
+ <!-- Mixed input: preload existing value and output uppercase -->
                             <div>
                                 <label class="block text-xs font-bold text-slate-500 uppercase mb-2 tracking-wide">Category</label>
                                 <input list="category-options" name="category" value="<?php echo htmlspecialchars(strtoupper($venue['category'])); ?>" required oninput="this.value = this.value.toUpperCase()" placeholder="Select or type category..." class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm bg-white font-mono font-bold text-indigo-700 transition-all uppercase">

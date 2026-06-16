@@ -10,7 +10,7 @@
         <nav class="flex-1 overflow-y-auto py-4">
             <a href="#" class="nav-item flex items-center px-4 py-3 ...">
                 <i data-lucide="icon-name" class="w-5 h-5 shrink-0"></i>
-                <span class="ml-3 nav-text">標題</span>
+ <span class="ml-3 nav-text">Title</span>
             </a>
         </nav>
 

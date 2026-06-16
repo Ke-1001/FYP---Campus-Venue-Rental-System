@@ -13,7 +13,7 @@ class MetricsRepository {
     }
 
     /**
-     * 獲取預約子領域 KPI 矩陣
+ * Get booking KPI data
      */
     public function getBookingKPIs(): array {
         return [
@@ -26,7 +26,7 @@ class MetricsRepository {
     }
 
     /**
-     * 獲取檢驗子領域 KPI 矩陣
+ * Get inspection KPI data
      */
     public function getInspectionKPIs(): array {
         return [
@@ -36,7 +36,7 @@ class MetricsRepository {
     }
 
     /**
-     * 獲取場地子領域 KPI 矩陣
+ * Get venue KPI data
      */
     public function getVenueKPIs(): array {
         return [
@@ -47,7 +47,7 @@ class MetricsRepository {
     }
 
     /**
-     * 獲取學術排程子領域 KPI 矩陣
+ * Get academic schedule KPI data
      */
     public function getAcademicKPIs(): array {
         return [
@@ -57,7 +57,7 @@ class MetricsRepository {
     }
 
     /**
-     * 獲取身分與人員子領域 KPI 矩陣
+ * Get identity and staff KPI data
      */
     public function getPersonnelKPIs(): array {
         return [
@@ -67,8 +67,8 @@ class MetricsRepository {
     }
 
     /**
-     * 獲取 Master Dashboard 全域 KPI 矩陣
-     * ∴ 將所有領域分片進行聯集 (Union)
+ * Get master dashboard KPI data
+ * Combine all domain data (Union)
      */
     public function getDashboardKPIs(): array {
         return array_merge(

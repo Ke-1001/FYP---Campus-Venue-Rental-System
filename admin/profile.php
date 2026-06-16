@@ -4,10 +4,10 @@ session_start();
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../includes/admin_auth.php'; 
 
-// 💡 1. 識別碼解析
+// 1. ID parsing
 $aid = $_SESSION['aid'] ?? $_SESSION['user_id'];
 
-// 💡 2. 提取實體核心數據
+// 2. Get main account data
 $sql = "SELECT admin_name, email, phone_num, role FROM admin WHERE aid = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("s", $aid); 
@@ -138,7 +138,7 @@ $stmt->close();
         lucide.createIcons();
         function toggleSidebar() { document.getElementById('system-sidebar').classList.toggle('sidebar-collapsed'); }
 
-        // Modal 控制流
+ // Modal
         let activeForm = null;
         function triggerCustomModal(form, msg) {
             activeForm = form;

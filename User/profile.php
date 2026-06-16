@@ -1,15 +1,7 @@
 <?php
 session_start();
 require_once __DIR__ . '/../config/db.php';
-if (!isset($_SESSION['uid'])) { header("Location: user_login.php"); exit(); }
-$uid = $_SESSION['uid'];
-$stmt = $conn->prepare("SELECT * FROM user WHERE uid = ?");
-$stmt->bind_param("s", $uid);
-$stmt->execute();
-$user = $stmt->get_result()->fetch_assoc();
-
-$profile_pic_url = '';
-if (!empty($user['profile_pic'])) {
+if (!isset($_SESSION['uid'])) { header("Location: user_login.php"); exit(); } $uid = $_SESSION['uid']; $stmt = $conn->prepare("SELECT * FROM user WHERE uid = ?"); $stmt->bind_param("s", $uid); $stmt->execute(); $user = $stmt->get_result()->fetch_assoc();  $profile_pic_url = ''; if (!empty($user['profile_pic'])) {
     $stored_pic = trim($user['profile_pic']);
     $stored_pic = str_replace('\\', '/', $stored_pic);
     $stored_pic = ltrim($stored_pic, '/');

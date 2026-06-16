@@ -3,8 +3,8 @@ manage_admins.php:
 // File: admin/manage_admins.php
 session_start();
 
-// 💡 模擬管理員清單 (Identity Matrix)
-// 未來對接：SELECT admin_id, full_name, email, role, status FROM admins
+// Mock admin list (Identity Matrix)
+// Future SQL link: SELECT admin_id, full_name, email, role, status FROM admins
 $admins = [
     [
         'id' => 'EMP-0001', 
@@ -47,8 +47,8 @@ manage_students.php:
 // File: admin/manage_students.php
 session_start();
 
-// 💡 模擬學生矩陣 (Student Identity Matrix)
-// 未來對接：SELECT student_id, full_name, faculty, course, status FROM students
+// Mock student list (Student Identity Matrix)
+// Future SQL link: SELECT student_id, full_name, faculty, course, status FROM students
 $students = [
     [
         'id' => 'STU-1211', 
@@ -105,18 +105,18 @@ report.php:
 // File: admin/report.php
 session_start();
 
-// 💡 模擬聚合數據矩陣 (Mock Data Aggregation Matrix)
-// 未來由組員對接 SQL: SELECT DATE_FORMAT(date, '%b'), SUM(amount) FROM payments GROUP BY ...
+// Mock summary data (Mock Data Aggregation Matrix)
+// Future SQL link by team member: SELECT DATE_FORMAT(date, '%b'), SUM(amount) FROM payments GROUP BY...
 
-// 1. 財務收入向量 (Financial Intake Vector)
+// 1. Financial income data (Financial Intake Vector)
 $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
 $revenue_data = [1200, 1900, 2400, 2100, 3500, 4200];
 
-// 2. 節點利用率矩陣 (Node Utilization Matrix)
+// 2. Venue usage data (Node Utilization Matrix)
 $venue_labels = ['Lecture Hall 1', 'Lab 3042', 'DTC Main Hall', 'Meeting Room B'];
 $utilization_percentages = [92, 85, 74, 60];
 
-// 3. 財務交易流水 (Financial Ledger)
+// 3. Financial transaction list (Financial Ledger)
 $transactions = [
     ['id' => 'TXN-7701', 'ref' => 'BKG-8821', 'type' => 'Deposit', 'amount' => '100.00', 'date' => '2026-04-18', 'status' => 'Settled'],
     ['id' => 'TXN-7702', 'ref' => 'BKG-8822', 'type' => 'Deposit', 'amount' => '150.00', 'date' => '2026-04-17', 'status' => 'Settled'],

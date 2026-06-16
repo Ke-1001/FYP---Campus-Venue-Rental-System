@@ -1,8 +1,8 @@
 <?php
-// Debug 注入：在頁面頂部執行此段代碼後，重新點擊刪除，查看跳轉後的頁面輸出
+// Debug: run this code at the top of the page, then click delete again to see posted data
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     echo "<pre>";
-    print_r($_POST); // 這將顯示前端送出了什麼變數名稱
+ print_r($_POST); // This shows the variable names sent by the frontend
     exit; 
 }
 ?>
@@ -25,10 +25,10 @@ use Core\Repositories\SemesterRepository;
 | I: Repository & Builder Instantiation
 |--------------------------------------------------------------------------
 */
-// 1. 實例化倉儲
+// 1. Create repository instance
 $semesterRepo = new SemesterRepository($conn);
 
-// 2. 建構過濾器矩陣
+// 2. Build filters
 $filterBuilder = new FilterBuilder('semester_management.php', true);
 $filterBuilder
     ->addField('text', 'filter_search', 'Search', [], 'e.g., 2610', 'sem_name', 'LIKE')
@@ -37,10 +37,10 @@ $filterBuilder
         '0' => 'Inactive Only'
     ], 'All Status', 'is_active', '=', true);
 
-// ∴ 3. 關鍵修正：必須先實例化 $gridBuilder，後續才能對其調用方法
+// 3. Important fix: create $gridBuilder first before calling its methods
 $gridBuilder = new DataGridBuilder('sem_id', '../actions/process_semester.php', 'semester');
 
-// ∴ 4. 領域對接：嚴格吻合 process_semester.php 中的 $_POST['selected_ids']
+// 4. Match $_POST['selected_ids'] in process_semester.php
 $gridBuilder->setCheckboxName('selected_ids'); 
 $gridBuilder->setCreateAction('add_semester.php', 'Create Semester');
 $gridBuilder->setRowActionUrl('add_semester.php?id=%s');
@@ -90,21 +90,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const confirmBtn = document.getElementById('custom-modal-confirm-btn');
     
     if (confirmBtn) {
-        // 1. 複製節點並替換：此舉將物理性抹除 datagrid_controller.php 綁定的錯誤監聽器
+ // 1. Clone and replace node to remove wrong listener from datagrid_controller.php
         const newConfirmBtn = confirmBtn.cloneNode(true);
         confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
 
-        // 2. 重新綁定絕對正確的提交流程
+ // 2. Bind the correct submit flow again
         newConfirmBtn.addEventListener('click', function() {
             const form = document.getElementById('bulkActionForm');
             const actionInput = document.getElementById('bulk_action_type');
             
             if (form && actionInput) {
-                actionInput.value = 'delete'; // ∴ 強制設定 action 變數，解決 Protocol 錯誤
+ actionInput.value = 'delete'; // Force action value to fix protocol error
                 this.innerHTML = 'Purging...';
                 this.disabled = true;
                 this.classList.add('opacity-70', 'cursor-not-allowed');
-                form.submit(); // 送出精準負載 (Payload)
+ form.submit(); // Submit exact payload (Payload)
             } else {
                 console.error("DOM Matrix Error: Form or Action Input missing.");
             }

@@ -14,9 +14,9 @@ $action = $_POST['action'] ?? '';
 switch ($action) {
     /*
     |--------------------------------------------------------------------------
-    | Flow A: Identity Status Synchronization (狀態機變更)
+ | Flow A: Identity Status Synchronization (status change)
     |--------------------------------------------------------------------------
-    | 處理來自 edit_student.php 的狀態變更請求
+ | Handle status change request from edit_student.php
     */
     case 'update_status':
         $uid = isset($_POST['uid']) ? trim($_POST['uid']) : '';
@@ -28,7 +28,7 @@ switch ($action) {
             exit();
         }
 
-        // ∴ 嚴格映射物理欄位 account_status
+ // Map to the account_status column
         $stmt = $conn->prepare("UPDATE user SET account_status = ? WHERE uid = ?");
         if ($stmt) {
             $stmt->bind_param("ss", $status, $uid);
@@ -44,12 +44,12 @@ switch ($action) {
 
     /*
     |--------------------------------------------------------------------------
-    | Flow B: Preemptive Bulk Delete Interception (硬性關係攔截)
+ | Flow B: Preemptive Bulk Delete Interception (strict related-record blocking)
     |--------------------------------------------------------------------------
-    | 阻止刪除存有預約向量的用戶，引導管理員實施狀態凍結
+ | Block deletion of users with bookings and ask admin to disable the account
     */
     case 'bulk_delete':
-        // DataGrid 預設傳遞的複選框陣列鍵值為 ids
+ // DataGrid default checkbox array key is ids
         $ids = $_POST['ids'] ?? [];
 
         if (empty($ids) || !is_array($ids)) {
@@ -63,7 +63,7 @@ switch ($action) {
             foreach ($ids as $uid) {
                 $uid = trim($uid);
                 
-                // 1. 關係拓撲校驗 (Relational Constraint Check)
+ // 1. Check related records (Relational Constraint Check)
                 $check_stmt = $conn->prepare("SELECT COUNT(*) AS booking_count FROM booking WHERE uid = ?");
                 $check_stmt->bind_param("s", $uid);
                 $check_stmt->execute();
@@ -71,11 +71,11 @@ switch ($action) {
                 $check_stmt->close();
 
                 if ($check_result['booking_count'] > 0) {
-                    // ∴ 觸發拓撲違例攔截，拋出錯誤訊息並回滾事務
+ // Show error and roll back when related records exist
                     throw new Exception("Failed to Delete: Student [UID: {$uid}] possesses active or historical booking records within the cluster. Physical erasure is denied. Please navigate to the Identity Profile Editor to safely transition their Account State to 'Restricted' instead.");
                 }
 
-                // 2. 若無關聯數據，則允許執行最小物理刪除
+ // 2. ifnorelated, thenAllowRunHard delete
                 $delete_stmt = $conn->prepare("DELETE FROM user WHERE uid = ?");
                 $delete_stmt->bind_param("s", $uid);
                 $delete_stmt->execute();
@@ -86,7 +86,7 @@ switch ($action) {
             $_SESSION['success'] = "Selected entity matrices purged successfully.";
         } catch (Exception $e) {
             $conn->rollback();
-            // 寫入 Session 錯誤緩衝區，格式化標記以供前端渲染引擎動態攔截
+ // Save error message in session for the frontend modal
             $_SESSION['error'] = $e->getMessage();
         }
 

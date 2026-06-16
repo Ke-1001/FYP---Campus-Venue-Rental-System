@@ -10,7 +10,7 @@ require_once __DIR__ . '/../core/components/FioriTileBuilder.php';
 use Core\Repositories\MetricsRepository;
 use Core\Components\FioriTileBuilder as TileBuilder;
 
-// ∴ 實例化全域分析倉儲
+// global
 $metricsRepo = new MetricsRepository($conn);
 $kpi = $metricsRepo->getDashboardKPIs();
 syncCompletedBookings($conn);
@@ -26,7 +26,7 @@ $topbar_content = '
 
 ob_start();
 
-// 模組 1: Booking Management
+// Module 1: Booking Management
 echo TileBuilder::renderSection('Booking Operations', 'Manage venue reservations, staff assignments, and financial tracking.', [
     [
         'url' => 'pending_requests.php', 'title' => 'Approval Queue', 'icon' => 'shield-alert',
@@ -46,7 +46,7 @@ echo TileBuilder::renderSection('Booking Operations', 'Manage venue reservations
     ]
 ]);
 
-// 模組 2: Venue Inspections
+// Module 2: Venue Inspections
 echo TileBuilder::renderSection('Post-Usage Inspections', 'Execute physical assessments and finalize deposit logistics.', [
     [
         'url' => 'pending_inspections.php', 'title' => 'Pending Queue', 'icon' => 'clipboard-list',
@@ -58,7 +58,7 @@ echo TileBuilder::renderSection('Post-Usage Inspections', 'Execute physical asse
     ]
 ]);
 
-// 模組 3: Asset & Academic Configuration
+// Module 3: Asset & Academic Configuration
 echo TileBuilder::renderSection('Assets & Academic Matrix', 'Configure physical spaces and temporal academic bounds.', [
     [
         'url' => 'manage_vcategory.php', 'title' => 'Venue Categories', 'icon' => 'tags',
@@ -78,7 +78,7 @@ echo TileBuilder::renderSection('Assets & Academic Matrix', 'Configure physical 
     ]
 ]);
 
-// 模組 4: Identity & Personnel (Super Admin only)
+// Module 4: Identity & Personnel (Super Admin only)
 if (($_SESSION['role'] ?? '') === 'super_admin') {
     echo TileBuilder::renderSection('Identity Directory', 'Manage system access for staff, administrators, and students.', [
         [
